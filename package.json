@@ -1,0 +1,36 @@
+{
+  "name": "dgame-monorepo",
+  "version": "0.0.0",
+  "description": "A Game",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "ldenv": "^0.3.12",
+    "set-defaults": "^0.0.5",
+    "syncpack": "^13.0.0",
+    "zellij-launcher": "^0.0.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "scripts": {
+    "prepare": "set-defaults .vscode",
+    "preinstall": "npx only-allow pnpm",
+    "---------------------- INSTALL ----------------------": "",
+    "sync-deps": "syncpack fix-mismatches && pnpm -r format:fix",
+    "---------------------- FORMAT ----------------------": "",
+    "format": "prettier --write . && pnpm -r format",
+    "format:check": "prettier --check . && pnpm -r format:check",
+    "---------------------- DEV ----------------------": "",
+    "web:dev": "ldenv pnpm --filter ./web dev",
+    "web:build": "ldenv pnpm --filter ./web build",
+    "---------------------- DEPLOY ----------------------": "",
+    "build": "pnpm build",
+    "serve": "pnpm run --filter ./web serve",
+    "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
+    "stop": "zellij kill-session $npm_package_name",
+    "start": "zellij-launcher --layout zellij.kdl a $npm_package_name || zellij --layout zellij.kdl -s $npm_package_name"
+  }
+}
