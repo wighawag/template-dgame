@@ -7,7 +7,7 @@
   "devDependencies": {
     "ldenv": "^0.3.12",
     "set-defaults": "^0.0.5",
-    "syncpack": "^13.0.0",
+    "syncpack": "^13.0.3",
     "zellij-launcher": "^0.0.1"
   },
   "pnpm": {
@@ -26,11 +26,15 @@
     "---------------------- DEV ----------------------": "",
     "web:dev": "ldenv pnpm --filter ./web dev",
     "web:build": "ldenv pnpm --filter ./web build",
+    "---------------------- SERVICES ----------------------": "",
+    "push-notification": "pnpm --filter ./services/push-notification dev",
+    "missiv": "pnpm --filter ./services/missiv dev",
     "---------------------- DEPLOY ----------------------": "",
     "build": "pnpm build",
     "serve": "pnpm run --filter ./web serve",
     "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
     "stop": "zellij kill-session $npm_package_name",
+    "start:pnpm": "pnpm -r dev",
     "start": "zellij-launcher --layout zellij.kdl a $npm_package_name || zellij --layout zellij.kdl -s $npm_package_name"
   }
 }

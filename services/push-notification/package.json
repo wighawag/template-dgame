@@ -1,0 +1,16 @@
+{
+  "name": "push-notification-service",
+  "devDependencies": {
+    "ldenv": "^0.3.10",
+    "push-notification-service-server": "^0.0.3",
+    "push-notification-service-server-cf-worker": "^0.0.3",
+    "set-defaults": "^0.0.5",
+    "wait-on": "^8.0.3",
+    "wrangler": "^4.2.0"
+  },
+  "scripts": {
+    "prepare": "set-defaults .",
+    "init:db": "wrangler d1 execute push-notification-db --local --file=./node_modules/push-notification-service-server/src/schema/sql/db.sql",
+    "TODO:dev": "pnpm init:db && wrangler dev -c ./wrangler.toml --port 34005"
+  }
+}

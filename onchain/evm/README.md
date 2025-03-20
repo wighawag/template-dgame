@@ -1,54 +1,97 @@
-# dgame evm contracts
+# A template for EVM-based smart contract development
 
-## Navigating the Project
+A template for developing EVM smart contract using hardhat (v3) and hardhat-deploy (v2)
 
-To get the most out of this example project, we recommend exploring the files in the following order:
+## How to use it?
 
-1. Read the `hardhat.config.ts` file, which contains the project configuration and explains multiple changes.
-2. Review the "Running Tests" section and explore the files in the `contracts/` and `test/` directories.
-3. Read the "Make a deployment to Sepolia" section and follow the instructions.
+### Compile your contracts
 
-Each file includes inline explanations of its purpose and highlights the changes and new features introduced in Hardhat 3.
+```bash
+pnpm compile
+```
 
-## Usage
+### Test your contracts
 
-### Running Tests
-
-To run all the tests in the project, execute the following command:
-
-```shell
+```bash
 pnpm test
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+This will test both solidity and node test (as hardhat v3 does)
 
-```shell
-pnpm test solidity
-pnpm test node
+### watch for changes and rebuild automatically
+
+```bash
+pnpm compile:watch
 ```
 
-### Make a deployment to Sepolia
+### deploy your contract
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+- on localhost
 
-To run the deployment to a local chain:
+  This assumes you have a local node running: `pnpm local_node`
 
-```shell
-pnpm contracts:deploy localhost
+  ```bash
+  pnpm run deploy localhost
+  ```
+
+- on a network of your choice
+
+  Just make sure you have your .env.local setup, see [.env](.env) or if you use hardhat secret store, configure it
+
+  ```bash
+  pnpm run deploy <network>
+  ```
+
+### execute scripts
+
+```bash
+pnpm execute <network name> scripts/setMessage.ts
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+or if you want to execute in a forked environment :
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+```bash
+pnpm fork:execute <network name> scripts/setMessage.ts "Hello world"
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+### zellij
 
-```shell
-pnpm contracts:deploy sepolia
+[zellij](https://zellij.dev/) is a useful multiplexer (think tmux) for which we have included a [layout file](./zellij.kdl) to get started
+
+Once installed simply run the following to get a local in-memory Ethereum node running along with the tests
+
+```bash
+pnpm start
 ```
+
+if you want to try Zellij without installing it, try this :
+
+```bash
+bash <(curl -L zellij.dev/launch) --layout zellij.kdl
+```
+
+In the shell in the upper pane, you execute the script as mentioned above
+
+```bash
+pnpm execute localhost scripts/setMessage.ts "Hello everyone"
+```
+
+## Initial Setup
+
+You need to have these installed
+
+- [nodejs](https://nodejs.org/en)
+
+- [pnpm](https://pnpm.io/)
+
+  ```bash
+  npm i -g pnpm
+  ```
+
+Then you need to install the local dependencies with the following command:
+
+```bash
+pnpm i
+```
+
+We also recommend installing [Zellij](https://zellij.dev/) to have your dev env setup in one go via `pnpm start`

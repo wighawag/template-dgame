@@ -1,0 +1,24 @@
+name = "missiv-server"
+main = "node_modules/missiv-server-cf-worker/src/worker.ts"
+compatibility_date = "2023-08-14"
+
+compatibility_flags = [ "nodejs_compat" ] # for node:async_hooks
+
+[observability.logs]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "missiv-db"
+database_id = "none"
+
+[durable_objects]
+bindings = [
+  { name = "ROOMS", class_name = "ServerObjectRoom" },
+  { name = "LIMITERS", class_name = "ServerObjectRateLimiter" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ServerObjectRoom", "ServerObjectRateLimiter"]
+
