@@ -28,7 +28,7 @@
 		<p>popup TODO</p>
 	</Modal>
 {:else if $connection.step === 'MechanismToChoose' || $connection.step === 'WalletToChoose'}
-	<Modal title="Connect" oncancel={() => connection.cancel()}>
+	<Modal title="Connect" oncancel={() => connection.cancel()} elementToFocus="ConnectionFlow_email">
 		{#if $connection.wallets.length > 0}
 			{#each $connection.wallets as wallet}
 				<button
@@ -53,7 +53,7 @@
 				})}>dev</button
 		>
 
-		<input bind:value={email} />
+		<input id="ConnectionFlow_email" bind:value={email} />
 		<button
 			onclick={() =>
 				connection.connect({

@@ -12,19 +12,29 @@
 		children?: Snippet;
 		title: string;
 		description?: string;
+		elementToFocus?: HTMLElement | string;
 	}
-	let { oncancel, children, title, description }: Props = $props();
+	let { oncancel, children, title, description, elementToFocus }: Props = $props();
 
 	let closeButton: HTMLButtonElement;
 
 	const service: Service = useMachine(machine, {
 		id: (++lastId).toString(),
-		// role: 'alertdialog',
+		role: 'alertdialog',
 		defaultOpen: true,
 		onOpenChange(details) {
 			oncancel && oncancel();
 		},
-		initialFocusEl: () => closeButton,
+		initialFocusEl: () => {
+			if (elementToFocus) {
+				if (typeof elementToFocus === 'string') {
+					return document.getElementById(elementToFocus);
+				}
+				return elementToFocus;
+			} else {
+				return oncancel ? closeButton : null;
+			}
+		},
 
 		onInteractOutside: (event) => {
 			event.preventDefault();
