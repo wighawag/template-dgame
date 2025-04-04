@@ -46,9 +46,7 @@
 		<div>
 			{@render children?.()}
 		</div>
-		{#if oncancel}
-			<button bind:this={closeButton} onclick={oncancel}>Close</button>
-		{/if}
+		<button hidden={!oncancel} bind:this={closeButton} onclick={oncancel}>Close</button>
 	</div>
 </div>
 
