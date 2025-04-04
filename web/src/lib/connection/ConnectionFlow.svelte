@@ -28,7 +28,7 @@
 		<p>popup TODO</p>
 	</Modal>
 {:else if $connection.step === 'MechanismToChoose' || $connection.step === 'WalletToChoose'}
-	<Modal title="Connect ">
+	<Modal title="Connect" oncancel={() => connection.cancel()}>
 		{#if $connection.wallets.length > 0}
 			{#each $connection.wallets as wallet}
 				<button
