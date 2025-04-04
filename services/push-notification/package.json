@@ -1,5 +1,6 @@
 {
   "name": "push-notification-service",
+  "private": true,
   "devDependencies": {
     "ldenv": "^0.3.10",
     "push-notification-service-server": "^0.0.3",
