@@ -27,7 +27,8 @@
 		initialFocusEl: () => closeButton,
 
 		onInteractOutside: (event) => {
-			// event.preventDefault();
+			event.preventDefault();
+			oncancel && oncancel();
 		}
 	});
 	const api: Api = $derived(connect(service, normalizeProps));
@@ -45,7 +46,9 @@
 		<div>
 			{@render children?.()}
 		</div>
-		<button bind:this={closeButton} onclick={oncancel}>Close</button>
+		{#if oncancel}
+			<button bind:this={closeButton} onclick={oncancel}>Close</button>
+		{/if}
 	</div>
 </div>
 
