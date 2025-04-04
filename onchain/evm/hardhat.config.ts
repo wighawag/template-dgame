@@ -1,15 +1,15 @@
-import {HardhatUserConfig, configVariable} from 'hardhat/config';
+import {HardhatUserConfig} from 'hardhat/config';
 
 import HardhatNodeTestRunner from '@nomicfoundation/hardhat-node-test-runner';
 import HardhatViem from '@nomicfoundation/hardhat-viem';
 import HardhatNetworkHelpers from '@nomicfoundation/hardhat-network-helpers';
 import HardhatKeystore from '@nomicfoundation/hardhat-keystore';
 
-import Rocketh from 'hardhat-deploy';
+import HardhatDeploy from 'hardhat-deploy';
 import {addForkConfiguration, addNetworksFromEnv} from 'hardhat-deploy/helpers';
 
 const config: HardhatUserConfig = {
-	plugins: [HardhatNodeTestRunner, HardhatViem, HardhatNetworkHelpers, HardhatKeystore, Rocketh],
+	plugins: [HardhatNodeTestRunner, HardhatViem, HardhatNetworkHelpers, HardhatKeystore, HardhatDeploy],
 	solidity: {
 		profiles: {
 			default: {
@@ -41,8 +41,8 @@ const config: HardhatUserConfig = {
 		// this add network for each respective env var found (ETH_NODE_URI_<network>)
 		// it will also read MNEMONIC_<network> to populate the accounts
 		// Note that if you set these env to be "SECRET" it will be like using:
-		//  configVariable('ETH_NODE_URI_<network>')
-		//  configVariable('MNEMONIC_<network>')
+		//  configVariable('SECRET_ETH_NODE_URI_<network>')
+		//  configVariable('SECRET_MNEMONIC_<network>')
 		addNetworksFromEnv({
 			hardhatMainnet: {
 				type: 'edr',
