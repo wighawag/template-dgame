@@ -58,6 +58,18 @@
          Since modal prevent interaction, we can keep the button enabled
          But ideally if we could solve it in a better way that would be better -->
 		<!--  disabled={$connection.step != 'Idle'} -->
+		<!-- alternative: delay the disabled state-->
+		<!-- you can do with the following -->
+		<!-- import { tick } from 'svelte';
+
+           let disabled = $state(false);
+           $effect(() => {
+               if ($connection.step) {
+                   tick().then(() => {
+                       disabled = $connection.step != 'Idle';
+                   });
+               }
+           }); -->
 		<button onclick={() => connection.connect()}>connect</button>
 	{/if}
 </div>
