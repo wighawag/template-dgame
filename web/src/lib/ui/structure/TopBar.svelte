@@ -8,14 +8,8 @@
 <div class="menu">
 	<!-- TODO top panel -->
 
-	{#if $connection.step === 'Idle'}
-		{#if $connection.loading}
-			loading...
-		{:else}
-			<button onclick={() => connection.connect()}>connect</button>
-		{/if}
-		<!-- {:else if $connection.step === 'WalletConnected'}
-		<p>{$connection.step}</p> -->
+	{#if $connection.step === 'Idle' && $connection.loading}
+		loading...
 	{:else if $connection.step === 'SignedIn'}
 		you are signed-in: {$connection.account.address}
 
@@ -59,6 +53,12 @@
 		{/if}
 
 		<ImgBlockie address={$connection.account.address} style="width: 24px; height: 24px;" />
+	{:else}
+		<!-- if we use disblaed here, the modal would not be able to bring focus back to the button
+         Since modal prevent interaction, we can keep the button enabled
+         But ideally if we could solve it in a better way that would be better -->
+		<!--  disabled={$connection.step != 'Idle'} -->
+		<button onclick={() => connection.connect()}>connect</button>
 	{/if}
 </div>
 

@@ -25,6 +25,8 @@
 		onOpenChange(details) {
 			oncancel && oncancel();
 		},
+		finalFocusEl: () => document.querySelector(':focus-visible'),
+		restoreFocus: true,
 		initialFocusEl: () => {
 			if (elementToFocus) {
 				if (typeof elementToFocus === 'string') {

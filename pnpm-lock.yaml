@@ -147,8 +147,8 @@ importers:
   web:
     dependencies:
       '@etherplay/connect':
-        specifier: ^0.0.22
-        version: 0.0.22(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/node@22.14.0)(bufferutil@4.0.9)(react@18.2.0)(svelte@5.25.6)(terser@5.39.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
+        specifier: ^0.0.23
+        version: 0.0.23(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/node@22.14.0)(bufferutil@4.0.9)(react@18.2.0)(svelte@5.25.6)(terser@5.39.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@zag-js/dialog':
         specifier: ^1.8.1
         version: 1.8.1
@@ -1561,8 +1561,8 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
 
-  '@etherplay/connect@0.0.22':
-    resolution: {integrity: sha512-sKwoPV/TxMFpzbjQuHDrZZOX/YI6RO3sAJ5/4tFGCbST/zVKMcZBSA3k/NleIKyO6UoNp5uIV9trPQgYlnJcTQ==}
+  '@etherplay/connect@0.0.23':
+    resolution: {integrity: sha512-wdbh0T2RUBadQDQrb6IEFwQzco2WfmCJslCecLnyeRMS4seIlx/ZKiSjtBmA3CSGiKsKzMFUpWQ+GE4BoERBnw==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -7166,7 +7166,7 @@ snapshots:
       - utf-8-validate
       - viem
 
-  '@etherplay/connect@0.0.22(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/node@22.14.0)(bufferutil@4.0.9)(react@18.2.0)(svelte@5.25.6)(terser@5.39.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
+  '@etherplay/connect@0.0.23(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/node@22.14.0)(bufferutil@4.0.9)(react@18.2.0)(svelte@5.25.6)(terser@5.39.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
     dependencies:
       '@account-kit/signer': 4.22.0(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(bufferutil@4.0.9)(react@18.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@etherplay/alchemy': 0.0.10(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(bufferutil@4.0.9)(react@18.2.0)(svelte@5.25.6)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.25.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
