@@ -1,17 +1,27 @@
-<script lang="ts">
+<script lang="ts" generics="ViewState extends any">
 	import { onMount } from 'svelte';
+	import type { Readable } from 'svelte/store';
+	import { WebGLRenderer } from './WebGLRenderer';
+	import type { Camera } from './camera';
 
-	// let renderer: WebGLRenderer = new WebGLRenderer();
+	interface Props {
+		viewState: Readable<ViewState>;
+		renderer: WebGLRenderer<ViewState>;
+		camera: Camera;
+	}
+
+	let { renderer, camera, viewState }: Props = $props();
+
 	function render(time: number) {
-		// renderer.render(time);
+		renderer.render(time);
 		animationFrameID = requestAnimationFrame(render);
 	}
 
 	let animationFrameID: number;
 	let unsubscribeFromCamera: () => void;
-	let unsubscribeFromState: () => void;
+	let unsubscribeFromViewState: () => void;
 
-	let error: string | undefined;
+	let error: string | undefined = $state(undefined);
 	onMount(() => {
 		const canvas = document.querySelector('#world-map') as HTMLCanvasElement;
 
@@ -27,27 +37,27 @@
 			throw new Error(error);
 		}
 
-		// renderer.initialize(canvas, gl);
+		renderer.initialize(canvas, gl);
 
-		// camera.start(canvas, renderer);
-		// unsubscribeFromCamera = camera.subscribe((v) => renderer.updateView(v));
+		camera.start(canvas, renderer);
+		unsubscribeFromCamera = camera.subscribe((v) => renderer.updateView(v));
 
 		// const actionHandler = new ActionHandler();
 		// camera.onClick = (x, y) => {
 		// 	actionHandler.onCellClicked(Math.floor(x), Math.floor(y));
 		// };
 
-		// unsubscribeFromState = state.subscribe(($state) => {
-		// 	renderer.updateState($state);
-		// });
+		unsubscribeFromViewState = viewState.subscribe(($viewState) => {
+			renderer.updateState($viewState);
+		});
 
 		animationFrameID = requestAnimationFrame(render);
 
 		return () => {
-			// camera.stop();
+			camera.stop();
 			cancelAnimationFrame(animationFrameID);
-			// unsubscribeFromCamera();
-			// unsubscribeFromState();
+			unsubscribeFromCamera();
+			unsubscribeFromViewState();
 		};
 	});
 </script>
@@ -61,7 +71,7 @@
 
 <style>
 	canvas {
-		background-color: #5c699f;
+		background-color: var(--canvas-bg-color, black);
 		position: absolute;
 		width: 100%;
 		height: 100%;

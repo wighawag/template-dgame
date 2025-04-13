@@ -1,6 +1,6 @@
 export default {
   "chainId": "31337",
-  "genesisHash": "0x821a8bae95f5939b916333e83e03bf8f14c9f1792b62026a69f76f186714816c",
+  "genesisHash": "0xce810cffd6011cca892a6bd773ba89558384ae45c15d1ebe784e14038039a2e2",
   "chainInfo": {
     "id": 31337,
     "name": "Hardhat",

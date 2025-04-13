@@ -5,14 +5,14 @@
 	"type": "module",
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.20.4",
+		"@sveltejs/kit": "^2.20.5",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
-		"svelte": "^5.25.6",
+		"svelte": "^5.26.1",
 		"svelte-check": "^4.1.5",
-		"typescript": "^5.0.0",
-		"vite": "^6.2.5"
+		"typescript": "^5.8.3",
+		"vite": "^6.2.6"
 	},
 	"scripts": {
 		"prepare": "svelte-kit sync || echo 'READY'",
@@ -26,9 +26,10 @@
 	},
 	"dependencies": {
 		"@etherplay/connect": "^0.0.23",
-		"@zag-js/dialog": "^1.8.1",
-		"@zag-js/svelte": "^1.8.1",
+		"@zag-js/dialog": "^1.9.3",
+		"@zag-js/svelte": "^1.9.3",
 		"eip-1193": "^0.6.3",
-		"viem": "^2.25.0"
+		"twgl.js": "^5.5.4",
+		"viem": "^2.26.3"
 	}
 }
