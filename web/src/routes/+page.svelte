@@ -1,9 +1,10 @@
 <script lang="ts">
 	import ConnectionFlow from '$lib/connection/ConnectionFlow.svelte';
-	import WebGlCanvas from '$lib/utils/render/WebGLCanvas.svelte';
 	import TopBar from '$lib/ui/structure/TopBar.svelte';
+	import PixiCanvas from '$lib/render/PixiCanvas.svelte';
 
-	import { viewState, camera, renderer } from '$lib/view';
+	// TODO:
+	import { viewState } from '$lib/view';
 </script>
 
 <main>
@@ -15,7 +16,7 @@
 <ConnectionFlow />
 
 <div class="canvas">
-	<WebGlCanvas {viewState} {camera} {renderer} />
+	<PixiCanvas />
 </div>
 
 <style>

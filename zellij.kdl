@@ -12,8 +12,11 @@ layout {
 	}
 
 	pane split_direction="vertical" {
-		pane name="local node" command="anvil"  {
-			args "--block-time" "1"
+		// pane name="local node" command="anvil"  {
+		// 	args "--block-time" "1"
+		// }
+		pane name="local node" command="pnpm"  {
+			args "--filter" "./onchain/evm" "local_node"
 		}
 		pane name="watch and compile" command="pnpm"  {
 			args "--filter" "./onchain/evm" "compile:watch"

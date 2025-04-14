@@ -26,9 +26,12 @@
 	},
 	"dependencies": {
 		"@etherplay/connect": "^0.0.23",
+		"@pixi/devtools": "^2.0.1",
 		"@zag-js/dialog": "^1.9.3",
 		"@zag-js/svelte": "^1.9.3",
 		"eip-1193": "^0.6.3",
+		"pixi-viewport": "^6.0.3",
+		"pixi.js": "^8.9.1",
 		"twgl.js": "^5.5.4",
 		"viem": "^2.26.3"
 	}
