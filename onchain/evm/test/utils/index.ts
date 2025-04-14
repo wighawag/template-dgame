@@ -1,4 +1,4 @@
-import {Abi_GreetingsRegistry} from '@generated/types/GreetingsRegistry.js';
+import {Abi_Game} from '@generated/types/Game.js';
 import {loadAndExecuteDeployments} from '@rocketh';
 import {EthereumProvider} from 'hardhat/types/providers';
 
@@ -9,11 +9,9 @@ export function setupFixtures(provider: EthereumProvider) {
 				provider: provider,
 			});
 
-			// Deployment are inherently untyped since they can vary from network or even before different from current artifacts
-			// so here we type them manually assuming the artifact is still matching
-			const GreetingsRegistry = env.get<Abi_GreetingsRegistry>('GreetingsRegistry');
+			const Game = env.get<Abi_Game>('Game');
 
-			return {env, GreetingsRegistry, namedAccounts: env.namedAccounts, unnamedAccounts: env.unnamedAccounts};
+			return {env, Game, namedAccounts: env.namedAccounts, unnamedAccounts: env.unnamedAccounts};
 		},
 	};
 }

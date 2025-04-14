@@ -1,6 +1,6 @@
 export default {
   "chainId": "31337",
-  "genesisHash": "0xce810cffd6011cca892a6bd773ba89558384ae45c15d1ebe784e14038039a2e2",
+  "genesisHash": "0x56ef20864f06906db2c8dcdad4439110a545f3a1e33f55da95a188196fc61ca8",
   "chainInfo": {
     "id": 31337,
     "name": "Hardhat",
@@ -19,147 +19,57 @@ export default {
     "chainType": "default"
   },
   "contracts": {
-    "GreetingsRegistry": {
+    "Game": {
       "abi": [
         {
-          "inputs": [
-            {
-              "internalType": "string",
-              "name": "prefix",
-              "type": "string"
-            }
-          ],
+          "inputs": [],
           "stateMutability": "nonpayable",
           "type": "constructor"
         },
         {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "internalType": "address",
-              "name": "user",
-              "type": "address"
-            },
-            {
-              "indexed": false,
-              "internalType": "string",
-              "name": "message",
-              "type": "string"
-            }
-          ],
-          "name": "MessageChanged",
-          "type": "event"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ],
-          "name": "messages",
-          "outputs": [
-            {
-              "internalType": "string",
-              "name": "",
-              "type": "string"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "string",
-              "name": "message",
-              "type": "string"
-            }
-          ],
-          "name": "setMessage",
+          "inputs": [],
+          "name": "commit",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getCharactersInZone",
+          "outputs": [],
+          "stateMutability": "view",
+          "type": "function"
         }
       ],
-      "address": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-      "linkedData": {
-        "prefix": "proxy:",
-        "admin": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
-      },
-      "startBlock": 6
+      "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+      "startBlock": 9
     },
-    "GreetingsRegistry_Implementation": {
+    "Game_Implementation": {
       "abi": [
         {
-          "inputs": [
-            {
-              "internalType": "string",
-              "name": "prefix",
-              "type": "string"
-            }
-          ],
+          "inputs": [],
           "stateMutability": "nonpayable",
           "type": "constructor"
         },
         {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "internalType": "address",
-              "name": "user",
-              "type": "address"
-            },
-            {
-              "indexed": false,
-              "internalType": "string",
-              "name": "message",
-              "type": "string"
-            }
-          ],
-          "name": "MessageChanged",
-          "type": "event"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ],
-          "name": "messages",
-          "outputs": [
-            {
-              "internalType": "string",
-              "name": "",
-              "type": "string"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "string",
-              "name": "message",
-              "type": "string"
-            }
-          ],
-          "name": "setMessage",
+          "inputs": [],
+          "name": "commit",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getCharactersInZone",
+          "outputs": [],
+          "stateMutability": "view",
+          "type": "function"
         }
       ],
-      "address": "0xdc456bfee5f41163c7b1eb12921ce2d6a5f10188",
-      "startBlock": 6
+      "address": "0x5ee11aaf8387c503c2db8773bee9706376ebc0a7",
+      "startBlock": 9
     },
-    "GreetingsRegistry_Proxy": {
+    "Game_Proxy": {
       "abi": [
         {
           "inputs": [
@@ -305,8 +215,8 @@ export default {
           "type": "receive"
         }
       ],
-      "address": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-      "startBlock": 7
+      "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+      "startBlock": 4
     }
   },
   "name": "localhost"
