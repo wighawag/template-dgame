@@ -25,7 +25,12 @@
 		initDevtools({ app });
 
 		let initialised = false;
-		const appInitialising = app.init({ resizeTo: canvas, canvas });
+		const appInitialising = app.init({
+			resizeTo: canvas,
+			canvas,
+			backgroundAlpha: 1,
+			backgroundColor: 'black'
+		});
 		appInitialising.then(() => {
 			initialised = true;
 			// create viewport
