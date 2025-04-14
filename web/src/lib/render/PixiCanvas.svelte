@@ -24,6 +24,8 @@
 		function resizeViewport() {
 			viewport && viewport.resize();
 		}
+		const sizeObserver = new ResizeObserver(resizeViewport);
+		sizeObserver.observe(canvas);
 		console.log(`Mounting PixiCanvas......`);
 		const app = new Application();
 		initDevtools({ app });
@@ -42,8 +44,6 @@
 				events: app.renderer.events, // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
 				allowPreserveDragOutside: true
 			});
-			(globalThis as any).viewport = viewport;
-			window.addEventListener('resize', resizeViewport);
 			viewport.moveCenter(0, 0);
 
 			// add the viewport to the stage
@@ -100,7 +100,7 @@
 		});
 
 		return () => {
-			window.removeEventListener('resize', resizeViewport);
+			sizeObserver.disconnect();
 			console.log(`Unmounting PixiCanvas...`);
 			if (initialised) {
 				console.log(`destroying Pixi Application...`);
