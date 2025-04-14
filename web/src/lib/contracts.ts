@@ -22,13 +22,209 @@ export default {
     "Game": {
       "abi": [
         {
-          "inputs": [],
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "commitPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "revealPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "contract ITime",
+                  "name": "time",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Config",
+              "name": "config",
+              "type": "tuple"
+            }
+          ],
           "stateMutability": "nonpayable",
           "type": "constructor"
         },
         {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "AvatarIsDead",
+          "type": "error"
+        },
+        {
           "inputs": [],
-          "name": "commit",
+          "name": "CanStillReveal",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "CommitmentHashNotMatching",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "GameNotStarted",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "ImpossibleConfiguration",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InCommitmentPhase",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InRevealPhase",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InvalidEpoch",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "NothingToReveal",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "PreviousCommitmentNotRevealed",
+          "type": "error"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            }
+          ],
+          "name": "CommitmentCancelled",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            },
+            {
+              "indexed": false,
+              "internalType": "bytes24",
+              "name": "commitmentHash",
+              "type": "bytes24"
+            }
+          ],
+          "name": "CommitmentMade",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            },
+            {
+              "indexed": true,
+              "internalType": "bytes24",
+              "name": "commitmentHash",
+              "type": "bytes24"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint64[]",
+                  "name": "path",
+                  "type": "uint64[]"
+                },
+                {
+                  "internalType": "enum UsingGameTypes.ActionType",
+                  "name": "actionType",
+                  "type": "uint8"
+                }
+              ],
+              "indexed": false,
+              "internalType": "struct UsingGameTypes.Action[]",
+              "name": "actions",
+              "type": "tuple[]"
+            }
+          ],
+          "name": "CommitmentRevealed",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            }
+          ],
+          "name": "CommitmentVoid",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "avatarIDs",
+              "type": "uint256[]"
+            }
+          ],
+          "name": "cancelCommitments",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
@@ -38,22 +234,254 @@ export default {
           "name": "getCharactersInZone",
           "outputs": [],
           "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "avatarID",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes24",
+                  "name": "hash",
+                  "type": "bytes24"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.CommitmentSubmission[]",
+              "name": "commitments",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address payable",
+              "name": "payee",
+              "type": "address"
+            }
+          ],
+          "name": "makeCommitments",
+          "outputs": [],
+          "stateMutability": "payable",
           "type": "function"
         }
       ],
       "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
-      "startBlock": 9
+      "linkedData": {
+        "startTime": "0",
+        "commitPhaseDuration": "11",
+        "revealPhaseDuration": "5",
+        "time": "0x0000000000000000000000000000000000000000"
+      },
+      "startBlock": 11
     },
     "Game_Implementation": {
       "abi": [
         {
-          "inputs": [],
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "commitPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "revealPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "contract ITime",
+                  "name": "time",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Config",
+              "name": "config",
+              "type": "tuple"
+            }
+          ],
           "stateMutability": "nonpayable",
           "type": "constructor"
         },
         {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "AvatarIsDead",
+          "type": "error"
+        },
+        {
           "inputs": [],
-          "name": "commit",
+          "name": "CanStillReveal",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "CommitmentHashNotMatching",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "GameNotStarted",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "ImpossibleConfiguration",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InCommitmentPhase",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InRevealPhase",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "InvalidEpoch",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "NothingToReveal",
+          "type": "error"
+        },
+        {
+          "inputs": [],
+          "name": "PreviousCommitmentNotRevealed",
+          "type": "error"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            }
+          ],
+          "name": "CommitmentCancelled",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            },
+            {
+              "indexed": false,
+              "internalType": "bytes24",
+              "name": "commitmentHash",
+              "type": "bytes24"
+            }
+          ],
+          "name": "CommitmentMade",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            },
+            {
+              "indexed": true,
+              "internalType": "bytes24",
+              "name": "commitmentHash",
+              "type": "bytes24"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint64[]",
+                  "name": "path",
+                  "type": "uint64[]"
+                },
+                {
+                  "internalType": "enum UsingGameTypes.ActionType",
+                  "name": "actionType",
+                  "type": "uint8"
+                }
+              ],
+              "indexed": false,
+              "internalType": "struct UsingGameTypes.Action[]",
+              "name": "actions",
+              "type": "tuple[]"
+            }
+          ],
+          "name": "CommitmentRevealed",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            }
+          ],
+          "name": "CommitmentVoid",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "avatarIDs",
+              "type": "uint256[]"
+            }
+          ],
+          "name": "cancelCommitments",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
@@ -64,10 +492,40 @@ export default {
           "outputs": [],
           "stateMutability": "view",
           "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "avatarID",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes24",
+                  "name": "hash",
+                  "type": "bytes24"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.CommitmentSubmission[]",
+              "name": "commitments",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address payable",
+              "name": "payee",
+              "type": "address"
+            }
+          ],
+          "name": "makeCommitments",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
         }
       ],
-      "address": "0x5ee11aaf8387c503c2db8773bee9706376ebc0a7",
-      "startBlock": 9
+      "address": "0x16284aa178fa5992f1a3d0f74ccae0e7685bda7d",
+      "startBlock": 11
     },
     "Game_Proxy": {
       "abi": [
