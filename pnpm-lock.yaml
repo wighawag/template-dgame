@@ -54,8 +54,8 @@ importers:
         specifier: ^0.11.18
         version: 0.11.18(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@rocketh/router':
-        specifier: ^0.11.19
-        version: 0.11.19(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+        specifier: ^0.11.20
+        version: 0.11.20(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@rocketh/verifier':
         specifier: ^0.11.17
         version: 0.11.17(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))
@@ -2423,8 +2423,8 @@ packages:
     peerDependencies:
       rocketh: 0.11.17
 
-  '@rocketh/router@0.11.19':
-    resolution: {integrity: sha512-L69B2jPCVd9wxMM8EEGeiv4qm/D4X91Iiy59B/qR+Nre9xUM84EsOvwH88BOuX6k5oFYowFD3/gqbTHLQOdxbw==}
+  '@rocketh/router@0.11.20':
+    resolution: {integrity: sha512-6Joj1JhAHd9TQduAKq7h3r6mT15ppsgidNg4NKW/qiuStGPRTknwOVJh8QXdCfSBwo8vUcv4Km/OZvdRMjRVig==}
     peerDependencies:
       '@rocketh/deploy': 0.11.17
       rocketh: 0.11.17
@@ -8300,7 +8300,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/router@0.11.19(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)':
+  '@rocketh/router@0.11.20(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
       '@rocketh/deploy': 0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
       ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)

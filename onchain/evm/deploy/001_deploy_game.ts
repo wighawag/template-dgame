@@ -1,6 +1,5 @@
 import {Abi_IGame} from '@generated/types/IGame.js';
 import {execute, artifacts} from '@rocketh';
-import {Deployment} from 'rocketh';
 import {zeroAddress} from 'viem';
 
 export default execute(
@@ -14,12 +13,10 @@ export default execute(
 			time: zeroAddress,
 		};
 
-		const args = [config] as const;
-
 		const routes = [
-			{name: 'Getters', artifact: artifacts.GameGetters, args, account: deployer},
-			{name: 'Commit', artifact: artifacts.GameCommit, args, account: deployer},
-			{name: 'Reveal', artifact: artifacts.GameReveal, args, account: deployer},
+			{name: 'Getters', artifact: artifacts.GameGetters, args: [config]},
+			{name: 'Commit', artifact: artifacts.GameCommit, args: [config]},
+			{name: 'Reveal', artifact: artifacts.GameReveal, args: [config]},
 		];
 
 		const Game = await deployViaProxy<Abi_IGame>(
