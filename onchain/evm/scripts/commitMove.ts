@@ -1,11 +1,11 @@
+import {Abi_IGame} from '@generated/types/IGame.js';
 import hre from 'hardhat';
 import {loadEnvironmentFromHardhat} from 'hardhat-deploy/helpers';
-import {Abi_Game} from '@generated/types/Game.js';
 import {zeroAddress} from 'viem';
 
 async function main() {
 	const env = await loadEnvironmentFromHardhat({hre});
-	const Game = env.get<Abi_Game>('Game');
+	const Game = env.get<Abi_IGame>('Game');
 
 	const before_characters = await env.read(Game, {
 		functionName: 'getCharactersInZone',
