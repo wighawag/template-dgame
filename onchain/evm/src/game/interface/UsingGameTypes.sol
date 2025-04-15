@@ -19,6 +19,13 @@ interface UsingGameTypes {
         ActionType actionType;
     }
 
+    /// @notice Move struct that define position and actions for one avatar
+    struct AvatarMove {
+        uint256 avatarID;
+        Action[] actions;
+        bytes32 secret;
+    }
+
     struct AvatarResolved {
         uint64 position;
     }

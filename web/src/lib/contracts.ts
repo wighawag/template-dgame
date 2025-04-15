@@ -224,15 +224,120 @@ export default {
               "type": "uint256[]"
             }
           ],
+          "name": "acknowledgeMissedReveals",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "avatarIDs",
+              "type": "uint256[]"
+            }
+          ],
           "name": "cancelCommitments",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
         },
         {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "getAvatar",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint64",
+                  "name": "position",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.AvatarResolved",
+              "name": "",
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
           "inputs": [],
           "name": "getCharactersInZone",
           "outputs": [],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "getCommitment",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "bytes24",
+                  "name": "hash",
+                  "type": "bytes24"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "epoch",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Commitment",
+              "name": "commitment",
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getConfig",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "commitPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "revealPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "contract ITime",
+                  "name": "time",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Config",
+              "name": "config",
+              "type": "tuple"
+            }
+          ],
           "stateMutability": "view",
           "type": "function"
         },
@@ -265,6 +370,53 @@ export default {
           "outputs": [],
           "stateMutability": "payable",
           "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "avatarID",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint64[]",
+                      "name": "path",
+                      "type": "uint64[]"
+                    },
+                    {
+                      "internalType": "enum UsingGameTypes.ActionType",
+                      "name": "actionType",
+                      "type": "uint8"
+                    }
+                  ],
+                  "internalType": "struct UsingGameTypes.Action[]",
+                  "name": "actions",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "secret",
+                  "type": "bytes32"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.AvatarMove[]",
+              "name": "moves",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address payable",
+              "name": "payee",
+              "type": "address"
+            }
+          ],
+          "name": "reveal",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
         }
       ],
       "address": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
@@ -274,7 +426,7 @@ export default {
         "revealPhaseDuration": "5",
         "time": "0x0000000000000000000000000000000000000000"
       },
-      "startBlock": 11
+      "startBlock": 13
     },
     "Game_Implementation": {
       "abi": [
@@ -481,15 +633,120 @@ export default {
               "type": "uint256[]"
             }
           ],
+          "name": "acknowledgeMissedReveals",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "avatarIDs",
+              "type": "uint256[]"
+            }
+          ],
           "name": "cancelCommitments",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
         },
         {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "getAvatar",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint64",
+                  "name": "position",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.AvatarResolved",
+              "name": "",
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
           "inputs": [],
           "name": "getCharactersInZone",
           "outputs": [],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            }
+          ],
+          "name": "getCommitment",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "bytes24",
+                  "name": "hash",
+                  "type": "bytes24"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "epoch",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Commitment",
+              "name": "commitment",
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getConfig",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "commitPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "revealPhaseDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "contract ITime",
+                  "name": "time",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.Config",
+              "name": "config",
+              "type": "tuple"
+            }
+          ],
           "stateMutability": "view",
           "type": "function"
         },
@@ -522,10 +779,57 @@ export default {
           "outputs": [],
           "stateMutability": "payable",
           "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "avatarID",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint64[]",
+                      "name": "path",
+                      "type": "uint64[]"
+                    },
+                    {
+                      "internalType": "enum UsingGameTypes.ActionType",
+                      "name": "actionType",
+                      "type": "uint8"
+                    }
+                  ],
+                  "internalType": "struct UsingGameTypes.Action[]",
+                  "name": "actions",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "secret",
+                  "type": "bytes32"
+                }
+              ],
+              "internalType": "struct UsingGameTypes.AvatarMove[]",
+              "name": "moves",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address payable",
+              "name": "payee",
+              "type": "address"
+            }
+          ],
+          "name": "reveal",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
         }
       ],
-      "address": "0x16284aa178fa5992f1a3d0f74ccae0e7685bda7d",
-      "startBlock": 11
+      "address": "0x0c80c0cde0c2d38669e55c0b963c478944f1ca73",
+      "startBlock": 13
     },
     "Game_Proxy": {
       "abi": [
