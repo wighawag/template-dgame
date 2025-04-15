@@ -42,6 +42,7 @@ export const config = {
 import '@rocketh/deploy'; // this one provide a deploy function
 import '@rocketh/read-execute'; // this one provide read,execute functions
 import '@rocketh/proxy'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
+import '@rocketh/router'; // this one provide a mechanism to deploy immutable router
 // ------------------------------------------------------------------------------------------------
 // we re-export the artifacts, so they are easily available from the alias
 import artifacts from './generated/artifacts.js';

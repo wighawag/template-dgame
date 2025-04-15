@@ -1,8 +1,10 @@
+import {Abi_IGame} from '@generated/types/IGame.js';
 import {execute, artifacts} from '@rocketh';
+import {Deployment} from 'rocketh';
 import {zeroAddress} from 'viem';
 
 export default execute(
-	async ({deployViaProxy, namedAccounts}) => {
+	async ({deployViaProxy, deployViaRouter, namedAccounts}) => {
 		const {deployer, admin} = namedAccounts;
 
 		const config = {
@@ -11,11 +13,22 @@ export default execute(
 			revealPhaseDuration: 5n,
 			time: zeroAddress,
 		};
-		await deployViaProxy(
+
+		const args = [config] as const;
+
+		const routes = [
+			{name: 'Getters', artifact: artifacts.GameGetters, args, account: deployer},
+			{name: 'Commit', artifact: artifacts.GameCommit, args, account: deployer},
+			{name: 'Reveal', artifact: artifacts.GameReveal, args, account: deployer},
+		];
+
+		const Game = await deployViaProxy<Abi_IGame>(
 			'Game',
 			{
 				account: deployer,
-				artifact: artifacts.Game,
+				artifact: (name, params) => {
+					return deployViaRouter<Abi_IGame>(name, params, routes);
+				},
 				args: [config],
 			},
 			{

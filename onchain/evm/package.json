@@ -14,6 +14,7 @@
 		"@rocketh/export": "^0.11.17",
 		"@rocketh/proxy": "^0.11.20",
 		"@rocketh/read-execute": "^0.11.18",
+		"@rocketh/router": "^0.11.19",
 		"@rocketh/verifier": "^0.11.17",
 		"@types/node": "^22.14.1",
 		"as-soon": "^0.0.11",

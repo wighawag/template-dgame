@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interface/UsingGameTypes.sol";
+import "../interfaces/UsingGameTypes.sol";
 import "./UsingVirtualTime.sol";
 
 abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
@@ -21,7 +21,7 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
 
     /// @notice Create an instance of a game
     /// @param config configuration options for the game
-    constructor(Config memory config) UsingVirtualTime(config) {
+    constructor(Config memory config) UsingVirtualTime(config.time) {
         START_TIME = config.startTime;
         COMMIT_PHASE_DURATION = config.commitPhaseDuration;
         REVEAL_PHASE_DURATION = config.revealPhaseDuration;

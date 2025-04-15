@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import "../interface/UsingGameTypes.sol";
+import "solidity-kit/solc_0_8/debug/time/interfaces/ITime.sol";
 
 abstract contract UsingVirtualTime {
-    // TODO use hardhat-preprocessor
-
     ITime immutable TIME;
 
-    constructor(UsingGameTypes.Config memory config) {
-        TIME = config.time;
+    constructor(ITime time) {
+        TIME = time;
     }
 
     function _timestamp() internal view returns (uint256) {

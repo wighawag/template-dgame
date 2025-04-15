@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./UsingGameStore.sol";
-import "../interface/UsingGameEvents.sol";
-import "../interface/UsingGameErrors.sol";
+import "../interfaces/UsingGameEvents.sol";
+import "../interfaces/UsingGameErrors.sol";
 import "../../utils/PositionUtils.sol";
 
 abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {

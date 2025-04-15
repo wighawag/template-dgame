@@ -53,6 +53,9 @@ importers:
       '@rocketh/read-execute':
         specifier: ^0.11.18
         version: 0.11.18(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+      '@rocketh/router':
+        specifier: ^0.11.19
+        version: 0.11.19(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@rocketh/verifier':
         specifier: ^0.11.17
         version: 0.11.17(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))
@@ -2418,6 +2421,12 @@ packages:
   '@rocketh/read-execute@0.11.18':
     resolution: {integrity: sha512-s0EkMyzqf2j0AXkoWwwA8XbCEJIXVg8t0MEUUP30sJNHr192+IO2rE3cs8UU/ha+BYO28wfpZDpzq0eQgQT6Wg==}
     peerDependencies:
+      rocketh: 0.11.17
+
+  '@rocketh/router@0.11.19':
+    resolution: {integrity: sha512-L69B2jPCVd9wxMM8EEGeiv4qm/D4X91Iiy59B/qR+Nre9xUM84EsOvwH88BOuX6k5oFYowFD3/gqbTHLQOdxbw==}
+    peerDependencies:
+      '@rocketh/deploy': 0.11.17
       rocketh: 0.11.17
 
   '@rocketh/verifier@0.11.17':
@@ -8282,6 +8291,19 @@ snapshots:
 
   '@rocketh/read-execute@0.11.18(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
+      named-logs: 0.3.2
+      rocketh: 0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+      viem: 2.26.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@rocketh/router@0.11.19(@rocketh/deploy@0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)':
+    dependencies:
+      '@rocketh/deploy': 0.11.17(bufferutil@4.0.9)(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       named-logs: 0.3.2
       rocketh: 0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
       viem: 2.26.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
