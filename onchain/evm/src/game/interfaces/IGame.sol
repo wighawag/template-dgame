@@ -25,4 +25,8 @@ interface IGameGetters is UsingGameTypes {
     function getConfig() external view returns (Config memory config);
 }
 
-interface IGame is IGameCommit, IGameReveal, IGameGetters {}
+interface IGameEnter is UsingGameTypes {}
+
+interface IGameLeave is UsingGameTypes {}
+
+interface IGame is IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameLeave {}
