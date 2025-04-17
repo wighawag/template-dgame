@@ -20,6 +20,11 @@ contract GameCommit is IGameCommit, UsingGameInternal {
     function cancelCommitments(uint256[] calldata avatarIDs) external {
         for (uint256 i = 0; i < avatarIDs.length; i++) {
             uint256 avatarID = avatarIDs[i];
+
+            if (!_avatars[avatarID].inside) {
+                revert AvatarNotInGame(avatarID);
+            }
+
             // TODO check msg.sender control of avatarID
             Commitment storage commitment = _commitments[avatarID];
             (uint24 epoch, bool commiting) = _epoch();

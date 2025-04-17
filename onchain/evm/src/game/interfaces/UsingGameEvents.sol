@@ -31,4 +31,16 @@ interface UsingGameEvents is UsingGameTypes {
         bytes24 indexed commitmentHash,
         Action[] actions
     );
+
+    /// @notice A avatar has entered the game
+    /// @param avatarID the id of the NFT being added
+    /// @param controller account handling the avatar's moves
+    /// @param newPosition the resulting new avatar's position
+    event EnteredTheGame(uint256 indexed avatarID, address indexed controller, uint64 newPosition);
+
+    /// @notice An avatar has left the game
+    /// @param avatarID the id of the NFT being removed
+    /// @param controller account handling the avatar's moves
+    /// @param positionWhenLeaving the avatar's position when leaving
+    event LeftTheGame(uint256 indexed avatarID, address indexed controller, uint64 positionWhenLeaving);
 }

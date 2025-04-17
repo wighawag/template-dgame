@@ -7,6 +7,15 @@ interface UsingGameErrors is UsingGameTypes {
     /// @notice Game has not started yet, can't perform any action
     error GameNotStarted();
 
+    /// @notice happen when an unauthorized account attempt to control an avatar
+    error NotAuthorizedController(address sender);
+
+    /// @notice happen when attempting to leave the game from a non-exit position
+    error UnableToExitFromThisPosition(uint64 position);
+
+    /// @notice happen when attempting to move an avatar not in the game
+    error AvatarNotInGame(uint256 avatarID);
+
     /// @notice When in Reveal phase, it is not possible to commit new moves or cancel previous commitment
     ///  During Reveal phase, players have to reveal their commitment, if not already done.
     error InRevealPhase();
@@ -43,4 +52,6 @@ interface UsingGameErrors is UsingGameTypes {
     /// This can happen win debug mode where admin can setup cell bypassing moves rules
     /// For example when setting up neighborood configuration that would require a cell to have negative life
     error ImpossibleConfiguration();
+
+    error OnlyAvatarsAreAccepted();
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "solidity-kit/solc_0_8/debug/time/interfaces/ITime.sol";
+import "solidity-kit/solc_0_8/ERC721/interfaces/IERC721.sol";
 
 interface UsingGameTypes {
     // ------------------------------------------------------------------------
@@ -42,6 +43,7 @@ interface UsingGameTypes {
         uint256 commitPhaseDuration;
         uint256 revealPhaseDuration;
         ITime time;
+        IERC721 avatars;
     }
     // ------------------------------------------------------------------------
 
@@ -49,7 +51,14 @@ interface UsingGameTypes {
     // STORAGE TYPES
     // ------------------------------------------------------------------------
 
+    enum ControllerType {
+        None,
+        Basic,
+        Owner
+    }
+
     struct Avatar {
+        bool inside;
         uint64 position;
     }
 
