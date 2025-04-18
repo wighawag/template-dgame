@@ -8,6 +8,7 @@ import "solidity-kit/solc_0_8/ERC721/interfaces/IERC721Receiver.sol";
 contract GameEnter is IGameEnter, UsingGameInternal, IERC721Receiver {
     constructor(Config memory config) UsingGameInternal(config) {}
 
+    // TODO controller and owner
     function enter(uint256 avatarID, address payable payee) external payable {
         _enter(msg.sender, avatarID);
 

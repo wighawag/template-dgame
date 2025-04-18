@@ -18,9 +18,13 @@ contract GameGetters is IGameGetters, UsingGameInternal {
     }
 
     function getConfig() external view returns (Config memory config) {
-        config.startTime = START_TIME;
-        config.commitPhaseDuration = COMMIT_PHASE_DURATION;
-        config.revealPhaseDuration = REVEAL_PHASE_DURATION;
-        config.time = TIME;
+        return
+            Config({
+                startTime: START_TIME,
+                commitPhaseDuration: COMMIT_PHASE_DURATION,
+                revealPhaseDuration: REVEAL_PHASE_DURATION,
+                avatars: AVATARS,
+                time: TIME
+            });
     }
 }
