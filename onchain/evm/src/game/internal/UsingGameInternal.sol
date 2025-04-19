@@ -9,6 +9,9 @@ import "../../utils/PositionUtils.sol";
 abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {
     constructor(Config memory config) UsingGameStore(config) {}
 
+    //-------------------------------------------------------------------------
+    // ENTRY POINTS
+    //-------------------------------------------------------------------------
     function _enter(address controller, uint256 avatarID) internal {
         (uint24 epoch, ) = _epoch();
 
@@ -19,16 +22,21 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit EnteredTheGame(avatarID, controller, position);
     }
 
+    // TODO remove
     function _leave(address controller, uint256 avatarID, address to) internal {
         if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
         uint64 lastPosition = _avatars[avatarID].position;
 
+        // TODO check for exit portals
+        // => actually, leave should not be there, it should be part of a commitment/reveal
+
         _avatars[avatarID].position = 0;
         _avatars[avatarID].startEpoch = 0;
         emit LeftTheGame(avatarID, controller, lastPosition);
 
+        // TODO delay this so owner is in charge
         // transfer Character back to the player
         AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
@@ -43,12 +51,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (!commiting) {
             revert InRevealPhase();
         }
-
-        // AvatarResolved memory avatar = _getResolvedAvatar(avatarID);
-
-        // if (avatar.dead) {
-        //     revert AvatarIsDead(avatarID);
-        // }
 
         if (_avatars[avatarID].startEpoch > epoch) {
             revert AvatarNotReady(avatarID);
@@ -140,6 +142,12 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit CommitmentVoid(avatarID, epoch);
     }
 
+    //-------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    // INTERNALS
+    //-------------------------------------------------------------------------
+
     function _resolveActions(uint256 avatarID, Action[] memory actions) internal {
         Avatar memory avatar = _getAvatar(avatarID);
         uint64 position = avatar.position;
@@ -153,25 +161,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             }
         }
         _avatars[avatarID].position = position;
-    }
-
-    function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {
-        (int32 x1, int32 y1) = PositionUtils.toXY(from);
-        (int32 x2, int32 y2) = PositionUtils.toXY(to);
-
-        if (x1 == x2 && y1 == y2 + 1) {
-            return true;
-        }
-        if (x1 == x2 && y1 == y2 - 1) {
-            return true;
-        }
-        if (x1 == x2 + 1 && y1 == y2) {
-            return true;
-        }
-        if (x1 == x2 - 1 && y1 == y2) {
-            return true;
-        }
-        return false;
     }
 
     function _epoch() internal view virtual returns (uint24 epoch, bool commiting) {
@@ -195,14 +184,30 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         return _avatars[avatarID];
     }
 
-    //-------------------------------------------------------------------------
-    // UTILS
-    //-------------------------------------------------------------------------
-
     function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {
         bytes24 computedHash = bytes24(keccak256(abi.encode(secret, actions)));
         if (commitmentHash != computedHash) {
             revert CommitmentHashNotMatching();
         }
     }
+
+    function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {
+        (int32 x1, int32 y1) = PositionUtils.toXY(from);
+        (int32 x2, int32 y2) = PositionUtils.toXY(to);
+
+        if (x1 == x2 && y1 == y2 + 1) {
+            return true;
+        }
+        if (x1 == x2 && y1 == y2 - 1) {
+            return true;
+        }
+        if (x1 == x2 + 1 && y1 == y2) {
+            return true;
+        }
+        if (x1 == x2 - 1 && y1 == y2) {
+            return true;
+        }
+        return false;
+    }
+    //-------------------------------------------------------------------------
 }
