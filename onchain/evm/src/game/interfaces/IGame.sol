@@ -27,6 +27,12 @@ interface IGameGetters is UsingGameTypes {
         uint64 limit
     ) external view returns (AvatarResolved[] memory avatars, bool more);
 
+    function getAvatarsInMultipleZones(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit
+    ) external view returns (AvatarResolved[] memory avatars, bool more);
+
     function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory avatar);
 
     function getCommitment(uint256 avatarID) external view returns (Commitment memory commitment);

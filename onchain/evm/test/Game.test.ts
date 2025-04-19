@@ -22,9 +22,7 @@ describe('Game', function () {
 		const timestamp = await getTimestamp();
 		const {epoch: initialEpoch, commiting: initialCommiting} = getEpoch(timestamp);
 
-		await advanceToEpoch(initialEpoch + 1);
-
-		console.log({initialEpoch, initialCommiting});
+		await advanceToEpoch(initialEpoch + 2);
 
 		await env.execute(Avatars, {
 			account: env.unnamedAccounts[0],
@@ -46,12 +44,7 @@ describe('Game', function () {
 			args: [avatarID, zeroAddress],
 		});
 
-		await advanceToEpoch(initialEpoch + 2);
-		const block = await provider.request({method: 'eth_getBlockByNumber', params: ['latest', false]});
-		const blockTimestamp: number = (block as any).timestamp;
-		const nextTimestamp = await getTimestamp();
-		const epochInfo = getEpoch(nextTimestamp);
-		console.log({epoch: epochInfo.epoch, commiting: epochInfo.commiting, nextTimestamp, blockTimestamp});
+		await advanceToEpoch(initialEpoch + 3);
 
 		const hash = '0x000000000000000000000000000000000000000000000000';
 		const secret = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -61,7 +54,7 @@ describe('Game', function () {
 			args: [avatarID, hash, zeroAddress],
 		});
 
-		await advanceToRevealPhase(initialEpoch + 2);
+		await advanceToRevealPhase(initialEpoch + 3);
 
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
@@ -77,9 +70,14 @@ describe('Game', function () {
 			],
 		});
 
+		// const after_avatars = await env.read(Game, {
+		// 	functionName: 'getAvatarsInZone',
+		// 	args: [0n, 0n, 100n],
+		// });
+
 		const after_avatars = await env.read(Game, {
-			functionName: 'getAvatarsInZone',
-			args: [0n, 0n, 100n],
+			functionName: 'getAvatarsInMultipleZones',
+			args: [[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 0n], 0n, 100n],
 		});
 
 		console.log(after_avatars);

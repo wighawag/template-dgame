@@ -15,6 +15,14 @@ contract GameGetters is IGameGetters, UsingGameInternal {
         return _getAvatarsInZone(zone, fromIndex, limit);
     }
 
+    function getAvatarsInMultipleZones(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit
+    ) external view returns (AvatarResolved[] memory avatars, bool more) {
+        return _getAvatarsInMultipleZones(zones, fromIndex, limit);
+    }
+
     function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory) {
         return _getResolvedAvatar(avatarID);
     }

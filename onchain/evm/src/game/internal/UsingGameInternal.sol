@@ -43,10 +43,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         (uint64 epoch, bool commiting) = _epoch();
 
-        console.log("epoch: %i", epoch);
-        console.log("commiting: %i", commiting);
-        console.log("timestamp: %i", block.timestamp);
-
         if (!commiting) {
             revert InRevealPhase();
         }
@@ -211,13 +207,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint256 timePassed = time - START_TIME;
         epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
         commiting = timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;
-
-        console.log("COMMIT_PHASE_DURATION: %i", COMMIT_PHASE_DURATION);
-        console.log("REVEAL_PHASE_DURATION: %i", REVEAL_PHASE_DURATION);
-        console.log("START_TIME: %i", START_TIME);
-        console.log("epochDuration: %i", epochDuration);
-        console.log("time: %i", time);
-        console.log("timePassed: %i", timePassed);
     }
 
     function _getResolvedAvatar(uint256 avatarID) internal view returns (AvatarResolved memory) {
@@ -246,6 +235,111 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             avatars = new AvatarResolved[](limit);
             for (uint256 i = 0; i < limit; i++) {
                 avatars[i] = _getResolvedAvatar(_zones[zone].avatars[fromIndex + i]);
+            }
+        }
+    }
+
+    function _getAvatarsInMultipleZones(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit
+    ) internal view returns (AvatarResolved[] memory avatars, bool more) {
+        // Create a struct to hold our working variables
+        AvatarFetchState memory state = _initAvatarFetchState(zones, fromIndex);
+
+        // If we have avatars to return
+        if (fromIndex < state.totalAvatars) {
+            // Adjust limit if needed
+            if (fromIndex + limit > state.totalAvatars) {
+                limit = uint64(state.totalAvatars - fromIndex);
+                more = false;
+            } else {
+                more = true;
+            }
+
+            avatars = new AvatarResolved[](limit);
+
+            // Fill the result array by traversing zones
+            _fillAvatarResults(zones, fromIndex, limit, state, avatars);
+        } else {
+            // No avatars to return
+            avatars = new AvatarResolved[](0);
+            more = false;
+        }
+
+        return (avatars, more);
+    }
+
+    // Helper struct to reduce stack variables
+    struct AvatarFetchState {
+        uint256 totalAvatars;
+        uint64[] zoneEndIndices;
+        uint256 currentZone;
+        uint64 zoneOffset;
+    }
+
+    function _initAvatarFetchState(
+        uint64[] calldata zones,
+        uint64 fromIndex
+    ) private view returns (AvatarFetchState memory state) {
+        state.zoneEndIndices = new uint64[](zones.length);
+        uint256 runningTotal = 0;
+
+        // Calculate total avatars and track zone boundaries
+        for (uint256 i = 0; i < zones.length; i++) {
+            uint256 numAvatars = _zones[zones[i]].avatars.length;
+            runningTotal += numAvatars;
+            state.zoneEndIndices[i] = uint64(runningTotal);
+
+            // Determine which zone contains our fromIndex
+            if (fromIndex < runningTotal && (i == 0 || fromIndex >= state.zoneEndIndices[i - 1])) {
+                state.currentZone = i;
+                state.zoneOffset = i > 0 ? state.zoneEndIndices[i - 1] : 0;
+            }
+        }
+
+        state.totalAvatars = runningTotal;
+        return state;
+    }
+
+    function _fillAvatarResults(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit,
+        AvatarFetchState memory state,
+        AvatarResolved[] memory avatars
+    ) private view {
+        uint64 avatarsReturned = 0;
+        uint64 currentFromIndex = fromIndex;
+        uint256 currentZone = state.currentZone;
+        uint64 zoneOffset = state.zoneOffset;
+
+        while (avatarsReturned < limit && currentZone < zones.length) {
+            uint64 inZoneIndex = currentFromIndex - zoneOffset;
+            uint64 zonesAvatarCount = uint64(_zones[zones[currentZone]].avatars.length);
+
+            // Calculate how many avatars we can take from current zone
+            uint64 toTake = limit - avatarsReturned;
+            if (inZoneIndex + toTake > zonesAvatarCount) {
+                toTake = zonesAvatarCount - inZoneIndex;
+            }
+
+            // Add avatars from current zone
+            for (uint64 i = 0; i < toTake; i++) {
+                uint64 zoneId = zones[currentZone];
+                uint256 avatarId = _zones[zoneId].avatars[inZoneIndex + i];
+                avatars[avatarsReturned + i] = _getResolvedAvatar(avatarId);
+            }
+
+            avatarsReturned += toTake;
+            currentFromIndex += toTake;
+
+            // Move to next zone
+            if (avatarsReturned < limit) {
+                currentZone++;
+                if (currentZone < zones.length) {
+                    zoneOffset = state.zoneEndIndices[currentZone - 1];
+                }
             }
         }
     }
