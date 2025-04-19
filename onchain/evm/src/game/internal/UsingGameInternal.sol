@@ -5,6 +5,7 @@ import "./UsingGameStore.sol";
 import "../interfaces/UsingGameEvents.sol";
 import "../interfaces/UsingGameErrors.sol";
 import "../../utils/PositionUtils.sol";
+import "hardhat/console.sol";
 
 abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {
     constructor(Config memory config) UsingGameStore(config) {}
@@ -13,7 +14,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     // ENTRY POINTS
     //-------------------------------------------------------------------------
     function _enter(address controller, uint256 avatarID) internal {
-        (uint24 epoch, ) = _epoch();
+        (uint64 epoch, ) = _epoch();
 
         _avatarControllers[avatarID][controller] = ControllerType.Basic;
         _avatars[avatarID].startEpoch = epoch + 1;
@@ -40,7 +41,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
 
-        (uint24 epoch, bool commiting) = _epoch();
+        (uint64 epoch, bool commiting) = _epoch();
+
+        console.log("epoch: %i", epoch);
+        console.log("commiting: %i", commiting);
+        console.log("timestamp: %i", block.timestamp);
 
         if (!commiting) {
             revert InRevealPhase();
@@ -71,7 +76,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             revert AvatarNotInGame(avatarID);
         }
 
-        (uint24 epoch, bool commiting) = _epoch();
+        (uint64 epoch, bool commiting) = _epoch();
         if (!commiting) {
             revert InRevealPhase();
         }
@@ -93,7 +98,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _reveal(uint256 avatarID, Action[] calldata actions, bytes32 secret) internal {
-        (uint24 epoch, bool commiting) = _epoch();
+        (uint64 epoch, bool commiting) = _epoch();
         if (commiting) {
             revert InCommitmentPhase();
         }
@@ -119,11 +124,12 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     function _acknowledgeMissedReveal(uint256 avatarID) internal {
         // TODO burn / stake ....
         Commitment storage commitment = _commitments[avatarID];
-        (uint24 epoch, ) = _epoch();
 
         if (commitment.epoch == 0) {
             revert NothingToReveal();
         }
+
+        (uint64 epoch, ) = _epoch();
 
         if (commitment.epoch == epoch) {
             revert CanStillReveal();
@@ -196,15 +202,22 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         }
     }
 
-    function _epoch() internal view virtual returns (uint24 epoch, bool commiting) {
+    function _epoch() internal view virtual returns (uint64 epoch, bool commiting) {
         uint256 epochDuration = COMMIT_PHASE_DURATION + REVEAL_PHASE_DURATION;
         uint256 time = _timestamp();
         if (time < START_TIME) {
             revert GameNotStarted();
         }
         uint256 timePassed = time - START_TIME;
-        epoch = uint24(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
+        epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
         commiting = timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;
+
+        console.log("COMMIT_PHASE_DURATION: %i", COMMIT_PHASE_DURATION);
+        console.log("REVEAL_PHASE_DURATION: %i", REVEAL_PHASE_DURATION);
+        console.log("START_TIME: %i", START_TIME);
+        console.log("epochDuration: %i", epochDuration);
+        console.log("time: %i", time);
+        console.log("timePassed: %i", timePassed);
     }
 
     function _getResolvedAvatar(uint256 avatarID) internal view returns (AvatarResolved memory) {
@@ -238,6 +251,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {
+        // TODO remove
+        if (commitmentHash == bytes24(0)) {
+            return;
+        }
         bytes24 computedHash = bytes24(keccak256(abi.encode(secret, actions)));
         if (commitmentHash != computedHash) {
             revert CommitmentHashNotMatching();

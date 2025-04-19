@@ -9,7 +9,8 @@ const {deployAll} = setupFixtures(provider);
 
 describe('Game', function () {
 	it('basic test', async function () {
-		const {env, Game, Avatars, unnamedAccounts} = await networkHelpers.loadFixture(deployAll);
+		const {env, Game, Avatars, unnamedAccounts, advanceToEpoch, advanceToRevealPhase, getEpoch, getTimestamp} =
+			await networkHelpers.loadFixture(deployAll);
 
 		const before_avatars = await env.read(Game, {
 			functionName: 'getAvatarsInZone',
@@ -17,6 +18,13 @@ describe('Game', function () {
 		});
 
 		console.log(before_avatars);
+
+		const timestamp = await getTimestamp();
+		const {epoch: initialEpoch, commiting: initialCommiting} = getEpoch(timestamp);
+
+		await advanceToEpoch(initialEpoch + 1);
+
+		console.log({initialEpoch, initialCommiting});
 
 		await env.execute(Avatars, {
 			account: env.unnamedAccounts[0],
@@ -38,6 +46,13 @@ describe('Game', function () {
 			args: [avatarID, zeroAddress],
 		});
 
+		await advanceToEpoch(initialEpoch + 2);
+		const block = await provider.request({method: 'eth_getBlockByNumber', params: ['latest', false]});
+		const blockTimestamp: number = (block as any).timestamp;
+		const nextTimestamp = await getTimestamp();
+		const epochInfo = getEpoch(nextTimestamp);
+		console.log({epoch: epochInfo.epoch, commiting: epochInfo.commiting, nextTimestamp, blockTimestamp});
+
 		const hash = '0x000000000000000000000000000000000000000000000000';
 		const secret = '0x0000000000000000000000000000000000000000000000000000000000000000';
 		await env.execute(Game, {
@@ -46,10 +61,20 @@ describe('Game', function () {
 			args: [avatarID, hash, zeroAddress],
 		});
 
+		await advanceToRevealPhase(initialEpoch + 2);
+
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
 			functionName: 'reveal',
-			args: [1n, [], secret, zeroAddress],
+			args: [
+				avatarID,
+				[
+					{actionType: 0, data: 4n},
+					{actionType: 0, data: 4n},
+				],
+				secret,
+				zeroAddress,
+			],
 		});
 
 		const after_avatars = await env.read(Game, {
