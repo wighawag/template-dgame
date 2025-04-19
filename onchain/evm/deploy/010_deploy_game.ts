@@ -1,16 +1,20 @@
+import {Abi_Avatars} from '@generated/types/Avatars.js';
 import {Abi_IGame} from '@generated/types/IGame.js';
 import {execute, artifacts} from '@rocketh';
 import {zeroAddress} from 'viem';
 
 export default execute(
-	async ({deployViaProxy, deployViaRouter, namedAccounts}) => {
+	async ({get, deployViaProxy, deployViaRouter, namedAccounts}) => {
 		const {deployer, admin} = namedAccounts;
+
+		const Avatars = get<Abi_Avatars>('Avatars');
 
 		const config = {
 			startTime: 0n,
-			commitPhaseDuration: 11n,
-			revealPhaseDuration: 5n,
+			commitPhaseDuration: 12n,
+			revealPhaseDuration: 3n,
 			time: zeroAddress,
+			avatars: Avatars.address,
 		};
 
 		const routes = [
@@ -18,7 +22,7 @@ export default execute(
 			{name: 'Commit', artifact: artifacts.GameCommit, args: [config]},
 			{name: 'Reveal', artifact: artifacts.GameReveal, args: [config]},
 			{name: 'Enter', artifact: artifacts.GameEnter, args: [config]},
-			{name: 'Leave', artifact: artifacts.GameLeave, args: [config]},
+			{name: 'Extract', artifact: artifacts.GameExtract, args: [config]},
 		];
 
 		const Game = await deployViaProxy<Abi_IGame>(
@@ -36,5 +40,5 @@ export default execute(
 			},
 		);
 	},
-	{tags: ['Game', 'Game_deploy']},
+	{tags: ['Game', 'Game_deploy'], dependencies: ['Avatars_deploy']},
 );
