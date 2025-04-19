@@ -12,10 +12,13 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     constructor(Config memory config) UsingGameStore(config) {}
 
     function _enter(address controller, uint256 avatarID) internal {
+        (uint24 epoch, ) = _epoch();
+
         _avatarControllers[avatarID][controller] = ControllerType.Basic;
-        _avatars[avatarID].inside = true;
-        _avatars[avatarID].position = 0;
-        emit EnteredTheGame(avatarID, controller, 0);
+        _avatars[avatarID].startEpoch = epoch + 1;
+        uint64 position = 0; // TODO allow enter at other position
+        _avatars[avatarID].position = position;
+        emit EnteredTheGame(avatarID, controller, position);
     }
 
     function _leave(address controller, uint256 avatarID, address to) internal {
@@ -25,7 +28,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64 lastPosition = _avatars[avatarID].position;
 
         _avatars[avatarID].position = 0;
-        _avatars[avatarID].inside = false;
+        _avatars[avatarID].startEpoch = 0;
         emit LeftTheGame(avatarID, controller, lastPosition);
 
         // transfer Character back to the player
@@ -36,19 +39,25 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
-        // AvatarResolved memory avatar = _getResolvedAvatar(avatarID);
-
-        // if (avatar.dead) {
-        //     revert AvatarIsDead(avatarID);
-        // }
-
-        Commitment storage commitment = _commitments[avatarID];
 
         (uint24 epoch, bool commiting) = _epoch();
 
         if (!commiting) {
             revert InRevealPhase();
         }
+
+        // AvatarResolved memory avatar = _getResolvedAvatar(avatarID);
+
+        // if (avatar.dead) {
+        //     revert AvatarIsDead(avatarID);
+        // }
+
+        if (_avatars[avatarID].startEpoch > epoch) {
+            revert AvatarNotReady(avatarID);
+        }
+
+        Commitment storage commitment = _commitments[avatarID];
+
         if (commitment.epoch != 0 && commitment.epoch != epoch) {
             revert PreviousCommitmentNotRevealed();
         }
@@ -64,16 +73,21 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
 
-        if (!_avatars[avatarID].inside) {
+        if (_avatars[avatarID].startEpoch == 0) {
             revert AvatarNotInGame(avatarID);
         }
 
-        // TODO check msg.sender control of avatarID
-        Commitment storage commitment = _commitments[avatarID];
         (uint24 epoch, bool commiting) = _epoch();
         if (!commiting) {
             revert InRevealPhase();
         }
+
+        // TODO check msg.sender control of avatarID
+        Commitment storage commitment = _commitments[avatarID];
+        if (commitment.epoch == 0) {
+            revert NoCommitmentToCancel();
+        }
+
         if (commitment.epoch != epoch) {
             revert PreviousCommitmentNotRevealed();
         }
@@ -85,30 +99,26 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit CommitmentCancelled(avatarID, epoch);
     }
 
-    function _reveal(AvatarMove[] calldata moves) internal {
+    function _reveal(uint256 avatarID, Action[] calldata actions, bytes32 secret) internal {
         (uint24 epoch, bool commiting) = _epoch();
         if (commiting) {
             revert InCommitmentPhase();
         }
+        Commitment storage commitment = _commitments[avatarID];
 
-        for (uint256 i = 0; i < moves.length; i++) {
-            AvatarMove memory move = moves[i];
-            Commitment storage commitment = _commitments[move.avatarID];
-
-            if (commitment.epoch == 0) {
-                revert NothingToReveal();
-            }
-            if (commitment.epoch != epoch) {
-                revert InvalidEpoch();
-            }
-            _checkHash(commitment.hash, move);
-            _resolveActions(move.avatarID, epoch, move.actions);
-
-            bytes24 hashRevealed = commitment.hash;
-            commitment.epoch = 0; // used
-
-            emit CommitmentRevealed(move.avatarID, epoch, hashRevealed, move.actions);
+        if (commitment.epoch == 0) {
+            revert NothingToReveal();
         }
+        if (commitment.epoch != epoch) {
+            revert InvalidEpoch();
+        }
+        _checkHash(commitment.hash, actions, secret);
+        _resolveActions(avatarID, actions);
+
+        bytes24 hashRevealed = commitment.hash;
+        commitment.epoch = 0; // used
+
+        emit CommitmentRevealed(avatarID, epoch, hashRevealed, actions);
     }
 
     function _acknowledgeMissedReveal(uint256 avatarID) internal {
@@ -133,7 +143,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit CommitmentVoid(avatarID, epoch);
     }
 
-    function _resolveActions(uint256 avatarID, uint64 epoch, Action[] memory actions) internal {
+    function _resolveActions(uint256 avatarID, Action[] memory actions) internal {
         Avatar memory avatar = _getAvatar(avatarID);
         uint64 position = avatar.position;
         for (uint256 i = 0; i < actions.length; i++) {
@@ -149,8 +159,22 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {
-        // TODO
-        valid = true;
+        (int32 x1, int32 y1) = PositionUtils.toXY(from);
+        (int32 x2, int32 y2) = PositionUtils.toXY(to);
+
+        if (x1 == x2 && y1 == y2 + 1) {
+            return true;
+        }
+        if (x1 == x2 && y1 == y2 - 1) {
+            return true;
+        }
+        if (x1 == x2 + 1 && y1 == y2) {
+            return true;
+        }
+        if (x1 == x2 - 1 && y1 == y2) {
+            return true;
+        }
+        return false;
     }
 
     function _epoch() internal view virtual returns (uint24 epoch, bool commiting) {
@@ -178,35 +202,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     // UTILS
     //-------------------------------------------------------------------------
 
-    function _checkHash(bytes24 commitmentHash, AvatarMove memory move) internal pure {
-        bytes24 computedHash = bytes24(keccak256(abi.encode(move.secret, move.actions)));
+    function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {
+        bytes24 computedHash = bytes24(keccak256(abi.encode(secret, actions)));
         if (commitmentHash != computedHash) {
             revert CommitmentHashNotMatching();
         }
     }
-
-    // function _collectTransfer(
-    //     TokenTransferCollection memory transferCollection,
-    //     TokenTransfer memory newTransfer
-    // ) internal pure {
-    //     // we look for the newTransfer address in case it is already present
-    //     for (uint256 k = 0; k < transferCollection.numTransfers; k++) {
-    //         if (transferCollection.transfers[k].to == newTransfer.to) {
-    //             // if we found we add the amount
-    //             transferCollection.transfers[k].amount += newTransfer.amount;
-    //             return;
-    //         }
-    //     }
-    //     // if we did not find that address we add it to the end
-    //     transferCollection.transfers[transferCollection.numTransfers].to = newTransfer.to;
-    //     transferCollection.transfers[transferCollection.numTransfers].amount = newTransfer.amount;
-    //     // and increase the size to lookup for next time
-    //     transferCollection.numTransfers++;
-    // }
-
-    // function _multiTransfer(IERC20WithIERC2612 token, TokenTransferCollection memory transferCollection) internal {
-    //     for (uint256 i = 0; i < transferCollection.numTransfers; i++) {
-    //         token.transfer(transferCollection.transfers[i].to, transferCollection.transfers[i].amount);
-    //     }
-    // }
 }

@@ -16,6 +16,10 @@ interface UsingGameErrors is UsingGameTypes {
     /// @notice happen when attempting to move an avatar not in the game
     error AvatarNotInGame(uint256 avatarID);
 
+    /// @notice happen when attempting to move an avatar that just entered the game. \
+    ///  It needs to wait the next epoch
+    error AvatarNotReady(uint256 avatarID);
+
     /// @notice When in Reveal phase, it is not possible to commit new moves or cancel previous commitment
     ///  During Reveal phase, players have to reveal their commitment, if not already done.
     error InRevealPhase();
@@ -27,6 +31,9 @@ interface UsingGameErrors is UsingGameTypes {
     ///  It is also not possible to withdraw any amount from reserve until the commitment is revealed.\
     /// @notice If player lost the information to reveal, it can acknowledge failure which will burn all its reserve.\
     error PreviousCommitmentNotRevealed();
+
+    /// @notice There is no commitment registered, cannot cancel.
+    error NoCommitmentToCancel();
 
     /// @notice Player have to reveal their commitment using the exact same move values
     ///  If they provide different value, the commitment hash will differ and Game will reject their reveal.

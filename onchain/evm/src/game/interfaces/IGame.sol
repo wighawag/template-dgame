@@ -10,7 +10,12 @@ interface IGameCommit is UsingGameTypes {
 }
 
 interface IGameReveal is UsingGameTypes {
-    function reveal(AvatarMove[] calldata moves, address payable payee) external payable;
+    function reveal(
+        uint256 avatarID,
+        Action[] calldata actions,
+        bytes32 secret,
+        address payable payee
+    ) external payable;
 
     function acknowledgeMissedReveal(uint256 avatarID) external;
 }
