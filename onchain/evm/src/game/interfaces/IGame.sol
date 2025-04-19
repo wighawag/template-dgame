@@ -30,8 +30,12 @@ interface IGameGetters is UsingGameTypes {
     function getConfig() external view returns (Config memory config);
 }
 
-interface IGameEnter is UsingGameTypes {}
+interface IGameEnter is UsingGameTypes {
+    function enter(uint256 avatarID, address payable payee) external payable;
+}
 
-interface IGameLeave is UsingGameTypes {}
+interface IGameLeave is UsingGameTypes {
+    function leave(uint256 avatarID, address to) external;
+}
 
 interface IGame is IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameLeave {}

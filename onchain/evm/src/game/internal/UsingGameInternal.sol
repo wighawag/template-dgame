@@ -7,8 +7,6 @@ import "../interfaces/UsingGameErrors.sol";
 import "../../utils/PositionUtils.sol";
 
 abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {
-    using PositionUtils for uint64;
-
     constructor(Config memory config) UsingGameStore(config) {}
 
     function _enter(address controller, uint256 avatarID) internal {
@@ -82,7 +80,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             revert InRevealPhase();
         }
 
-        // TODO check msg.sender control of avatarID
         Commitment storage commitment = _commitments[avatarID];
         if (commitment.epoch == 0) {
             revert NoCommitmentToCancel();
