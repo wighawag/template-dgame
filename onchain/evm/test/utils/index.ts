@@ -1,4 +1,5 @@
-import {Abi_Game} from '@generated/types/Game.js';
+import {Abi_Avatars} from '@generated/types/Avatars.js';
+import {Abi_IGame} from '@generated/types/IGame.js';
 import {loadAndExecuteDeployments} from '@rocketh';
 import {EthereumProvider} from 'hardhat/types/providers';
 
@@ -9,9 +10,10 @@ export function setupFixtures(provider: EthereumProvider) {
 				provider: provider,
 			});
 
-			const Game = env.get<Abi_Game>('Game');
+			const Game = env.get<Abi_IGame>('Game');
+			const Avatars = env.get<Abi_Avatars>('Avatars');
 
-			return {env, Game, namedAccounts: env.namedAccounts, unnamedAccounts: env.unnamedAccounts};
+			return {env, Game, Avatars, namedAccounts: env.namedAccounts, unnamedAccounts: env.unnamedAccounts};
 		},
 	};
 }
