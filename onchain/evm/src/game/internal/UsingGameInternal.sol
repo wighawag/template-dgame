@@ -22,22 +22,14 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit EnteredTheGame(avatarID, controller, position);
     }
 
-    // TODO remove
-    function _leave(address controller, uint256 avatarID, address to) internal {
-        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+    function _extract(address controller, uint256 avatarID, address to) internal {
+        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.Owner) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
-        uint64 lastPosition = _avatars[avatarID].position;
 
-        // TODO check for exit portals
-        // => actually, leave should not be there, it should be part of a commitment/reveal
-
-        _avatars[avatarID].position = 0;
-        _avatars[avatarID].startEpoch = 0;
-        emit LeftTheGame(avatarID, controller, lastPosition);
-
-        // TODO delay this so owner is in charge
-        // transfer Character back to the player
+        if (_avatars[avatarID].startEpoch != 0) {
+            revert UsingGameErrors.AvatarStillInGame(avatarID);
+        }
         AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
 
@@ -150,17 +142,42 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
     function _resolveActions(uint256 avatarID, Action[] memory actions) internal {
         Avatar memory avatar = _getAvatar(avatarID);
-        uint64 position = avatar.position;
+        uint64 initialPosition = avatar.position;
+        (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
+        bool left = false;
         for (uint256 i = 0; i < actions.length; i++) {
-            uint64[] memory path = actions[i].path;
-            for (uint256 j = 0; j < path.length; j++) {
-                uint64 next = path[j];
-                if (_isValidMove(position, next)) {
-                    position = next;
+            Action memory action = actions[i];
+
+            // NWSE (North, West, South, East)
+            if (action.actionType == ActionType.Move) {
+                if (action.data == 1) {
+                    // North
+                    y -= 1;
+                } else if (action.data == 2) {
+                    // West
+                    x -= 1;
+                } else if (action.data == 3) {
+                    // South
+                    y += 1;
+                } else if (action.data == 4) {
+                    // East
+                    x += 1;
                 }
+            } else if (action.actionType == ActionType.Use) {
+                // TODO use cell action
+                // for now consider it an Exit
+                left = true;
+                break; // We ignore any further actions
             }
         }
-        _avatars[avatarID].position = position;
+
+        if (left) {
+            _avatars[avatarID].startEpoch = 0;
+            _avatars[avatarID].position = 0;
+            emit LeftTheGame(avatarID, PositionUtils.fromXY(x, y));
+        } else {
+            _avatars[avatarID].position = PositionUtils.fromXY(x, y);
+        }
     }
 
     function _epoch() internal view virtual returns (uint24 epoch, bool commiting) {

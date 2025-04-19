@@ -7,6 +7,10 @@ library PositionUtils {
         y = int32(uint32(position >> 32));
     }
 
+    function fromXY(int32 x, int32 y) internal pure returns (uint64 position) {
+        position = (uint64(uint32(y)) << 32) + uint64(uint32(x));
+    }
+
     function offset(uint64 position, int32 x, int32 y) internal pure returns (uint64 newPosition) {
         x = int32(uint32(position) & 0xFFFFFFFF) + x;
         y = int32(uint32(position >> 32)) + y;

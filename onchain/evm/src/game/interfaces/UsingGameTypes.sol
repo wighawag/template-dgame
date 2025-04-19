@@ -11,13 +11,14 @@ interface UsingGameTypes {
 
     /// @notice The set of possible action
     enum ActionType {
-        None
+        Move,
+        Use
     }
 
     /// @notice Move struct that define the action, type and position
     struct Action {
-        uint64[] path; // we use position instead of delta so we can add teleport or other path mechanisms
         ActionType actionType;
+        uint128 data;
     }
 
     struct AvatarResolved {

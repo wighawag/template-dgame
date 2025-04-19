@@ -16,6 +16,9 @@ interface UsingGameErrors is UsingGameTypes {
     /// @notice happen when attempting to move an avatar not in the game
     error AvatarNotInGame(uint256 avatarID);
 
+    /// @notice happen when attempting to extract an avatar still in the game
+    error AvatarStillInGame(uint256 avatarID);
+
     /// @notice happen when attempting to move an avatar that just entered the game. \
     ///  It needs to wait the next epoch
     error AvatarNotReady(uint256 avatarID);

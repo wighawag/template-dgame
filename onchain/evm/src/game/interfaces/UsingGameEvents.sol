@@ -40,7 +40,6 @@ interface UsingGameEvents is UsingGameTypes {
 
     /// @notice An avatar has left the game
     /// @param avatarID the id of the NFT being removed
-    /// @param controller account handling the avatar's moves
     /// @param positionWhenLeaving the avatar's position when leaving
-    event LeftTheGame(uint256 indexed avatarID, address indexed controller, uint64 positionWhenLeaving);
+    event LeftTheGame(uint256 indexed avatarID, uint64 positionWhenLeaving);
 }

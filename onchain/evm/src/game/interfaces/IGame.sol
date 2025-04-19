@@ -34,8 +34,8 @@ interface IGameEnter is UsingGameTypes {
     function enter(uint256 avatarID, address payable payee) external payable;
 }
 
-interface IGameLeave is UsingGameTypes {
-    function leave(uint256 avatarID, address to) external;
+interface IGameExtract is UsingGameTypes {
+    function extract(uint256 avatarID, address to) external;
 }
 
-interface IGame is IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameLeave {}
+interface IGame is IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameExtract {}
