@@ -34,11 +34,4 @@ contract GameEnter is IGameEnter, UsingGameInternal, IERC721Receiver {
         }
         return IERC721Receiver.onERC721Received.selector;
     }
-
-    function _enter(address sender, uint256 avatarID) internal {
-        _avatarControllers[avatarID][sender] = ControllerType.Basic;
-        _avatars[avatarID].inside = true;
-        _avatars[avatarID].position = 0;
-        emit EnteredTheGame(avatarID, sender, 0);
-    }
 }

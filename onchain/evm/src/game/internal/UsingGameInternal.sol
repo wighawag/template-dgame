@@ -11,7 +11,31 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
     constructor(Config memory config) UsingGameStore(config) {}
 
-    function _makeCommitment(uint256 avatarID, bytes24 commitmentHash) internal {
+    function _enter(address controller, uint256 avatarID) internal {
+        _avatarControllers[avatarID][controller] = ControllerType.Basic;
+        _avatars[avatarID].inside = true;
+        _avatars[avatarID].position = 0;
+        emit EnteredTheGame(avatarID, controller, 0);
+    }
+
+    function _leave(address controller, uint256 avatarID, address to) internal {
+        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+            revert UsingGameErrors.NotAuthorizedController(controller);
+        }
+        uint64 lastPosition = _avatars[avatarID].position;
+
+        _avatars[avatarID].position = 0;
+        _avatars[avatarID].inside = false;
+        emit LeftTheGame(avatarID, controller, lastPosition);
+
+        // transfer Character back to the player
+        AVATARS.safeTransferFrom(address(this), to, avatarID);
+    }
+
+    function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {
+        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+            revert UsingGameErrors.NotAuthorizedController(controller);
+        }
         // AvatarResolved memory avatar = _getResolvedAvatar(avatarID);
 
         // if (avatar.dead) {
@@ -33,6 +57,80 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         commitment.epoch = epoch;
 
         emit CommitmentMade(avatarID, epoch, commitmentHash);
+    }
+
+    function _cancelCommitment(address controller, uint256 avatarID) internal {
+        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+            revert UsingGameErrors.NotAuthorizedController(controller);
+        }
+
+        if (!_avatars[avatarID].inside) {
+            revert AvatarNotInGame(avatarID);
+        }
+
+        // TODO check msg.sender control of avatarID
+        Commitment storage commitment = _commitments[avatarID];
+        (uint24 epoch, bool commiting) = _epoch();
+        if (!commiting) {
+            revert InRevealPhase();
+        }
+        if (commitment.epoch != epoch) {
+            revert PreviousCommitmentNotRevealed();
+        }
+
+        // Note that we do not reset the hash
+        // This ensure the slot do not get reset and keep the gas cost consistent across execution
+        commitment.epoch = 0;
+
+        emit CommitmentCancelled(avatarID, epoch);
+    }
+
+    function _reveal(AvatarMove[] calldata moves) internal {
+        (uint24 epoch, bool commiting) = _epoch();
+        if (commiting) {
+            revert InCommitmentPhase();
+        }
+
+        for (uint256 i = 0; i < moves.length; i++) {
+            AvatarMove memory move = moves[i];
+            Commitment storage commitment = _commitments[move.avatarID];
+
+            if (commitment.epoch == 0) {
+                revert NothingToReveal();
+            }
+            if (commitment.epoch != epoch) {
+                revert InvalidEpoch();
+            }
+            _checkHash(commitment.hash, move);
+            _resolveActions(move.avatarID, epoch, move.actions);
+
+            bytes24 hashRevealed = commitment.hash;
+            commitment.epoch = 0; // used
+
+            emit CommitmentRevealed(move.avatarID, epoch, hashRevealed, move.actions);
+        }
+    }
+
+    function _acknowledgeMissedReveal(uint256 avatarID) internal {
+        // TODO burn / stake ....
+        Commitment storage commitment = _commitments[avatarID];
+        (uint24 epoch, ) = _epoch();
+
+        if (commitment.epoch == 0) {
+            revert NothingToReveal();
+        }
+
+        if (commitment.epoch == epoch) {
+            revert CanStillReveal();
+        }
+
+        commitment.epoch = 0;
+
+        // TODO block nft control
+
+        // here we cannot know whether there were further move or even any moves
+        // we just burn all tokens in reserve
+        emit CommitmentVoid(avatarID, epoch);
     }
 
     function _resolveActions(uint256 avatarID, uint64 epoch, Action[] memory actions) internal {

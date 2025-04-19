@@ -4,15 +4,15 @@ pragma solidity ^0.8.0;
 import "./UsingGameTypes.sol";
 
 interface IGameCommit is UsingGameTypes {
-    function makeCommitments(CommitmentSubmission[] calldata commitments, address payable payee) external payable;
+    function commit(uint256 avatarID, bytes24 commitmentHash, address payable payee) external payable;
 
-    function cancelCommitments(uint256[] calldata avatarIDs) external;
+    function cancelCommit(uint256 avatarID) external;
 }
 
 interface IGameReveal is UsingGameTypes {
     function reveal(AvatarMove[] calldata moves, address payable payee) external payable;
 
-    function acknowledgeMissedReveals(uint256[] memory avatarIDs) external;
+    function acknowledgeMissedReveal(uint256 avatarID) external;
 }
 
 interface IGameGetters is UsingGameTypes {

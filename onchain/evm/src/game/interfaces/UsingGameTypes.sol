@@ -31,12 +31,6 @@ interface UsingGameTypes {
         uint64 position;
     }
 
-    /// @notice Commitment Submission data, avatar and hash
-    struct CommitmentSubmission {
-        uint256 avatarID;
-        bytes24 hash;
-    }
-
     /// @notice Config struct to configure the game instance
     struct Config {
         uint256 startTime;
