@@ -28,7 +28,8 @@ interface UsingGameEvents is UsingGameTypes {
     event CommitmentRevealed(
         uint256 indexed avatarID,
         uint64 indexed epoch,
-        bytes24 indexed commitmentHash,
+        uint64 indexed zone,
+        bytes24 commitmentHash,
         Action[] actions
     );
 
@@ -36,10 +37,16 @@ interface UsingGameEvents is UsingGameTypes {
     /// @param avatarID the id of the NFT being added
     /// @param controller account handling the avatar's moves
     /// @param newPosition the resulting new avatar's position
-    event EnteredTheGame(uint256 indexed avatarID, address indexed controller, uint64 newPosition);
+    event EnteredTheGame(
+        uint256 indexed avatarID,
+        uint64 indexed epoch,
+        uint64 indexed zone,
+        address controller,
+        uint64 newPosition
+    );
 
     /// @notice An avatar has left the game
     /// @param avatarID the id of the NFT being removed
     /// @param positionWhenLeaving the avatar's position when leaving
-    event LeftTheGame(uint256 indexed avatarID, uint64 positionWhenLeaving);
+    event LeftTheGame(uint256 indexed avatarID, uint64 indexed epoch, uint64 indexed zone, uint64 positionWhenLeaving);
 }

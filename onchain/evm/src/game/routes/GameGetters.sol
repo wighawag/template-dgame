@@ -7,7 +7,13 @@ import "../interfaces/IGame.sol";
 contract GameGetters is IGameGetters, UsingGameInternal {
     constructor(Config memory config) UsingGameInternal(config) {}
 
-    function getCharactersInZone() external view {}
+    function getAvatarsInZone(
+        uint64 zone,
+        uint64 fromIndex,
+        uint64 limit
+    ) external view returns (AvatarResolved[] memory avatars, bool more) {
+        return _getAvatarsInZone(zone, fromIndex, limit);
+    }
 
     function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory) {
         return _getResolvedAvatar(avatarID);

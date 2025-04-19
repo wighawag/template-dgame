@@ -21,9 +21,13 @@ interface IGameReveal is UsingGameTypes {
 }
 
 interface IGameGetters is UsingGameTypes {
-    function getCharactersInZone() external view;
+    function getAvatarsInZone(
+        uint64 zone,
+        uint64 fromIndex,
+        uint64 limit
+    ) external view returns (AvatarResolved[] memory avatars, bool more);
 
-    function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory);
+    function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory avatar);
 
     function getCommitment(uint256 avatarID) external view returns (Commitment memory commitment);
 

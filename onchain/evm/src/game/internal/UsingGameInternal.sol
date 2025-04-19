@@ -21,7 +21,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         _avatars[avatarID].position = position;
         uint64 zone = PositionUtils.getZone(position);
         _addToZone(zone, avatarID);
-        emit EnteredTheGame(avatarID, controller, position);
+        emit EnteredTheGame(avatarID, epoch, zone, controller, position);
     }
 
     function _extract(address controller, uint256 avatarID, address to) internal {
@@ -108,9 +108,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         bytes24 hashRevealed = commitment.hash;
         _checkHash(hashRevealed, actions, secret);
-        emit CommitmentRevealed(avatarID, epoch, hashRevealed, actions);
 
-        _resolveActions(avatarID, actions);
+        uint64 newPosition = _resolveActions(avatarID, epoch, actions);
+
+        emit CommitmentRevealed(avatarID, epoch, PositionUtils.getZone(newPosition), hashRevealed, actions);
 
         commitment.epoch = 0; // used
     }
@@ -143,7 +144,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     // INTERNALS
     //-------------------------------------------------------------------------
 
-    function _resolveActions(uint256 avatarID, Action[] memory actions) internal {
+    function _resolveActions(
+        uint256 avatarID,
+        uint64 epoch,
+        Action[] memory actions
+    ) internal returns (uint64 newPosition) {
         Avatar memory avatar = _getAvatar(avatarID);
         uint64 initialPosition = avatar.position;
         (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
@@ -175,18 +180,19 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             }
         }
 
+        newPosition = PositionUtils.fromXY(x, y);
         if (left) {
             _avatars[avatarID].startEpoch = 0;
             _avatars[avatarID].position = 0;
             _removeFromZone(initialZone, avatarID);
-            emit LeftTheGame(avatarID, PositionUtils.fromXY(x, y));
+            emit LeftTheGame(avatarID, epoch, PositionUtils.getZone(x, y), newPosition);
         } else {
             uint64 newZone = PositionUtils.getZone(x, y);
             if (initialZone != newZone) {
                 _removeFromZone(initialZone, avatarID);
                 _addToZone(newZone, avatarID);
             }
-            _avatars[avatarID].position = PositionUtils.fromXY(x, y);
+            _avatars[avatarID].position = newPosition;
         }
     }
 
@@ -209,6 +215,26 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
     function _getAvatar(uint256 avatarID) internal view returns (Avatar memory) {
         return _avatars[avatarID];
+    }
+
+    function _getAvatarsInZone(
+        uint64 zone,
+        uint64 fromIndex,
+        uint64 limit
+    ) internal view returns (AvatarResolved[] memory avatars, bool more) {
+        uint256 numAvatarsInZone = _zones[zone].avatars.length;
+        if (fromIndex < numAvatarsInZone) {
+            if (fromIndex + limit > numAvatarsInZone) {
+                limit = uint64(numAvatarsInZone - fromIndex);
+                more = false;
+            } else {
+                more = true;
+            }
+            avatars = new AvatarResolved[](limit);
+            for (uint256 i = 0; i < limit; i++) {
+                avatars[i] = _getResolvedAvatar(_zones[zone].avatars[fromIndex + i]);
+            }
+        }
     }
 
     function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {
