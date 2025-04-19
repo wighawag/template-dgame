@@ -19,6 +19,8 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         _avatars[avatarID].startEpoch = epoch + 1;
         uint64 position = 0; // TODO allow enter at other position
         _avatars[avatarID].position = position;
+        uint64 zone = PositionUtils.getZone(position);
+        _addToZone(zone, avatarID);
         emit EnteredTheGame(avatarID, controller, position);
     }
 
@@ -103,13 +105,14 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (commitment.epoch != epoch) {
             revert InvalidEpoch();
         }
-        _checkHash(commitment.hash, actions, secret);
-        _resolveActions(avatarID, actions);
 
         bytes24 hashRevealed = commitment.hash;
-        commitment.epoch = 0; // used
-
+        _checkHash(hashRevealed, actions, secret);
         emit CommitmentRevealed(avatarID, epoch, hashRevealed, actions);
+
+        _resolveActions(avatarID, actions);
+
+        commitment.epoch = 0; // used
     }
 
     function _acknowledgeMissedReveal(uint256 avatarID) internal {
@@ -144,6 +147,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         Avatar memory avatar = _getAvatar(avatarID);
         uint64 initialPosition = avatar.position;
         (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
+        uint64 initialZone = PositionUtils.getZone(x, y);
         bool left = false;
         for (uint256 i = 0; i < actions.length; i++) {
             Action memory action = actions[i];
@@ -174,8 +178,14 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (left) {
             _avatars[avatarID].startEpoch = 0;
             _avatars[avatarID].position = 0;
+            _removeFromZone(initialZone, avatarID);
             emit LeftTheGame(avatarID, PositionUtils.fromXY(x, y));
         } else {
+            uint64 newZone = PositionUtils.getZone(x, y);
+            if (initialZone != newZone) {
+                _removeFromZone(initialZone, avatarID);
+                _addToZone(newZone, avatarID);
+            }
             _avatars[avatarID].position = PositionUtils.fromXY(x, y);
         }
     }
@@ -206,6 +216,28 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (commitmentHash != computedHash) {
             revert CommitmentHashNotMatching();
         }
+    }
+
+    function _removeFromZone(uint64 zone, uint256 avatarID) internal {
+        uint256 numAvatarsInZone = _zones[zone].avatars.length;
+        if (numAvatarsInZone == 1) {
+            _zones[zone].avatars.pop();
+        } else {
+            uint64 index = _avatars[avatarID].zoneIndex;
+            if (index == numAvatarsInZone - 1) {
+                _zones[zone].avatars.pop();
+            } else {
+                uint256 lastAvatarID = _zones[zone].avatars[numAvatarsInZone - 1];
+                _avatars[lastAvatarID].zoneIndex = index;
+                _zones[zone].avatars[index] = lastAvatarID;
+                _zones[zone].avatars.pop();
+            }
+        }
+    }
+
+    function _addToZone(uint64 zone, uint256 avatarID) internal {
+        _avatars[avatarID].zoneIndex = uint64(_zones[zone].avatars.length);
+        _zones[zone].avatars.push(avatarID);
     }
 
     function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {

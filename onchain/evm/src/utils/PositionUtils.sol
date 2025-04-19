@@ -16,4 +16,31 @@ library PositionUtils {
         y = int32(uint32(position >> 32)) + y;
         newPosition = (uint64(uint32(y)) << 32) + uint64(uint32(x));
     }
+
+    int32 constant ZONE_SIZE = 16;
+    int32 constant ZONE_OFFSET = 8;
+
+    function zoneCoord(int32 a) internal pure returns (int32 b) {
+        if (a >= 0) {
+            b = (a + ZONE_OFFSET) / ZONE_SIZE;
+        } else {
+            b = -((-a + ZONE_OFFSET) / ZONE_SIZE);
+        }
+    }
+
+    function zoneCoords(int32 x, int32 y) internal pure returns (int32 zoneX, int32 zoneY) {
+        zoneX = zoneCoord(x);
+        zoneY = zoneCoord(y);
+    }
+
+    function getZone(uint64 position) internal pure returns (uint64 zone) {
+        (int32 x, int32 y) = toXY(position);
+        (int32 zoneX, int32 zoneY) = zoneCoords(x, y);
+        zone = (uint64(uint32(zoneY)) << 32) + uint64(uint32(zoneX));
+    }
+
+    function getZone(int32 x, int32 y) internal pure returns (uint64 zone) {
+        (int32 zoneX, int32 zoneY) = zoneCoords(x, y);
+        zone = (uint64(uint32(zoneY)) << 32) + uint64(uint32(zoneX));
+    }
 }

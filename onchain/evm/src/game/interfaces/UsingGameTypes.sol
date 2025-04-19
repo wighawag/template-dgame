@@ -48,6 +48,11 @@ interface UsingGameTypes {
     struct Avatar {
         uint64 startEpoch;
         uint64 position;
+        uint64 zoneIndex;
+    }
+
+    struct Zone {
+        uint256[] avatars;
     }
 
     struct Commitment {

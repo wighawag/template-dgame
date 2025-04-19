@@ -20,6 +20,7 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
     mapping(uint256 => mapping(address => ControllerType)) internal _avatarControllers;
     mapping(uint256 => Avatar) internal _avatars;
     mapping(uint256 => Commitment) internal _commitments;
+    mapping(uint64 => Zone) internal _zones;
 
     /// @notice Create an instance of a game
     /// @param config configuration options for the game
