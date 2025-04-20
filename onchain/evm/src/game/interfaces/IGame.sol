@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./UsingGameTypes.sol";
+import "./UsingGameEvents.sol";
+import "./UsingGameErrors.sol";
 
 interface IGameCommit is UsingGameTypes {
     function commit(uint256 avatarID, bytes24 commitmentHash, address payable payee) external payable;
@@ -48,4 +50,4 @@ interface IGameExtract is UsingGameTypes {
     function extract(uint256 avatarID, address to) external;
 }
 
-interface IGame is IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameExtract {}
+interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameExtract {}

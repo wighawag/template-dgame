@@ -4,9 +4,20 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  hardhat-deploy-monorepo: link:../hardhat-deploy
+  hardhat-deploy: link:../hardhat-deploy/packages/hardhat-deploy
+
 importers:
 
   .:
+    dependencies:
+      hardhat-deploy:
+        specifier: link:../hardhat-deploy/packages/hardhat-deploy
+        version: link:../hardhat-deploy/packages/hardhat-deploy
+      hardhat-deploy-monorepo:
+        specifier: link:../hardhat-deploy
+        version: link:../hardhat-deploy
     devDependencies:
       ldenv:
         specifier: ^0.3.12
@@ -62,6 +73,9 @@ importers:
       '@types/node':
         specifier: ^22.14.1
         version: 22.14.1
+      abitype:
+        specifier: ^1.0.8
+        version: 1.0.8(typescript@5.8.3)(zod@3.24.2)
       as-soon:
         specifier: ^0.0.11
         version: 0.0.11
@@ -75,8 +89,8 @@ importers:
         specifier: ^3.0.0-next.2
         version: 3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       hardhat-deploy:
-        specifier: 2.0.0-next.22
-        version: 2.0.0-next.22(hardhat@3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))
+        specifier: link:../../../hardhat-deploy/packages/hardhat-deploy
+        version: link:../../../hardhat-deploy/packages/hardhat-deploy
       ldenv:
         specifier: ^0.3.12
         version: 0.3.12
@@ -1943,9 +1957,6 @@ packages:
     peerDependencies:
       hardhat: ^3.0.0-next.3
 
-  '@nomicfoundation/hardhat-utils@3.0.0-next.1':
-    resolution: {integrity: sha512-4QOorD+9cciveJ0GY3V5v7a1N2M0F64AC51DVlRwywU8W8FomFu8qA1J3xTw0DEvF7ekERUbQH1GvFwrQUoGlg==}
-
   '@nomicfoundation/hardhat-utils@3.0.0-next.3':
     resolution: {integrity: sha512-S+O4EgmsToH74VaUYZq0wU1j3yE7+jcKXBDfec1fo9KF1Q4+R0Tsnp7QCZl50WAiviC/TXPKicS3DaFA4aJKpg==}
 
@@ -1954,11 +1965,6 @@ packages:
     peerDependencies:
       hardhat: ^3.0.0-next.3
       viem: ^2.21.42
-
-  '@nomicfoundation/hardhat-zod-utils@3.0.0-next.0':
-    resolution: {integrity: sha512-l2ZQwV8nyibt4oAvVE3r0B2H1L1I/zIpD3ixZLMP0jjuG0qpWKBZTwJcRteO/3bdGGsYI5NAVQQ40hFpPJX9wg==}
-    peerDependencies:
-      zod: ^3.23.8
 
   '@nomicfoundation/hardhat-zod-utils@3.0.0-next.3':
     resolution: {integrity: sha512-ek52MTasaODdv4i72g3xRIAoBySmRtEIUaf6KdM0aw+mHk4mVQ7JmgyauLEPeqARTFMwI535KtzcwFYqwlEckg==}
@@ -2741,9 +2747,6 @@ packages:
   '@types/css-font-loading-module@0.0.12':
     resolution: {integrity: sha512-x2tZZYkSxXqWvTDgveSynfjq/T2HyiZHXb00j/+gy19yp70PHCizM48XFdjBCWH7eHBD0R5i/pw9yMBP/BH5uA==}
 
-  '@types/debug@4.1.12':
-    resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
-
   '@types/earcut@2.1.4':
     resolution: {integrity: sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ==}
 
@@ -2770,9 +2773,6 @@ packages:
 
   '@types/jsonfile@6.1.4':
     resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
-
-  '@types/ms@2.1.0':
-    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
   '@types/mysql@2.15.26':
     resolution: {integrity: sha512-DSLCOXhkvfS5WNNPbfn2KdICAmk8lLc+/PNvnPnF7gOdMZCxopXduqv0OQ13y/yA/zXTSikZZqVgybUxOEg6YQ==}
@@ -3865,12 +3865,6 @@ packages:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
     engines: {node: '>=0.4.7'}
     hasBin: true
-
-  hardhat-deploy@2.0.0-next.22:
-    resolution: {integrity: sha512-Ya3yvr1Ftk1txtaQMbwbpDs21hpD8uzxjDFYJDrN/FXhzgN/Ya/pvuCBWyFeP6eGB/zHyduvIg1vAHUtyojqkQ==}
-    peerDependencies:
-      hardhat: ^3.0.0-next.2
-      rocketh: ^0.11.15
 
   hardhat@3.0.0-next.3:
     resolution: {integrity: sha512-do+hXcRslKphXNutUKO0QIdiUwRt+xq61WQsAnVaBlvEYDHEs1xBFE8hNgJNrQfZrKunPQ3SRCQdpUOGp4et6Q==}
@@ -7542,17 +7536,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@nomicfoundation/hardhat-utils@3.0.0-next.1':
-    dependencies:
-      debug: 4.4.0
-      env-paths: 2.2.1
-      ethereum-cryptography: 2.2.1
-      fast-equals: 5.2.2
-      rfdc: 1.4.1
-      undici: 6.21.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@nomicfoundation/hardhat-utils@3.0.0-next.3':
     dependencies:
       '@streamparser/json-node': 0.0.22
@@ -7572,13 +7555,6 @@ snapshots:
       '@nomicfoundation/hardhat-utils': 3.0.0-next.3
       hardhat: 3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       viem: 2.26.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
-    transitivePeerDependencies:
-      - supports-color
-
-  '@nomicfoundation/hardhat-zod-utils@3.0.0-next.0(zod@3.24.2)':
-    dependencies:
-      '@nomicfoundation/hardhat-utils': 3.0.0-next.1
-      zod: 3.24.2
     transitivePeerDependencies:
       - supports-color
 
@@ -8741,10 +8717,6 @@ snapshots:
 
   '@types/css-font-loading-module@0.0.12': {}
 
-  '@types/debug@4.1.12':
-    dependencies:
-      '@types/ms': 2.1.0
-
   '@types/earcut@2.1.4': {}
 
   '@types/estree@1.0.6': {}
@@ -8771,8 +8743,6 @@ snapshots:
   '@types/jsonfile@6.1.4':
     dependencies:
       '@types/node': 22.14.1
-
-  '@types/ms@2.1.0': {}
 
   '@types/mysql@2.15.26':
     dependencies:
@@ -9951,17 +9921,6 @@ snapshots:
       wordwrap: 1.0.0
     optionalDependencies:
       uglify-js: 3.19.3
-
-  hardhat-deploy@2.0.0-next.22(hardhat@3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)):
-    dependencies:
-      '@nomicfoundation/hardhat-zod-utils': 3.0.0-next.0(zod@3.24.2)
-      '@types/debug': 4.1.12
-      debug: 4.4.0
-      hardhat: 3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      rocketh: 0.11.17(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2)
-      zod: 3.24.2
-    transitivePeerDependencies:
-      - supports-color
 
   hardhat@3.0.0-next.3(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:

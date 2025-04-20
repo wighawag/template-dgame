@@ -13,7 +13,11 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "hardhat-deploy-monorepo": "link:../hardhat-deploy",
+      "hardhat-deploy": "link:../hardhat-deploy/packages/hardhat-deploy"
+    }
   },
   "scripts": {
     "prepare": "set-defaults .vscode",
@@ -36,5 +40,9 @@
     "stop": "zellij kill-session $npm_package_name",
     "start:pnpm": "pnpm -r dev",
     "start": "zellij-launcher --layout zellij.kdl a $npm_package_name || zellij --layout zellij.kdl -s $npm_package_name"
+  },
+  "dependencies": {
+    "hardhat-deploy": "link:../hardhat-deploy/packages/hardhat-deploy",
+    "hardhat-deploy-monorepo": "link:../hardhat-deploy"
   }
 }
