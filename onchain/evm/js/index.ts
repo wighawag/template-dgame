@@ -2,15 +2,7 @@ import type {Abi_IGame} from '@generated/types/IGame.js';
 import type {Abi, ExtractAbiEvent, ExtractAbiEventNames} from 'abitype';
 import {Methods, type EIP1193ProviderWithoutEvents} from 'eip-1193';
 import {createCurriedJSONRPC, CurriedRPC} from 'remote-procedure-call';
-import {
-	decodeEventLog,
-	decodeFunctionResult,
-	encodeEventTopics,
-	EncodeEventTopicsParameters,
-	encodeFunctionData,
-	LogTopic,
-	parseEventLogs,
-} from 'viem';
+import {decodeFunctionResult, encodeEventTopics, encodeFunctionData, parseEventLogs} from 'viem';
 
 export type Avatar = {
 	avatarID: bigint;
@@ -104,8 +96,6 @@ async function getAvatarsFromContract(
 }
 
 export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi: Abi_IGame; address: `0x${string}`}) {
-	// const viemContract = getContract({abi: Game.abi, address: Game.address, client: viemClient});
-
 	const rpc = createCurriedJSONRPC<Methods>(provider);
 
 	async function getAvatars(
@@ -155,7 +145,7 @@ export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi:
 		});
 
 		const avatarsMap: Avatars = new Map();
-		for (const avatar of avatars) {
+		for (const avatar of allAvatars) {
 			avatarsMap.set(avatar.avatarID, avatar);
 		}
 		for (const log of logs) {
