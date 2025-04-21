@@ -114,7 +114,19 @@ export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi:
 	): Promise<Avatars> {
 		const zones = calculateVisibleZones(camera);
 
-		const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, 0n, 100n);
+		let startIndex = 0n;
+		const limit = 100n; // TODO option ?
+		let allAvatars: Avatar[] = [];
+		let hasMore = true;
+		while (hasMore) {
+			const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, startIndex, limit);
+			allAvatars = [...allAvatars, ...avatars];
+			hasMore = more;
+
+			if (hasMore) {
+				startIndex += limit;
+			}
+		}
 
 		const event = getEventFromAbi(Game.abi, 'CommitmentRevealed');
 
