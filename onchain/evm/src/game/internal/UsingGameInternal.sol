@@ -151,7 +151,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64 epoch,
         Action[] memory actions
     ) internal returns (uint64 newPosition) {
-        Avatar memory avatar = _getAvatar(avatarID);
+        Avatar memory avatar = _avatars[avatarID];
         uint64 initialPosition = avatar.position;
         (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
         uint64 initialZone = PositionUtils.getZone(x, y);
@@ -212,11 +212,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     function _getResolvedAvatar(uint256 avatarID) internal view returns (AvatarResolved memory) {
         Avatar memory avatar = _avatars[avatarID];
 
-        return AvatarResolved({position: avatar.position});
-    }
-
-    function _getAvatar(uint256 avatarID) internal view returns (Avatar memory) {
-        return _avatars[avatarID];
+        return AvatarResolved({position: avatar.position, avatarID: avatarID});
     }
 
     function _getAvatarsInZone(

@@ -22,6 +22,7 @@ interface UsingGameTypes {
     }
 
     struct AvatarResolved {
+        uint256 avatarID;
         uint64 position;
     }
 
