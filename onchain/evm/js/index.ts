@@ -1,7 +1,7 @@
 import type {Abi_IGame} from '@generated/types/IGame.js';
 import type {Abi, ExtractAbiEvent, ExtractAbiEventNames} from 'abitype';
 import {Methods, type EIP1193ProviderWithoutEvents} from 'eip-1193';
-import {createCurriedJSONRPC} from 'remote-procedure-call';
+import {createCurriedJSONRPC, CurriedRPC} from 'remote-procedure-call';
 import {
 	decodeEventLog,
 	decodeFunctionResult,
@@ -80,6 +80,29 @@ function getEventFromAbi<abi extends Abi, eventName extends ExtractAbiEventNames
 	throw new Error('Event not found');
 }
 
+async function getAvatarsFromContract(
+	rpc: CurriedRPC<Methods>,
+	Game: {abi: Abi_IGame; address: `0x${string}`},
+	zones: bigint[],
+	startIndex: bigint,
+	limit: bigint,
+) {
+	const calldata = encodeFunctionData({
+		abi: Game.abi,
+		functionName: 'getAvatarsInMultipleZones',
+		args: [zones, startIndex, limit],
+	});
+	const callResult = await rpc.call('eth_call')([{data: calldata, to: Game.address}]);
+	if (!callResult.success) {
+		throw new Error(callResult.error.message, {cause: callResult.error});
+	}
+	return decodeFunctionResult({
+		abi: Game.abi,
+		functionName: 'getAvatarsInMultipleZones',
+		data: callResult.value,
+	});
+}
+
 export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi: Abi_IGame; address: `0x${string}`}) {
 	// const viemContract = getContract({abi: Game.abi, address: Game.address, client: viemClient});
 
@@ -91,20 +114,7 @@ export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi:
 	): Promise<Avatars> {
 		const zones = calculateVisibleZones(camera);
 
-		const calldata = encodeFunctionData({
-			abi: Game.abi,
-			functionName: 'getAvatarsInMultipleZones',
-			args: [zones, 0n, 100n],
-		});
-		const callResult = await rpc.call('eth_call')([{data: calldata, to: Game.address}]);
-		if (!callResult.success) {
-			throw new Error(callResult.error.message, {cause: callResult.error});
-		}
-		const [avatars, more] = decodeFunctionResult({
-			abi: Game.abi,
-			functionName: 'getAvatarsInMultipleZones',
-			data: callResult.value,
-		});
+		const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, 0n, 100n);
 
 		const event = getEventFromAbi(Game.abi, 'CommitmentRevealed');
 
