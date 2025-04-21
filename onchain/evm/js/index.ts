@@ -95,21 +95,28 @@ async function getAvatarsFromContract(
 	});
 }
 
-export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi: Abi_IGame; address: `0x${string}`}) {
+export function createReader(
+	provider: EIP1193ProviderWithoutEvents,
+	Game: {abi: Abi_IGame; address: `0x${string}`},
+	options?: {maxAvatarsPerRequest?: number},
+) {
 	const rpc = createCurriedJSONRPC<Methods>(provider);
 
-	async function getAvatars(
+	async function getAvatarsFromCamera(
 		epoch: number,
 		camera: {x: number; y: number; width: number; height: number},
 	): Promise<Avatars> {
 		const zones = calculateVisibleZones(camera);
+		return getAvatars(epoch, zones);
+	}
 
-		let startIndex = 0n;
-		const limit = 100n; // TODO option ?
+	async function getAvatars(epoch: number, zones: bigint[]): Promise<Avatars> {
+		let startIndex = 0;
+		const limit = options?.maxAvatarsPerRequest || 100; // TODO option ?
 		let allAvatars: Avatar[] = [];
 		let hasMore = true;
 		while (hasMore) {
-			const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, startIndex, limit);
+			const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, BigInt(startIndex), BigInt(limit));
 			allAvatars = [...allAvatars, ...avatars];
 			hasMore = more;
 
@@ -158,5 +165,5 @@ export function createReader(provider: EIP1193ProviderWithoutEvents, Game: {abi:
 		return avatarsMap;
 	}
 
-	return {getAvatars};
+	return {getAvatars, getAvatarsFromCamera};
 }
