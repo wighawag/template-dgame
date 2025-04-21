@@ -20,7 +20,7 @@ export type Avatars = Map<bigint, AvatarWithLastActions>;
 /**
  * Calculate the zones visible from the camera view plus neighboring zones
  */
-function calculateVisibleZones(camera: {x: number; y: number; width: number; height: number}): bigint[] {
+export function calculateVisibleZones(camera: {x: number; y: number; width: number; height: number}): bigint[] {
 	const ZONE_SIZE = 16;
 	const ZONE_OFFSET = 8;
 
@@ -72,7 +72,7 @@ function getEventFromAbi<abi extends Abi, eventName extends ExtractAbiEventNames
 	throw new Error('Event not found');
 }
 
-async function getAvatarsFromContract(
+export async function getAvatarsFromContract(
 	rpc: CurriedRPC<Methods>,
 	Game: {abi: Abi_IGame; address: `0x${string}`},
 	zones: bigint[],
@@ -159,6 +159,8 @@ export function createReader(
 			const avatar = avatarsMap.get(log.args.avatarID);
 			if (avatar) {
 				avatar.lastActions = log.args.actions;
+			} else {
+				// TODO ?
 			}
 		}
 
