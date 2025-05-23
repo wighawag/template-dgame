@@ -1,68 +1,138 @@
 <script lang="ts">
-	import { connection } from './index';
+	import { connection, switchChainInfo } from './index';
 
 	import Modal from '$lib/ui/modal/Modal.svelte';
+	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
 
 	let email: string = '';
 </script>
 
-{#if $connection.step == 'WaitingForWalletConnection'}
-	<Modal title="Wallet connection requested..."></Modal>
-{:else if $connection.step === 'WalletConnected'}
-	<Modal title="Wallet connected">
-		<button onclick={() => connection.requestSignature()}>sign-in</button>
-		<button onclick={() => connection.cancel()}>cancel</button>
-	</Modal>
-{:else if $connection.step == 'ChooseWalletAccount'}
-	<Modal title="Choose your Account" oncancel={() => connection.back('WalletToChoose')}>
+<Modal
+	openOn={$connection.step == 'WaitingForWalletConnection'}
+	onCancel={() => connection.back('Idle')}
+>
+	Please Accept Wallet Connection...
+</Modal>
+
+<Modal openOn={$connection.step == 'ChooseWalletAccount'} onCancel={() => connection.back('Idle')}>
+	{#if $connection.step == 'ChooseWalletAccount'}
+		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
-			<button onclick={() => connection.connecToAddress(account)}>{account}</button>
+			<button onclick={() => connection.connectToAddress(account)}>{account}</button>
 		{/each}
-	</Modal>
-{:else if $connection.step === 'WaitingForSignature'}
-	<Modal title="Please sign">
-		<p>sign...</p>
-	</Modal>
-{:else if $connection.step === 'PopupLaunched'}
-	<Modal title="Please wait...">
-		<p>popup TODO</p>
-	</Modal>
-{:else if $connection.step === 'MechanismToChoose' || $connection.step === 'WalletToChoose'}
-	<Modal title="Connect" oncancel={() => connection.cancel()} elementToFocus="ConnectionFlow_email">
-		{#if $connection.wallets.length > 0}
-			{#each $connection.wallets as wallet}
-				<button
-					onclick={() =>
-						connection.connect({
-							type: 'wallet',
+	{/if}
+</Modal>
 
-							name: wallet.info.name
-						})}>{wallet.info.name}</button
-				>
-			{/each}
+<Modal
+	openOn={$connection.step == 'WalletToChoose' || $connection.step == 'MechanismToChoose'}
+	onCancel={() => connection.cancel()}
+>
+	{#if $connection.wallets.length > 0}
+		{#each $connection.wallets as wallet}
+			<button
+				onclick={() =>
+					connection.connect({
+						type: 'wallet',
+
+						name: wallet.info.name
+					})}>{wallet.info.name}</button
+			>
+		{/each}
+	{/if}
+
+	<button
+		onclick={() =>
+			connection.connect({
+				type: 'mnemonic',
+
+				mnemonic: 'test test test test test test test test test test test junk',
+
+				index: undefined
+			})}>dev</button
+	>
+
+	<input id="ConnectionFlow_email" bind:value={email} />
+	<button
+		onclick={() =>
+			connection.connect({
+				type: 'email',
+
+				mode: 'otp',
+
+				email
+			})}>email</button
+	>
+</Modal>
+<!--
+<Modal openOn={$connection.step == 'WalletToChoose'} onCancel={() => connection.back('Idle')}>
+	{#if $connection.wallets.length == 0}
+		No wallet found. Download <a
+			href="https://metamask.io/download/"
+			target="_blank"
+			rel="noopener noreferrer">MetaMask</a
+		>
+		<br />
+	{:else}
+		<h2 class="text-xl">Choose your Wallet</h2>
+		{#each $connection.wallets as wallet}
+			<div class="flex flex-col">
+				<div class="flex flex-row gap-2">
+					<img src={wallet.info.icon} alt={wallet.info.name} /><button
+						onclick={() => connection.connect({ type: 'wallet', name: wallet.info.name })}
+						>{wallet.info.name}</button
+					>
+				</div>
+			</div>
+		{/each}
+	{/if}
+</Modal> -->
+
+<!-- TODO? not a modal -->
+<Modal openOn={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
+	<button onclick={() => connection.requestSignature()}>sign-in</button>
+</Modal>
+
+<Modal openOn={$connection.step === 'ChooseWalletAccount'} onCancel={() => connection.cancel()}>
+	{#if $connection.step == 'ChooseWalletAccount'}
+		<!-- ASSERT ChooseWalletAccount -->
+		{#each $connection.wallet.accounts as account}
+			<button onclick={() => connection.connectToAddress(account)}>{account}</button>
+		{/each}
+	{/if}
+	<!-- TODO : cancel button -->
+</Modal>
+
+<BasicModal
+	title="Please sign"
+	openOn={$connection.step === 'WaitingForSignature'}
+	onCancel={() => connection.cancel()}
+>
+	<p>sign...</p>
+</BasicModal>
+
+<BasicModal title="Please wait..." openOn={$connection.step === 'PopupLaunched'}>
+	{#if $connection.step === 'PopupLaunched'}
+		<!-- ASSERT PopupLaunched -->
+		{#if $connection.popupClosed}
+			<p>Popup seems to be closed without giving response.</p>
+			<button class="btn btn-primary" onclick={() => connection.cancel()}>abort</button>
+		{:else}
+			<p>please follow instruction...</p>
 		{/if}
+	{/if}
+</BasicModal>
 
-		<button
-			onclick={() =>
-				connection.connect({
-					type: 'mnemonic',
-
-					mnemonic: 'test test test test test test test test test test test junk',
-
-					index: undefined
-				})}>dev</button
-		>
-
-		<input id="ConnectionFlow_email" bind:value={email} />
-		<button
-			onclick={() =>
-				connection.connect({
-					type: 'email',
-
-					mode: 'otp',
-
-					email
-				})}>email</button
-		>
-	</Modal>
-{/if}
+<!-- TODO not a Modal -->
+<BasicModal
+	title={`Require Connection to ${switchChainInfo.chainName}`}
+	cancel={true}
+	confirm={{
+		label: 'Switch',
+		onclick: () => connection.switchWalletChain(connection.provider.chainId, switchChainInfo),
+		disabled: !!$connection.wallet?.switchingChain
+	}}
+	openOn={$connection.step == 'WalletConnected' && $connection.wallet?.invalidChainId}
+	onCancel={() => connection.cancel()}
+>
+	<p>Switch to {switchChainInfo.chainName} to continue.</p>
+</BasicModal>

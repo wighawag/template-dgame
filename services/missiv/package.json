@@ -3,11 +3,11 @@
   "private": true,
   "devDependencies": {
     "ldenv": "^0.3.10",
-    "missiv-server": "^0.3.0",
-    "missiv-server-cf-worker": "^0.3.0",
+    "missiv-server": "^0.3.2",
+    "missiv-server-cf-worker": "^0.3.2",
     "set-defaults": "^0.0.5",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.10.0"
+    "wrangler": "^4.16.1"
   },
   "scripts": {
     "prepare": "set-defaults .",

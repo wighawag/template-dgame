@@ -8,7 +8,7 @@
 </script>
 
 <main>
-	<div class="pointer-events">
+	<div class="pointer-events-auto">
 		<TopBar />
 	</div>
 </main>
@@ -28,11 +28,8 @@
 		pointer-events: none;
 	}
 
-	.pointer-events {
-		pointer-events: all;
-	}
-
 	.canvas {
+		background-color: green;
 		pointer-events: none;
 		position: absolute;
 		top: 0;

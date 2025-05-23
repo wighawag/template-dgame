@@ -1,114 +1,48 @@
-<script module lang="ts">
-	let lastId: number = 0;
-</script>
-
 <script lang="ts">
-	import { machine, connect, type Service, type Api } from '@zag-js/dialog';
-	import { portal, normalizeProps, useMachine } from '@zag-js/svelte';
-	import { type Snippet } from 'svelte';
+	import Modal from '$lib/components/Modal/Modal.svelte';
+	import type { ComponentProps, Snippet } from 'svelte';
+	type ModalProps = ComponentProps<typeof Modal>;
 
-	interface Props {
-		oncancel?: () => void;
-		children?: Snippet;
-		title: string;
-		description?: string;
-		elementToFocus?: HTMLElement | string;
+	interface Props
+		extends Omit<
+			ModalProps,
+			'open' | 'onOpenChange' | 'closeOnInteractOutside' | 'closeOnEscape' | 'content' | 'trigger'
+		> {
+		children: Snippet;
+		openOn: boolean;
+		onCancel?: () => void;
 	}
-	let { oncancel, children, title, description, elementToFocus }: Props = $props();
 
-	let closeButton: HTMLButtonElement;
-
-	const service: Service = useMachine(machine, {
-		id: (++lastId).toString(),
-		role: 'alertdialog',
-		defaultOpen: true,
-		onOpenChange(details) {
-			oncancel && oncancel();
-		},
-		finalFocusEl: () => document.querySelector(':focus-visible'),
-		restoreFocus: true,
-		initialFocusEl: () => {
-			if (elementToFocus) {
-				if (typeof elementToFocus === 'string') {
-					return document.getElementById(elementToFocus);
-				}
-				return elementToFocus;
-			} else {
-				return oncancel ? closeButton : null;
-			}
-		},
-
-		onInteractOutside: (event) => {
-			event.preventDefault();
-			oncancel && oncancel();
-		}
-	});
-	const api: Api = $derived(connect(service, normalizeProps));
+	let {
+		children,
+		openOn,
+		onCancel,
+		triggerBase = 'btn preset-tonal',
+		contentBase = 'card bg-surface-100-900 p-4 space-y-4 shadow-xl max-w-screen-sm',
+		backdropBackground = '',
+		backdropClasses = '',
+		positionerClasses = 'backdrop-blur-sm bg-surface-50/75 dark:bg-surface-950/75',
+		...rest
+	}: Props = $props();
 </script>
 
-<div use:portal {...api.getBackdropProps()}></div>
-<div use:portal {...api.getPositionerProps()}>
-	<div {...api.getContentProps()}>
-		<h2 {...api.getTitleProps()}>{title}</h2>
-		{#if description}
-			<p {...api.getDescriptionProps()}>
-				{description}
-			</p>
-		{/if}
-		<div>
-			{@render children?.()}
-		</div>
-		<button hidden={!oncancel} bind:this={closeButton} onclick={oncancel}>Close</button>
-	</div>
-</div>
-
-<style>
-	/* @keyframes fadeIn {
-		from {
-			opacity: 0;
+<Modal
+	open={openOn}
+	onOpenChange={(event) => {
+		if (!event.open) {
+			onCancel && onCancel();
 		}
-		to {
-			opacity: 0.2;
-		}
-	} */
-
-	[data-part='positioner'] {
-		position: fixed;
-		inset: 0;
-		height: fit-content;
-		width: fit-content;
-		min-width: 300px;
-		min-height: 300px;
-		background-color: white;
-		margin: auto;
-		padding: 20px;
-		border-radius: 4px;
-		overflow: visible;
-		z-index: 1001;
-	}
-
-	[data-part='backdrop'] {
-		position: fixed;
-		inset: 0;
-		width: 100vw;
-		height: 100vh;
-		background-color: rgba(0, 0, 0, 0.6);
-		z-index: 1000;
-	}
-
-	/* [data-part='content'] {
-		
-	} */
-
-	/* [data-part='title'] {
-		
-	} */
-
-	/* [data-part='description'] {
-	
-	} */
-
-	/* [data-part='close-trigger'] {
-	
-	} */
-</style>
+	}}
+	closeOnInteractOutside={onCancel ? true : false}
+	closeOnEscape={onCancel ? true : false}
+	{triggerBase}
+	{contentBase}
+	{backdropClasses}
+	{positionerClasses}
+	{backdropBackground}
+	{...rest}
+>
+	{#snippet content()}
+		{@render children()}
+	{/snippet}
+</Modal>

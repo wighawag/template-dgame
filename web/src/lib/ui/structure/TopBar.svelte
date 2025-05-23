@@ -5,7 +5,7 @@
 	import ImgBlockie from '$lib/utils/ethereum/ImgBlockie.svelte';
 </script>
 
-<div class="menu">
+<div class="absolute top-0 left-0 bg-white text-black">
 	<!-- TODO top panel -->
 
 	{#if $connection.step === 'Idle' && $connection.loading}
@@ -21,7 +21,7 @@
 			{#if accountChanged}
 				<button
 					style="margin-right: 2rem;"
-					onclick={() => connection.connecToAddress(accountChanged)}>switch</button
+					onclick={() => connection.connectToAddress(accountChanged)}>switch</button
 				>
 			{/if}
 
@@ -73,12 +73,3 @@
 		<button onclick={() => connection.connect()}>connect</button>
 	{/if}
 </div>
-
-<style>
-	.menu {
-		position: absolute;
-		top: 0;
-		left: 0;
-		background-color: white;
-	}
-</style>

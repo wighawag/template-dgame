@@ -5,14 +5,20 @@
 	"type": "module",
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.20.5",
+		"@sveltejs/kit": "^2.21.1",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@tailwindcss/forms": "^0.5.10",
+		"@tailwindcss/typography": "^0.5.16",
+		"@tailwindcss/vite": "^4.1.7",
+		"@vitejs/plugin-basic-ssl": "^2.0.0",
 		"prettier": "^3.4.2",
-		"prettier-plugin-svelte": "^3.3.3",
-		"svelte": "^5.26.1",
-		"svelte-check": "^4.1.5",
+		"prettier-plugin-svelte": "^3.4.0",
+		"svelte": "^5.33.1",
+		"svelte-check": "^4.2.1",
+		"tailwindcss": "^4.1.7",
 		"typescript": "^5.8.3",
-		"vite": "^6.2.6"
+		"vite": "^6.3.5",
+		"vite-plugin-devtools-json": "^0.1.0"
 	},
 	"scripts": {
 		"prepare": "svelte-kit sync || echo 'READY'",
@@ -25,14 +31,14 @@
 		"format:check": "prettier --check ."
 	},
 	"dependencies": {
-		"@etherplay/connect": "^0.0.23",
+		"@etherplay/connect": "^0.0.27",
 		"@pixi/devtools": "^2.0.1",
-		"@zag-js/dialog": "^1.9.3",
-		"@zag-js/svelte": "^1.9.3",
+		"@zag-js/dialog": "^1.12.4",
+		"@zag-js/svelte": "^1.12.4",
 		"eip-1193": "^0.6.3",
 		"pixi-viewport": "^6.0.3",
-		"pixi.js": "^8.9.1",
-		"twgl.js": "^5.5.4",
-		"viem": "^2.26.3"
+		"pixi.js": "^8.9.2",
+		"twgl.js": "^6.1.1",
+		"viem": "^2.30.0"
 	}
 }

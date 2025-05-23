@@ -7,7 +7,7 @@
   "devDependencies": {
     "ldenv": "^0.3.12",
     "set-defaults": "^0.0.5",
-    "syncpack": "^13.0.3",
+    "syncpack": "^13.0.4",
     "zellij-launcher": "^0.0.1"
   },
   "pnpm": {
@@ -35,10 +35,6 @@
     "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
     "stop": "zellij kill-session $npm_package_name",
     "start:pnpm": "pnpm -r dev",
-    "start": "zellij-launcher --layout zellij.kdl a $npm_package_name || zellij --layout zellij.kdl -s $npm_package_name"
-  },
-  "dependencies": {
-    "hardhat-deploy": "link:../hardhat-deploy/packages/hardhat-deploy",
-    "hardhat-deploy-monorepo": "link:../hardhat-deploy"
+    "start": "zellij-launcher a $npm_package_name || zellij -n zellij.kdl -s $npm_package_name"
   }
 }

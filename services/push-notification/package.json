@@ -7,7 +7,7 @@
     "push-notification-service-server-cf-worker": "^0.0.3",
     "set-defaults": "^0.0.5",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.10.0"
+    "wrangler": "^4.16.1"
   },
   "scripts": {
     "prepare": "set-defaults .",
