@@ -11,10 +11,16 @@
 	openOn={$connection.step == 'WaitingForWalletConnection'}
 	onCancel={() => connection.back('Idle')}
 >
-	Please Accept Wallet Connection...
+	{#snippet title()}
+		Waiting for Wallet Connection...
+	{/snippet}
+	Please Accept Connection Request...
 </Modal>
 
 <Modal openOn={$connection.step == 'ChooseWalletAccount'} onCancel={() => connection.back('Idle')}>
+	{#snippet title()}
+		Choose Wallet Account
+	{/snippet}
 	{#if $connection.step == 'ChooseWalletAccount'}
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
@@ -27,6 +33,9 @@
 	openOn={$connection.step == 'WalletToChoose' || $connection.step == 'MechanismToChoose'}
 	onCancel={() => connection.cancel()}
 >
+	{#snippet title()}
+		Choose Connection Type...
+	{/snippet}
 	{#if $connection.wallets.length > 0}
 		{#each $connection.wallets as wallet}
 			<button
@@ -89,10 +98,16 @@
 
 <!-- TODO? not a modal -->
 <Modal openOn={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
+	{#snippet title()}
+		'Wallet Connected'
+	{/snippet}
 	<button onclick={() => connection.requestSignature()}>sign-in</button>
 </Modal>
 
 <Modal openOn={$connection.step === 'ChooseWalletAccount'} onCancel={() => connection.cancel()}>
+	{#snippet title()}
+		'Choose Wallet Account'
+	{/snippet}
 	{#if $connection.step == 'ChooseWalletAccount'}
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}

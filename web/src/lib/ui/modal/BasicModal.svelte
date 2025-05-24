@@ -3,7 +3,7 @@
 	import type { ComponentProps } from 'svelte';
 	type ModalProps = ComponentProps<typeof Modal>;
 
-	interface Props extends ModalProps {
+	interface Props extends Omit<ModalProps, 'title' | 'description'> {
 		title: string;
 		cancel?:
 			| {
@@ -23,13 +23,13 @@
 </script>
 
 <Modal {...rest}>
-	<header class="flex justify-between">
-		<h2 class="h2">{title}</h2>
-	</header>
-	<article>
-		{@render children()}
-	</article>
+	{#snippet title()}
+		{title}
+	{/snippet}
 
+	<article>
+		{@render children?.()}
+	</article>
 	<footer class="flex flex-wrap justify-end gap-4">
 		{#if cancel}
 			<button
