@@ -4,7 +4,7 @@
 	let { children, class: extraClass, ...restProps }: Button.RootProps = $props();
 
 	let clazz = clsx(
-		'bg-primary hover:bg-primary-light focus-visible:outline-primary-dark focus-visible:outline-offset-3 rounded-md px-3.5 py-2.5 text-sm font-semibold text-white focus-visible:outline-4',
+		'bg-primary hover:bg-primary-light rounded-md px-3.5 py-2.5 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
 		extraClass
 	);
 </script>
