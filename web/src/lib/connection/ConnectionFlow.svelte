@@ -4,6 +4,7 @@
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
 	import Button from '$lib/ui/base/Button.svelte';
+	import Address from '$lib/ui/ethereum/Address.svelte';
 
 	let email: string = '';
 	let emailInput: HTMLInputElement;
@@ -100,29 +101,6 @@
 		Dev
 	</Button>
 </Modal>
-<!--
-<Modal openWhen={$connection.step == 'WalletToChoose'} onCancel={() => connection.back('Idle')}>
-	{#if $connection.wallets.length == 0}
-		No wallet found. Download <a
-			href="https://metamask.io/download/"
-			target="_blank"
-			rel="noopener noreferrer">MetaMask</a
-		>
-		<br />
-	{:else}
-		<h2 class="text-xl">Choose your Wallet</h2>
-		{#each $connection.wallets as wallet}
-			<div class="flex flex-col">
-				<div class="flex flex-row gap-2">
-					<img src={wallet.info.icon} alt={wallet.info.name} /><Button
-						onclick={() => connection.connect({ type: 'wallet', name: wallet.info.name })}
-						>{wallet.info.name}</Button
-					>
-				</div>
-			</div>
-		{/each}
-	{/if}
-</Modal> -->
 
 <!-- TODO? not a modal -->
 <Modal openWhen={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
@@ -139,15 +117,18 @@
 	{#if $connection.step == 'ChooseWalletAccount'}
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
-			<Button onclick={() => connection.connectToAddress(account)}>{account}</Button>
+			<Button onclick={() => connection.connectToAddress(account)}
+				><Address address={account} /></Button
+			>
 		{/each}
+		<Button><Address address={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'} /></Button>
 	{/if}
 	<!-- TODO : cancel Button -->
 </Modal>
 
 <BasicModal
-	title="Please sign"
 	openWhen={$connection.step === 'WaitingForSignature'}
+	title="Please sign"
 	onCancel={() => connection.cancel()}
 >
 	<p>Please accept the signature request...</p>
@@ -167,6 +148,7 @@
 
 <!-- TODO not a Modal -->
 <BasicModal
+	openWhen={($connection.step === 'SignedIn' && $connection.wallet?.invalidChainId) || false}
 	title={`Require Connection to ${switchChainInfo.chainName}`}
 	cancel={true}
 	confirm={{
@@ -174,7 +156,6 @@
 		onclick: () => connection.switchWalletChain(connection.provider.chainId, switchChainInfo),
 		disabled: !!$connection.wallet?.switchingChain
 	}}
-	openWhen={$connection.step == 'WalletConnected' && $connection.wallet?.invalidChainId}
 	onCancel={() => connection.cancel()}
 >
 	<p>Switch to {switchChainInfo.chainName} to continue.</p>
