@@ -1,17 +1,18 @@
 <script lang="ts">
-	export let address: string;
-	export let offset: number = 0;
-	export let style: string | undefined = undefined;
-	export let rootClass = '';
-
 	import { Blockie } from './blockie.js';
+	import type { HTMLImgAttributes } from 'svelte/elements';
 
-	$: uri = Blockie.getURI(address, offset);
+	interface BlockieProps extends HTMLImgAttributes {
+		address: string;
+		offset?: number;
+	}
+
+	let { address, offset = 0, ...restProps }: BlockieProps = $props();
+
+	let uri = $derived(Blockie.getURI(address, offset));
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<img class={rootClass} {style} src={uri} alt={address} on:click />
+<img {...restProps} src={uri} alt={address} />
 
 <style>
 	img {
