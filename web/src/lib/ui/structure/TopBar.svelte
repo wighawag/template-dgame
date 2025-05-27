@@ -4,7 +4,7 @@
 	import Button from '../base/Button.svelte';
 	import Spinner from '../base/Spinner.svelte';
 
-	let showMenu = false;
+	let showMenu = $state(false);
 
 	function toggleMenu() {
 		showMenu = !showMenu;
@@ -19,21 +19,21 @@
 </script>
 
 <nav
-	class="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-gray-900 px-4 text-white shadow-md h-12"
+	class="fixed left-0 top-0 z-50 flex h-12 w-full items-center justify-between bg-gray-900 px-4 text-white shadow-md"
 >
-	<div class="flex items-center space-x-2 h-full">
+	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
 		<span class="text-lg font-bold">DGame</span>
 	</div>
-	<div class="relative flex items-center space-x-4 h-full">
+	<div class="relative flex h-full items-center space-x-4">
 		{#if $connection.step === 'Idle' && $connection.loading}
-			<Button disabled class="m-0 h-8 w-8 p-0 flex items-center justify-center">
+			<Button disabled class="m-0 flex h-8 w-8 items-center justify-center p-0">
 				<Spinner class="h-6 w-6" />
 			</Button>
 		{:else if $connection.step === 'SignedIn'}
-			<div class="flex items-center space-x-2 h-full">
+			<div class="flex h-full items-center space-x-2">
 				<button
-					class="focus:outline-none h-8 w-8 flex items-center justify-center"
+					class="flex h-8 w-8 items-center justify-center focus:outline-none"
 					onclick={toggleMenu}
 					aria-label="Account menu"
 				>
@@ -45,7 +45,7 @@
 			</div>
 		{:else}
 			<Button
-				class="m-0 h-8 px-3 p-0 flex items-center justify-center"
+				class="m-0 flex h-8 items-center justify-center p-0 px-3"
 				disabled={$connection.step != 'Idle'}
 				onclick={() => connection.connect()}
 			>
@@ -55,7 +55,7 @@
 	</div>
 	{#if showMenu}
 		<div
-			class="absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200 z-[100]"
+			class="absolute right-4 top-12 z-[100] mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
 			onclick={closeMenu}
 			onkeydown={(event) => {
 				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
