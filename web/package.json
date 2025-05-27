@@ -32,6 +32,7 @@
 	},
 	"dependencies": {
 		"@etherplay/connect": "^0.0.27",
+		"@lucide/svelte": "^0.511.0",
 		"@pixi/devtools": "^2.0.1",
 		"@zag-js/dialog": "^1.12.4",
 		"@zag-js/svelte": "^1.12.4",

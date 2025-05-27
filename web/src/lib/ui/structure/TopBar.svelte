@@ -3,13 +3,15 @@
 	import { viemChainInfoToSwitchChainInfo } from '$lib/utils/ethereum/chains';
 
 	import ImgBlockie from '$lib/utils/ethereum/ImgBlockie.svelte';
+	import Button from '../base/Button.svelte';
+	import Spinner from '../base/Spinner.svelte';
 </script>
 
-<div class="absolute top-0 left-0 bg-white text-black">
+<div class="absolute top-0 right-0">
 	<!-- TODO top panel -->
 
 	{#if $connection.step === 'Idle' && $connection.loading}
-		loading...
+		<Spinner />
 	{:else if $connection.step === 'SignedIn'}
 		you are signed-in: {$connection.account.address}
 
@@ -70,6 +72,6 @@
                    });
                }
            }); -->
-		<button onclick={() => connection.connect()}>connect</button>
+		<Button onclick={() => connection.connect()}>connect</Button>
 	{/if}
 </div>
