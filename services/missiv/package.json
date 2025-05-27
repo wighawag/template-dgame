@@ -7,7 +7,7 @@
     "missiv-server-cf-worker": "^0.3.2",
     "set-defaults": "^0.0.5",
     "wait-on": "^8.0.3",
-    "wrangler": "^4.16.1"
+    "wrangler": "^4.17.0"
   },
   "scripts": {
     "prepare": "set-defaults .",

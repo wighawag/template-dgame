@@ -44,9 +44,9 @@
 				</button>
 			</div>
 		{:else}
+			<!-- disabled={$connection.step != 'Idle'} -->
 			<Button
 				class="m-0 flex h-8 items-center justify-center p-0 px-3"
-				disabled={$connection.step != 'Idle'}
 				onclick={() => connection.connect()}
 			>
 				Connect

@@ -37,18 +37,6 @@
 		e.preventDefault();
 		onCancel?.();
 	}
-
-	// TODO: since onCloseAutoFocus is not called when closing via open change
-	// we handle it with $effect
-	// see https://github.com/huntabyte/bits-ui/issues/1492
-	$effect(() => {
-		if (!openWhen) {
-			let element = focusedElementWhenOpened;
-			if (element) {
-				element.focus();
-			}
-		}
-	});
 </script>
 
 <Dialog.Root

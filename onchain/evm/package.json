@@ -16,7 +16,7 @@
 		"@rocketh/read-execute": "^0.11.21",
 		"@rocketh/router": "^0.11.23",
 		"@rocketh/verifier": "^0.11.21",
-		"@types/node": "^22.15.21",
+		"@types/node": "^22.15.23",
 		"abitype": "^1.0.8",
 		"as-soon": "^0.0.11",
 		"earl": "^1.3.0",
@@ -32,7 +32,7 @@
 		"solidity-kit": "^0.5.3",
 		"tsx": "^4.19.4",
 		"typescript": "^5.8.3",
-		"viem": "^2.30.0",
+		"viem": "^2.30.1",
 		"wait-on": "^8.0.3",
 		"zellij-launcher": "^0.0.1"
 	},
