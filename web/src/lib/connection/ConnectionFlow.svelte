@@ -3,6 +3,7 @@
 
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
+	import Button from '$lib/ui/base/Button.svelte';
 
 	let email: string = '';
 	let emailInput: HTMLInputElement;
@@ -28,7 +29,7 @@
 	{#if $connection.step == 'ChooseWalletAccount'}
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
-			<button onclick={() => connection.connectToAddress(account)}>{account}</button>
+			<Button onclick={() => connection.connectToAddress(account)}>{account}</Button>
 		{/each}
 	{/if}
 </Modal>
@@ -41,41 +42,63 @@
 	{#snippet title()}
 		Choose Connection Type...
 	{/snippet}
-	{#if $connection.wallets.length > 0}
-		{#each $connection.wallets as wallet}
-			<button
-				onclick={() =>
-					connection.connect({
-						type: 'wallet',
 
-						name: wallet.info.name
-					})}>{wallet.info.name}</button
-			>
-		{/each}
+	<!-- Email option first -->
+	<div class="mb-6 flex flex-col gap-2">
+		<input
+			bind:this={emailInput}
+			bind:value={email}
+			placeholder="Enter your email"
+			class="w-full rounded-md border border-zinc-700 bg-zinc-800 p-2 text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+		/>
+		<Button
+			class="rounded bg-zinc-700 px-4 py-2 text-zinc-100 transition hover:bg-zinc-600"
+			onclick={() =>
+				connection.connect({
+					type: 'email',
+					mode: 'otp',
+					email
+				})}
+		>
+			Sign in with Email
+		</Button>
+	</div>
+
+	<!-- Wallet options -->
+	{#if $connection.wallets.length > 0}
+		<div class="mb-6 flex flex-col gap-2">
+			{#each $connection.wallets as wallet}
+				<Button
+					class="rounded bg-zinc-700 px-4 py-2 text-zinc-100 transition hover:bg-zinc-600"
+					onclick={() =>
+						connection.connect({
+							type: 'wallet',
+							name: wallet.info.name
+						})}
+				>
+					<img
+						src={wallet.info.icon}
+						alt={wallet.info.name}
+						class="ml-2 mr-2 inline-block h-5 w-5"
+					/>
+					{wallet.info.name}
+				</Button>
+			{/each}
+		</div>
 	{/if}
 
-	<button
+	<!-- Dev option -->
+	<Button
+		class="rounded bg-zinc-700 px-4 py-2 text-zinc-100 transition hover:bg-zinc-600"
 		onclick={() =>
 			connection.connect({
 				type: 'mnemonic',
-
 				mnemonic: 'test test test test test test test test test test test junk',
-
 				index: undefined
-			})}>dev</button
+			})}
 	>
-
-	<input bind:this={emailInput} bind:value={email} />
-	<button
-		onclick={() =>
-			connection.connect({
-				type: 'email',
-
-				mode: 'otp',
-
-				email
-			})}>email</button
-	>
+		Dev
+	</Button>
 </Modal>
 <!--
 <Modal openWhen={$connection.step == 'WalletToChoose'} onCancel={() => connection.back('Idle')}>
@@ -91,9 +114,9 @@
 		{#each $connection.wallets as wallet}
 			<div class="flex flex-col">
 				<div class="flex flex-row gap-2">
-					<img src={wallet.info.icon} alt={wallet.info.name} /><button
+					<img src={wallet.info.icon} alt={wallet.info.name} /><Button
 						onclick={() => connection.connect({ type: 'wallet', name: wallet.info.name })}
-						>{wallet.info.name}</button
+						>{wallet.info.name}</Button
 					>
 				</div>
 			</div>
@@ -104,22 +127,22 @@
 <!-- TODO? not a modal -->
 <Modal openWhen={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
 	{#snippet title()}
-		'Wallet Connected'
+		Wallet Connected
 	{/snippet}
-	<button onclick={() => connection.requestSignature()}>sign-in</button>
+	<Button onclick={() => connection.requestSignature()}>sign-in</Button>
 </Modal>
 
 <Modal openWhen={$connection.step === 'ChooseWalletAccount'} onCancel={() => connection.cancel()}>
 	{#snippet title()}
-		'Choose Wallet Account'
+		Choose Wallet Account
 	{/snippet}
 	{#if $connection.step == 'ChooseWalletAccount'}
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
-			<button onclick={() => connection.connectToAddress(account)}>{account}</button>
+			<Button onclick={() => connection.connectToAddress(account)}>{account}</Button>
 		{/each}
 	{/if}
-	<!-- TODO : cancel button -->
+	<!-- TODO : cancel Button -->
 </Modal>
 
 <BasicModal
@@ -127,7 +150,7 @@
 	openWhen={$connection.step === 'WaitingForSignature'}
 	onCancel={() => connection.cancel()}
 >
-	<p>sign...</p>
+	<p>Please accept the signature request...</p>
 </BasicModal>
 
 <BasicModal title="Please wait..." openWhen={$connection.step === 'PopupLaunched'}>
@@ -135,7 +158,7 @@
 		<!-- ASSERT PopupLaunched -->
 		{#if $connection.popupClosed}
 			<p>Popup seems to be closed without giving response.</p>
-			<button class="btn btn-primary" onclick={() => connection.cancel()}>abort</button>
+			<Button class="btn btn-primary" onclick={() => connection.cancel()}>abort</Button>
 		{:else}
 			<p>please follow instruction...</p>
 		{/if}

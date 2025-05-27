@@ -66,7 +66,7 @@
 			class={`${overlayCoreClass} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 bg-black/80`}
 		/>
 		<Dialog.Content
-			class={`${contentCoreClass} rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden border p-5`}
+			class={`${contentCoreClass} rounded-card-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden border bg-black p-5`}
 			interactOutsideBehavior={onCancel ? 'close' : 'ignore'}
 			{onInteractOutside}
 			escapeKeydownBehavior={onCancel ? 'close' : 'ignore'}
@@ -80,10 +80,13 @@
 				>
 					{@render title()}
 				</Dialog.Title>
-				<Separator.Root class="| -mx-5 mt-5 mb-6 block h-px bg-gray-200" />
+				<Separator.Root class="| -mx-5 mb-6 mt-5 block h-px bg-gray-200" />
 			{/if}
 
-			{@render children?.()}
+			<!-- Add a wrapper for spacing between mechanism and wallet options -->
+			<div class="flex flex-col space-y-6">
+				{@render children?.()}
+			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
