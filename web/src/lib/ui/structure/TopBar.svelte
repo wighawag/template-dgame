@@ -7,11 +7,11 @@
 	import Spinner from '../base/Spinner.svelte';
 </script>
 
-<div class="absolute top-0 right-0">
+<div class="absolute right-0 top-0">
 	<!-- TODO top panel -->
 
 	{#if $connection.step === 'Idle' && $connection.loading}
-		<Spinner />
+		<Button disabled class="m-2"><Spinner /></Button>
 	{:else if $connection.step === 'SignedIn'}
 		you are signed-in: {$connection.account.address}
 
@@ -72,6 +72,8 @@
                    });
                }
            }); -->
-		<Button onclick={() => connection.connect()}>connect</Button>
+		<Button disabled={$connection.step != 'Idle'} class="m-2" onclick={() => connection.connect()}
+			>connect</Button
+		>
 	{/if}
 </div>
