@@ -19,19 +19,24 @@
 </script>
 
 <nav
-	class="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-gray-900 px-4 py-2 text-white shadow-md"
+	class="fixed left-0 top-0 z-50 flex w-full items-center justify-between bg-gray-900 px-4 text-white shadow-md h-12"
 >
-	<div class="flex items-center space-x-2">
+	<div class="flex items-center space-x-2 h-full">
 		<!-- Logo or App Name -->
 		<span class="text-lg font-bold">DGame</span>
 	</div>
-	<div class="relative flex items-center space-x-4">
+	<div class="relative flex items-center space-x-4 h-full">
 		{#if $connection.step === 'Idle' && $connection.loading}
-			<Button disabled class="m-0"><Spinner /></Button>
+			<Button disabled class="m-0 h-8 w-8 p-0 flex items-center justify-center">
+				<Spinner class="h-6 w-6" />
+			</Button>
 		{:else if $connection.step === 'SignedIn'}
-			<div class="flex items-center space-x-2">
-				<!-- Blockie as clickable icon -->
-				<button class="focus:outline-none" onclick={toggleMenu} aria-label="Account menu">
+			<div class="flex items-center space-x-2 h-full">
+				<button
+					class="focus:outline-none h-8 w-8 flex items-center justify-center"
+					onclick={toggleMenu}
+					aria-label="Account menu"
+				>
 					<ImgBlockie
 						address={$connection.account.address}
 						class="h-6 w-6 rounded-full border border-gray-700"
@@ -40,7 +45,7 @@
 			</div>
 		{:else}
 			<Button
-				class="m-0"
+				class="m-0 h-8 px-3 p-0 flex items-center justify-center"
 				disabled={$connection.step != 'Idle'}
 				onclick={() => connection.connect()}
 			>
@@ -50,8 +55,7 @@
 	</div>
 	{#if showMenu}
 		<div
-			class="absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
-			style="z-index:100"
+			class="absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200 z-[100]"
 			onclick={closeMenu}
 			onkeydown={(event) => {
 				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
