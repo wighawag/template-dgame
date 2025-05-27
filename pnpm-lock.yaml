@@ -201,6 +201,9 @@ importers:
       pixi.js:
         specifier: ^8.9.2
         version: 8.9.2
+      tw-animate-css:
+        specifier: ^1.3.0
+        version: 1.3.0
       twgl.js:
         specifier: ^6.1.1
         version: 6.1.1
@@ -5449,6 +5452,9 @@ packages:
   tunnel@0.0.6:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
+
+  tw-animate-css@1.3.0:
+    resolution: {integrity: sha512-jrJ0XenzS9KVuDThJDvnhalbl4IYiMQ/XvpA0a2FL8KmlK+6CSMviO7ROY/I7z1NnUs5NnDhlM6fXmF40xPxzw==}
 
   twgl.js@6.1.1:
     resolution: {integrity: sha512-/VCUYYWdU4tif3nAUZORJPVUFgBRbLrFHB2ZMRyw3hIGNIhgaOSHIOckYOSVfQWJw/UGW/3q8NRA1ymwLmSfaA==}
@@ -11947,6 +11953,8 @@ snapshots:
       fsevents: 2.3.3
 
   tunnel@0.0.6: {}
+
+  tw-animate-css@1.3.0: {}
 
   twgl.js@6.1.1: {}
 

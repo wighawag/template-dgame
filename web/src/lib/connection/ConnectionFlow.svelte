@@ -5,10 +5,11 @@
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
 
 	let email: string = '';
+	let emailInput: HTMLInputElement;
 </script>
 
 <Modal
-	openOn={$connection.step == 'WaitingForWalletConnection'}
+	openWhen={$connection.step == 'WaitingForWalletConnection'}
 	onCancel={() => connection.back('Idle')}
 >
 	{#snippet title()}
@@ -17,7 +18,10 @@
 	Please Accept Connection Request...
 </Modal>
 
-<Modal openOn={$connection.step == 'ChooseWalletAccount'} onCancel={() => connection.back('Idle')}>
+<Modal
+	openWhen={$connection.step == 'ChooseWalletAccount'}
+	onCancel={() => connection.back('Idle')}
+>
 	{#snippet title()}
 		Choose Wallet Account
 	{/snippet}
@@ -30,8 +34,9 @@
 </Modal>
 
 <Modal
-	openOn={$connection.step == 'WalletToChoose' || $connection.step == 'MechanismToChoose'}
+	openWhen={$connection.step == 'WalletToChoose' || $connection.step == 'MechanismToChoose'}
 	onCancel={() => connection.cancel()}
+	elementToFocus={emailInput}
 >
 	{#snippet title()}
 		Choose Connection Type...
@@ -60,7 +65,7 @@
 			})}>dev</button
 	>
 
-	<input id="ConnectionFlow_email" bind:value={email} />
+	<input bind:this={emailInput} bind:value={email} />
 	<button
 		onclick={() =>
 			connection.connect({
@@ -73,7 +78,7 @@
 	>
 </Modal>
 <!--
-<Modal openOn={$connection.step == 'WalletToChoose'} onCancel={() => connection.back('Idle')}>
+<Modal openWhen={$connection.step == 'WalletToChoose'} onCancel={() => connection.back('Idle')}>
 	{#if $connection.wallets.length == 0}
 		No wallet found. Download <a
 			href="https://metamask.io/download/"
@@ -97,14 +102,14 @@
 </Modal> -->
 
 <!-- TODO? not a modal -->
-<Modal openOn={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
+<Modal openWhen={$connection.step === 'WalletConnected'} onCancel={() => connection.cancel()}>
 	{#snippet title()}
 		'Wallet Connected'
 	{/snippet}
 	<button onclick={() => connection.requestSignature()}>sign-in</button>
 </Modal>
 
-<Modal openOn={$connection.step === 'ChooseWalletAccount'} onCancel={() => connection.cancel()}>
+<Modal openWhen={$connection.step === 'ChooseWalletAccount'} onCancel={() => connection.cancel()}>
 	{#snippet title()}
 		'Choose Wallet Account'
 	{/snippet}
@@ -119,13 +124,13 @@
 
 <BasicModal
 	title="Please sign"
-	openOn={$connection.step === 'WaitingForSignature'}
+	openWhen={$connection.step === 'WaitingForSignature'}
 	onCancel={() => connection.cancel()}
 >
 	<p>sign...</p>
 </BasicModal>
 
-<BasicModal title="Please wait..." openOn={$connection.step === 'PopupLaunched'}>
+<BasicModal title="Please wait..." openWhen={$connection.step === 'PopupLaunched'}>
 	{#if $connection.step === 'PopupLaunched'}
 		<!-- ASSERT PopupLaunched -->
 		{#if $connection.popupClosed}
@@ -146,7 +151,7 @@
 		onclick: () => connection.switchWalletChain(connection.provider.chainId, switchChainInfo),
 		disabled: !!$connection.wallet?.switchingChain
 	}}
-	openOn={$connection.step == 'WalletConnected' && $connection.wallet?.invalidChainId}
+	openWhen={$connection.step == 'WalletConnected' && $connection.wallet?.invalidChainId}
 	onCancel={() => connection.cancel()}
 >
 	<p>Switch to {switchChainInfo.chainName} to continue.</p>

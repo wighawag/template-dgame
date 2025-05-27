@@ -1,49 +1,89 @@
 <script lang="ts">
-	import Dialog from '$lib/components/Dialog/Dialog.svelte';
-	import { tick, type ComponentProps } from 'svelte';
-	type DialogProps = ComponentProps<typeof Dialog>;
+	import { type Snippet } from 'svelte';
+	import { Dialog, Separator } from 'bits-ui';
 
-	interface Props extends Omit<DialogProps, 'openOn' | 'onCancel' | 'onOpenChange'> {
-		openOn: boolean;
+	interface Props {
+		openWhen: boolean;
 		onCancel?: () => void;
+		children?: Snippet;
+		title?: Snippet;
+		elementToFocus?: HTMLElement;
 	}
 
-	let { openOn, onCancel, ...rest }: Props = $props();
+	let { openWhen, onCancel, children, title, elementToFocus, ...restProps }: Props = $props();
 
-	let focusedElementWhenOpened: HTMLElement | null = $state(null);
+	const overlayCoreClass = `z-[999] fixed inset-0`;
+	const contentCoreClass =
+		'z-[999] fixed top-[50%] left-[50%] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] p-5 sm:max-w-[490px]';
+
+	let focusedElementWhenOpened: HTMLElement | null = null;
+	function onOpenAutoFocus(e: Event) {
+		focusedElementWhenOpened = document.querySelector(':focus-visible');
+		if (elementToFocus) {
+			elementToFocus.focus();
+			e.preventDefault();
+		}
+	}
+	function onCloseAutoFocus(e: Event) {
+		e.preventDefault();
+		focusedElementWhenOpened?.focus();
+	}
+
+	function onInteractOutside(e: Event) {
+		e.preventDefault();
+		onCancel?.();
+	}
+	function onEscapeKeydown(e: Event) {
+		e.preventDefault();
+		onCancel?.();
+	}
+
+	// TODO: since onCloseAutoFocus is not called when closing via open change
+	// we handle it with $effect
+	// see https://github.com/huntabyte/bits-ui/issues/1492
+	$effect(() => {
+		if (!openWhen) {
+			let element = focusedElementWhenOpened;
+			if (element) {
+				element.focus();
+			}
+		}
+	});
 </script>
 
-<Dialog
-	{openOn}
+<Dialog.Root
+	open={openWhen}
 	onOpenChange={(open) => {
 		console.log('onOpenChange', open);
 		if (!open) {
 			onCancel?.();
-			console.log(focusedElementWhenOpened);
-			// debugger;
-			tick().then(() => focusedElementWhenOpened?.focus());
-			// setTimeout(() => focusedElementWhenOpened?.focus(), 1);
 		}
 	}}
-	contentProps={{
-		interactOutsideBehavior: onCancel ? 'close' : 'ignore',
-		escapeKeydownBehavior: onCancel ? 'close' : 'ignore',
-		onOpenAutoFocus: (e) => {
-			e.preventDefault();
-			console.log('onOpenAutoFocus', document.querySelector(':focus-visible'));
-			focusedElementWhenOpened = document.querySelector(':focus-visible');
+	{...restProps}
+>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class={`${overlayCoreClass} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 bg-black/80`}
+		/>
+		<Dialog.Content
+			class={`${contentCoreClass} rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden border p-5`}
+			interactOutsideBehavior={onCancel ? 'close' : 'ignore'}
+			{onInteractOutside}
+			escapeKeydownBehavior={onCancel ? 'close' : 'ignore'}
+			{onEscapeKeydown}
+			{onOpenAutoFocus}
+			{onCloseAutoFocus}
+		>
+			{#if title}
+				<Dialog.Title
+					class="| flex w-full items-center justify-center text-lg font-semibold tracking-tight"
+				>
+					{@render title()}
+				</Dialog.Title>
+				<Separator.Root class="| -mx-5 mt-5 mb-6 block h-px bg-gray-200" />
+			{/if}
 
-			// TODO option
-			const element = document.getElementById('ConnectionFlow_email');
-			element?.focus();
-		},
-		onCloseAutoFocus: (e) => {
-			e.preventDefault();
-			console.log('onOpenAutoFocus', document.querySelector(':focus-visible'));
-
-			console.log(focusedElementWhenOpened);
-			focusedElementWhenOpened?.focus();
-		}
-	}}
-	{...rest}
-></Dialog>
+			{@render children?.()}
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
