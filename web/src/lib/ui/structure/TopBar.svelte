@@ -37,38 +37,6 @@
 						class="h-6 w-6 rounded-full border border-gray-700"
 					/>
 				</button>
-				<!-- Sliding panel -->
-				{#if showMenu}
-					<div
-						class="absolute right-0 top-10 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
-						style="z-index:100"
-						onclick={closeMenu}
-						onkeydown={(event) => {
-							if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
-								closeMenu(event);
-							}
-						}}
-						tabindex="0"
-						role="dialog"
-						aria-modal="true"
-					>
-						<div class="p-4">
-							<div class="mb-2 text-xs text-gray-400">Connected as:</div>
-							<div class="mb-4 break-all font-mono text-sm text-white">
-								{$connection.account.address}
-							</div>
-							<Button
-								class="w-full"
-								onclick={() => {
-									connection.disconnect();
-									showMenu = false;
-								}}
-							>
-								Disconnect
-							</Button>
-						</div>
-					</div>
-				{/if}
 			</div>
 		{:else}
 			<Button
@@ -80,4 +48,41 @@
 			</Button>
 		{/if}
 	</div>
+	{#if showMenu}
+		<div
+			class="absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
+			style="z-index:100"
+			onclick={closeMenu}
+			onkeydown={(event) => {
+				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+					closeMenu(event);
+				}
+			}}
+			tabindex="0"
+			role="dialog"
+			aria-modal="true"
+		>
+			{#if $connection.step === 'SignedIn'}
+				<div class="p-4">
+					<div class="mb-2 text-xs text-gray-400">Connected as:</div>
+					<div class="mb-4 break-all font-mono text-sm text-white">
+						{$connection.account.address}
+					</div>
+					<Button
+						class="w-full"
+						onclick={() => {
+							connection.disconnect();
+							showMenu = false;
+						}}
+					>
+						Disconnect
+					</Button>
+				</div>
+			{:else}
+				<div class="p-4 text-center text-gray-400">
+					Please connect your wallet to access account details.
+				</div>
+			{/if}
+		</div>
+	{/if}
 </nav>
