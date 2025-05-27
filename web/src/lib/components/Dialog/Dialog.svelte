@@ -11,12 +11,12 @@
 
 	let { openOn = $bindable(false), children, contentProps, title, ...restProps }: Props = $props();
 
-	const overlayCoreClass = `fixed inset-0`;
+	const overlayCoreClass = `z-[999] fixed inset-0`;
 	const contentCoreClass =
-		'fixed top-[50%] left-[50%] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] p-5 sm:max-w-[490px]';
+		'z-[999] fixed top-[50%] left-[50%] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] p-5 sm:max-w-[490px]';
 </script>
 
-<Dialog.Root bind:open={openOn} {...restProps}>
+<Dialog.Root open={openOn} {...restProps}>
 	<Dialog.Portal>
 		<Dialog.Overlay class={`${overlayCoreClass} bg-black/80`} />
 		<Dialog.Content forceMount class={`${contentCoreClass} border bg-black `} {...contentProps}>
@@ -24,11 +24,11 @@
 				{#if open}
 					<div {...props} transition:fly={{ duration: 300, y: '100%' }}>
 						<Dialog.Title
-							class="flex w-full items-center justify-center text-lg font-semibold tracking-tight"
+							class="flex w-full items-center justify-center | tracking-tight text-lg font-semibold"
 						>
 							{@render title()}
 						</Dialog.Title>
-						<Separator.Root class="bg-muted -mx-5 mb-6 mt-5 block h-px" />
+						<Separator.Root class="-mx-5 mb-6 mt-5 block h-px | bg-gray-200" />
 						{@render children?.()}
 					</div>
 				{/if}
