@@ -4,6 +4,7 @@
 	import { type HTMLAttributes } from 'svelte/elements';
 	import { createPublicClient, http } from 'viem';
 	import { mainnet } from 'viem/chains';
+	import { Copy, Check, LoaderCircle } from '@lucide/svelte';
 
 	interface Props extends HTMLAttributes<HTMLSpanElement> {
 		value: `0x${string}`;
@@ -19,6 +20,7 @@
 
 	let ensName: string | null = $state(null);
 	let loading = $state(false);
+	let copied = $state(false);
 
 	onMount(() => {
 		if (value) {
@@ -32,7 +34,6 @@
 		}
 		loading = true;
 		ensName = null;
-		// await wait(2);
 		try {
 			ensName = await publicClient.getEnsName({ address: value });
 		} catch (e) {
@@ -45,6 +46,13 @@
 		if (!addr) return '';
 		return `${addr.slice(0, start)}...${addr.slice(-end)}`;
 	}
+
+	async function copyAddress(event: MouseEvent) {
+		event.stopPropagation();
+		await navigator.clipboard.writeText(value);
+		copied = true;
+		setTimeout(() => (copied = false), 1000);
+	}
 </script>
 
 <span {...restProps} class="inline-flex w-full min-w-[8em] items-center">
@@ -56,12 +64,23 @@
 			{formatAddress(value)}
 		{/if}
 	</span>
-	<span class="flex flex-1 justify-end">
+	<span class="flex flex-1 items-center justify-end gap-1">
 		{#if loading}
-			<span
-				class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-800 align-middle"
-				aria-label="Loading ENS name..."
-			></span>
+			<LoaderCircle class="w-4 animate-spin" />
+		{:else}
+			<button
+				type="button"
+				class="ml-2 rounded p-1 hover:bg-gray-200"
+				title="Copy address"
+				onclick={copyAddress}
+				aria-label="Copy address"
+			>
+				{#if copied}
+					<Check class="w-4 text-green-500" />
+				{:else}
+					<Copy class="w-4" />
+				{/if}
+			</button>
 		{/if}
 	</span>
 </span>
