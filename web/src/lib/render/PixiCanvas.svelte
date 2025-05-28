@@ -89,6 +89,78 @@
 		return graphics;
 	}
 
+	function buildTriangleMeshPoints(
+		graphics: Graphics,
+		width: number,
+		height: number,
+		triangleEdgeSize: number,
+		pointSize: number,
+		orientation: 'vertical' | 'horizontal' = 'vertical'
+	) {
+		// Calculate the distance between parallel rows of points
+		// For equilateral triangles, the height is √3/2 times the side length
+		const spacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
+
+		// Store the spacing info as properties on the graphics object for scrolling calculations
+		(graphics as any).triangleGridInfo = {
+			edgeSize: triangleEdgeSize,
+			spacing: spacing,
+			orientation: orientation
+		};
+
+		// Calculate the number of points needed in each direction
+		// Add extra points to ensure coverage when scrolling
+		const extraBuffer = 2;
+
+		if (orientation === 'vertical') {
+			// Vertical orientation (triangles with horizontal base)
+
+			// Calculate rows and columns needed
+			const numRows = Math.ceil(height / spacing) + extraBuffer;
+			const numCols = Math.ceil(width / triangleEdgeSize) + extraBuffer;
+
+			// Draw points at each vertex
+			for (let row = -extraBuffer; row < numRows; row++) {
+				const y = row * spacing;
+				const isEvenRow = row % 2 === 0;
+
+				// In vertical orientation, every other row is offset by half triangleEdgeSize
+				for (let col = -extraBuffer; col < numCols + extraBuffer; col++) {
+					const x = col * triangleEdgeSize + (isEvenRow ? 0 : triangleEdgeSize / 2);
+
+					// Draw a circle at each point
+					graphics.beginFill(0xffffff);
+					graphics.drawCircle(x, y, pointSize);
+					graphics.endFill();
+				}
+			}
+		} else {
+			// Horizontal orientation (triangles with vertical base)
+
+			// Calculate rows and columns needed
+			const numCols = Math.ceil(width / spacing) + extraBuffer;
+			const numRows = Math.ceil(height / triangleEdgeSize) + extraBuffer;
+
+			// Draw points at each vertex
+			for (let col = -extraBuffer; col < numCols; col++) {
+				const x = col * spacing;
+				const isEvenCol = col % 2 === 0;
+
+				// In horizontal orientation, every other column is offset by half triangleEdgeSize
+				for (let row = -extraBuffer; row < numRows + extraBuffer; row++) {
+					const y = row * triangleEdgeSize + (isEvenCol ? 0 : triangleEdgeSize / 2);
+
+					// Draw a circle at each point
+					graphics.beginFill(0xffffff);
+					graphics.drawCircle(x, y, pointSize);
+					graphics.endFill();
+				}
+			}
+		}
+
+		return graphics;
+	}
+
 	let canvas: HTMLCanvasElement;
 	let viewport: Viewport;
 	onMount(() => {
@@ -138,11 +210,12 @@
 			const cellSize = 10;
 			const gridSize = Math.max(maxWidth, maxHeight) + 2 * cellSize;
 
-			const gridPixel = buildTriangleMeshGrid(
+			const gridPixel = buildTriangleMeshPoints(
 				new Graphics(),
 				gridSize,
 				gridSize,
 				cellSize,
+				0.2,
 				'horizontal' // Change to 'vertical' for vertical orientation
 			).stroke({
 				color: 0xffffff,
