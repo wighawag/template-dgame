@@ -57,30 +57,34 @@
 
 <span {...restProps} class="inline-flex w-full min-w-[8em] items-center">
 	<span class="flex-1"></span>
-	<span class="flex-0 text-center">
+	<span class="flex-0 group relative text-center">
 		{#if ensName}
 			{ensName}
 		{:else}
 			{formatAddress(value)}
 		{/if}
+		<!-- {#if !loading} -->
+		<button
+			type="button"
+			class="absolute right-[-1.5em] top-1/2 -translate-y-1/2 rounded p-0.5 transition"
+			title="Copy address"
+			onclick={copyAddress}
+			aria-label="Copy address"
+			style="margin-left:0.25em;"
+		>
+			<span class="absolute right-0 top-1/2 size-8 -translate-y-1/2 [@media(pointer:fine)]:hidden"
+			></span>
+			{#if copied}
+				<Check class="h-3 w-3 text-green-500" />
+			{:else}
+				<Copy class="h-3 w-3" />
+			{/if}
+		</button>
+		<!-- {/if} -->
 	</span>
 	<span class="flex flex-1 items-center justify-end gap-1">
 		{#if loading}
 			<LoaderCircle class="w-4 animate-spin" />
-		{:else}
-			<button
-				type="button"
-				class="ml-2 rounded hover:bg-gray-200"
-				title="Copy address"
-				onclick={copyAddress}
-				aria-label="Copy address"
-			>
-				{#if copied}
-					<Check class="w-4 text-green-500" />
-				{:else}
-					<Copy class="w-4" />
-				{/if}
-			</button>
 		{/if}
 	</span>
 </span>
