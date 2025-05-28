@@ -66,7 +66,7 @@
 		<!-- {#if !loading} -->
 		<button
 			type="button"
-			class="absolute right-[-1.5em] top-1/2 -translate-y-1/2 rounded p-0.5 transition"
+			class="absolute right-[-1.5em] top-1/2 -translate-y-1/2 cursor-copy rounded p-0.5 transition"
 			title="Copy address"
 			onclick={copyAddress}
 			aria-label="Copy address"
