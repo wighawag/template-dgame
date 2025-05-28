@@ -5,11 +5,11 @@
 	import { mainnet } from 'viem/chains';
 
 	interface Props extends HTMLAttributes<HTMLSpanElement> {
-		address: `0x${string}`;
+		value: `0x${string}`;
 		start?: number;
 		end?: number;
 	}
-	let { address, start = 4, end = 4, ...restProps }: Props = $props();
+	let { value, start = 4, end = 4, ...restProps }: Props = $props();
 
 	const publicClient = createPublicClient({
 		chain: mainnet,
@@ -20,19 +20,19 @@
 	let loading = $state(false);
 
 	onMount(() => {
-		if (address) {
+		if (value) {
 			fetchENS();
 		}
 	});
 
 	async function fetchENS() {
-		if (!address) {
+		if (!value) {
 			return;
 		}
 		loading = true;
 		ensName = null;
 		try {
-			ensName = await publicClient.getEnsName({ address });
+			ensName = await publicClient.getEnsName({ address: value });
 		} catch (e) {
 			ensName = null;
 		}
@@ -51,7 +51,7 @@
 	{:else if ensName}
 		{ensName}
 	{:else}
-		{formatAddress(address)}
+		{formatAddress(value)}
 	{/if}
 </span>
 

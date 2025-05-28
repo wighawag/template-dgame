@@ -118,10 +118,10 @@
 		<!-- ASSERT ChooseWalletAccount -->
 		{#each $connection.wallet.accounts as account}
 			<Button onclick={() => connection.connectToAddress(account)}
-				><Address address={account} /></Button
+				><Address value={account} /></Button
 			>
 		{/each}
-		<Button><Address address={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'} /></Button>
+		<Button><Address value={'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'} /></Button>
 	{/if}
 	<!-- TODO : cancel Button -->
 </Modal>
