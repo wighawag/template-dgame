@@ -70,7 +70,7 @@
 		{:else}
 			<button
 				type="button"
-				class="ml-2 rounded p-1 hover:bg-gray-200"
+				class="ml-2 rounded hover:bg-gray-200"
 				title="Copy address"
 				onclick={copyAddress}
 				aria-label="Copy address"
