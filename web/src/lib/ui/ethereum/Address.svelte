@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { type HTMLLabelAttributes } from 'svelte/elements';
+	import { type HTMLAttributes } from 'svelte/elements';
 	import { createPublicClient, http } from 'viem';
 	import { mainnet } from 'viem/chains';
 
-	interface Props extends HTMLLabelAttributes {
+	interface Props extends HTMLAttributes<HTMLSpanElement> {
 		address: `0x${string}`;
 		start?: number;
 		end?: number;
@@ -45,7 +45,7 @@
 	}
 </script>
 
-<label {...restProps}>
+<span {...restProps}>
 	{#if loading}
 		<span class="spinner" aria-label="Loading ENS name..."></span>
 	{:else if ensName}
@@ -53,7 +53,7 @@
 	{:else}
 		{formatAddress(address)}
 	{/if}
-</label>
+</span>
 
 <style>
 	.spinner {
