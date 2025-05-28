@@ -74,6 +74,8 @@
 		>
 			<span class="absolute right-0 top-1/2 size-8 -translate-y-1/2 [@media(pointer:fine)]:hidden"
 			></span>
+			<span class="absolute right-0 top-1/2 size-5 -translate-y-1/2 [@media(pointer:coarse)]:hidden"
+			></span>
 			{#if copied}
 				<Check class="h-3 w-3 text-green-500" />
 			{:else}
