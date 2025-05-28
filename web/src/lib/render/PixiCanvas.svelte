@@ -32,6 +32,12 @@
 		const numHorizontalLines = Math.floor(height / verticalSpacing) + 2;
 		const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
 
+		// Store the spacing info as properties on the graphics object for scrolling calculations
+		(graphics as any).triangleGridInfo = {
+			edgeSize: triangleEdgeSize,
+			verticalSpacing: verticalSpacing
+		};
+
 		// Draw horizontal lines
 		for (let i = 0; i < numHorizontalLines; i++) {
 			const y = i * verticalSpacing;
@@ -126,9 +132,35 @@
 				const offsetX = viewportX / scale;
 				const offsetY = viewportY / scale;
 
-				// Position the grid to follow viewport but with modulo effect
-				gridPixel.x = -offsetX - cellSize + (offsetX % cellSize);
-				gridPixel.y = -offsetY - cellSize + (offsetY % cellSize);
+				// Get triangle grid spacing information
+				const gridInfo = (gridPixel as any).triangleGridInfo;
+
+				if (gridInfo) {
+					// For triangular grid, we need a different repeating pattern
+					const verticalSpacing = gridInfo.verticalSpacing;
+					const edgeSize = gridInfo.edgeSize;
+
+					// Calculate the period of the pattern (2 triangles make a rhombus)
+					const periodX = edgeSize * 2;
+					const periodY = verticalSpacing * 2;
+
+					// Calculate the repeating offset
+					// We use two periods to ensure smooth wrapping and avoid floating point issues
+					let gridOffsetX = offsetX % periodX;
+					let gridOffsetY = offsetY % periodY;
+
+					// Ensure positive offsets (avoid negative modulo issues)
+					if (gridOffsetX < 0) gridOffsetX += periodX;
+					if (gridOffsetY < 0) gridOffsetY += periodY;
+
+					// Position grid with calculated offset
+					gridPixel.x = -offsetX + gridOffsetX - periodX;
+					gridPixel.y = -offsetY + gridOffsetY - periodY;
+				} else {
+					// Fallback for regular grid
+					gridPixel.x = -offsetX - cellSize + (offsetX % cellSize);
+					gridPixel.y = -offsetY - cellSize + (offsetY % cellSize);
+				}
 
 				gridPixel.alpha = viewport.scaled / 48;
 			});
