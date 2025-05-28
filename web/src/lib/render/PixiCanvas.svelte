@@ -18,6 +18,41 @@
 		return graphics;
 	}
 
+	function buildTriangleMeshGrid(
+		graphics: Graphics,
+		width: number,
+		height: number,
+		triangleEdgeSize: number
+	) {
+		// Calculate the distance between parallel lines
+		// For equilateral triangles, the height is √3/2 times the side length
+		const verticalSpacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
+
+		// Calculate number of lines needed
+		const numHorizontalLines = Math.floor(height / verticalSpacing) + 2;
+		const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
+
+		// Draw horizontal lines
+		for (let i = 0; i < numHorizontalLines; i++) {
+			const y = i * verticalSpacing;
+			graphics.moveTo(0, y).lineTo(width, y);
+		}
+
+		// Draw diagonal lines going down-right (/)
+		for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+			const startX = i * triangleEdgeSize;
+			graphics.moveTo(startX, 0).lineTo(startX + height / Math.sqrt(3), height);
+		}
+
+		// Draw diagonal lines going down-left (\)
+		for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+			const startX = i * triangleEdgeSize + width;
+			graphics.moveTo(startX, 0).lineTo(startX - height / Math.sqrt(3), height);
+		}
+
+		return graphics;
+	}
+
 	let canvas: HTMLCanvasElement;
 	let viewport: Viewport;
 	onMount(() => {
@@ -64,10 +99,10 @@
 
 			viewport.fit(true, 20, 20);
 
-			const cellSize = 1;
+			const cellSize = 10;
 			const gridSize = Math.max(maxWidth, maxHeight) + 2 * cellSize;
 
-			const gridPixel = buildGrid(new Graphics(), gridSize, gridSize, cellSize).stroke({
+			const gridPixel = buildTriangleMeshGrid(new Graphics(), gridSize, gridSize, cellSize).stroke({
 				color: 0xffffff,
 				pixelLine: true,
 				width: 1
