@@ -22,38 +22,68 @@
 		graphics: Graphics,
 		width: number,
 		height: number,
-		triangleEdgeSize: number
+		triangleEdgeSize: number,
+		orientation: 'vertical' | 'horizontal' = 'vertical'
 	) {
 		// Calculate the distance between parallel lines
 		// For equilateral triangles, the height is √3/2 times the side length
-		const verticalSpacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
-
-		// Calculate number of lines needed
-		const numHorizontalLines = Math.floor(height / verticalSpacing) + 2;
-		const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
+		const spacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
 
 		// Store the spacing info as properties on the graphics object for scrolling calculations
 		(graphics as any).triangleGridInfo = {
 			edgeSize: triangleEdgeSize,
-			verticalSpacing: verticalSpacing
+			spacing: spacing,
+			orientation: orientation
 		};
 
-		// Draw horizontal lines
-		for (let i = 0; i < numHorizontalLines; i++) {
-			const y = i * verticalSpacing;
-			graphics.moveTo(0, y).lineTo(width, y);
-		}
+		if (orientation === 'vertical') {
+			// Vertical orientation (default) - horizontal base lines
 
-		// Draw diagonal lines going down-right (/)
-		for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-			const startX = i * triangleEdgeSize;
-			graphics.moveTo(startX, 0).lineTo(startX + height / Math.sqrt(3), height);
-		}
+			// Calculate number of lines needed
+			const numHorizontalLines = Math.floor(height / spacing) + 2;
+			const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
 
-		// Draw diagonal lines going down-left (\)
-		for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-			const startX = i * triangleEdgeSize + width;
-			graphics.moveTo(startX, 0).lineTo(startX - height / Math.sqrt(3), height);
+			// Draw horizontal lines
+			for (let i = 0; i < numHorizontalLines; i++) {
+				const y = i * spacing;
+				graphics.moveTo(0, y).lineTo(width, y);
+			}
+
+			// Draw diagonal lines going down-right (/)
+			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+				const startX = i * triangleEdgeSize;
+				graphics.moveTo(startX, 0).lineTo(startX + height / Math.sqrt(3), height);
+			}
+
+			// Draw diagonal lines going down-left (\)
+			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+				const startX = i * triangleEdgeSize + width;
+				graphics.moveTo(startX, 0).lineTo(startX - height / Math.sqrt(3), height);
+			}
+		} else {
+			// Horizontal orientation - vertical base lines
+
+			// Calculate number of lines needed
+			const numVerticalLines = Math.floor(width / spacing) + 2;
+			const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
+
+			// Draw vertical lines
+			for (let i = 0; i < numVerticalLines; i++) {
+				const x = i * spacing;
+				graphics.moveTo(x, 0).lineTo(x, height);
+			}
+
+			// Draw diagonal lines going down-right (\)
+			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+				const startY = i * triangleEdgeSize;
+				graphics.moveTo(0, startY).lineTo(width, startY + width / Math.sqrt(3));
+			}
+
+			// Draw diagonal lines going up-right (/)
+			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
+				const startY = i * triangleEdgeSize + height;
+				graphics.moveTo(0, startY).lineTo(width, startY - width / Math.sqrt(3));
+			}
 		}
 
 		return graphics;
@@ -108,7 +138,13 @@
 			const cellSize = 10;
 			const gridSize = Math.max(maxWidth, maxHeight) + 2 * cellSize;
 
-			const gridPixel = buildTriangleMeshGrid(new Graphics(), gridSize, gridSize, cellSize).stroke({
+			const gridPixel = buildTriangleMeshGrid(
+				new Graphics(),
+				gridSize,
+				gridSize,
+				cellSize,
+				'horizontal' // Change to 'vertical' for vertical orientation
+			).stroke({
 				color: 0xffffff,
 				pixelLine: true,
 				width: 1
@@ -136,13 +172,14 @@
 				const gridInfo = (gridPixel as any).triangleGridInfo;
 
 				if (gridInfo) {
-					// For triangular grid, we need a different repeating pattern
-					const verticalSpacing = gridInfo.verticalSpacing;
+					// Get grid orientation and spacing
+					const orientation = gridInfo.orientation;
+					const spacing = gridInfo.spacing;
 					const edgeSize = gridInfo.edgeSize;
 
 					// Calculate the period of the pattern (2 triangles make a rhombus)
-					const periodX = edgeSize * 2;
-					const periodY = verticalSpacing * 2;
+					const periodX = orientation === 'vertical' ? edgeSize * 2 : spacing * 2;
+					const periodY = orientation === 'vertical' ? spacing * 2 : edgeSize * 2;
 
 					// Calculate the repeating offset
 					// We use two periods to ensure smooth wrapping and avoid floating point issues
