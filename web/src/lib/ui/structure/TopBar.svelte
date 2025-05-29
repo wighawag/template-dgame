@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { connection } from '$lib/connection';
-	import ImgBlockie from '$lib/utils/ethereum/ImgBlockie.svelte';
-	import Button from '../base/Button.svelte';
-	import Spinner from '../base/Spinner.svelte';
+	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
+	import Button from '../generic/Button.svelte';
+	import Spinner from '../generic/Spinner.svelte';
 
 	let showMenu = $state(false);
 

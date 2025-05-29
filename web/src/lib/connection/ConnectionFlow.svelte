@@ -3,7 +3,7 @@
 
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
-	import Button from '$lib/ui/base/Button.svelte';
+	import Button from '$lib/ui/generic/Button.svelte';
 	import Address from '$lib/ui/ethereum/Address.svelte';
 
 	let email: string = '';

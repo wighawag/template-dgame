@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Blockie } from './blockie.js';
+	import { Blockie } from '../../utils/ethereum/blockie.js';
 	import type { HTMLImgAttributes } from 'svelte/elements';
 
 	interface BlockieProps extends HTMLImgAttributes {

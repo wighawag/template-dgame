@@ -29,7 +29,6 @@
 	}
 
 	.canvas {
-		background-color: green;
 		pointer-events: none;
 		position: absolute;
 		top: 0;
