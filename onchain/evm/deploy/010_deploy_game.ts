@@ -1,9 +1,9 @@
 import {Abi_Avatars} from '@generated/types/Avatars.js';
 import {Abi_IGame} from '@generated/types/IGame.js';
-import {execute, artifacts} from '@rocketh';
+import {deployScript, artifacts} from '@rocketh';
 import {zeroAddress} from 'viem';
 
-export default execute(
+export default deployScript(
 	async ({get, deployViaProxy, deployViaRouter, namedAccounts}) => {
 		const {deployer, admin} = namedAccounts;
 

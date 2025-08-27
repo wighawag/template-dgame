@@ -4,7 +4,7 @@
 	import PixiCanvas from '$lib/render/PixiCanvas.svelte';
 
 	// TODO:
-	import { viewState } from '$lib/view';
+	// import { viewState } from '$lib/view';
 </script>
 
 <main>

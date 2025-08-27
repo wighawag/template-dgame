@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { connection, switchChainInfo } from './index';
+	import { chainId, connection, switchChainInfo } from './index';
 
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
@@ -153,7 +153,7 @@
 	cancel={true}
 	confirm={{
 		label: 'Switch',
-		onclick: () => connection.switchWalletChain(connection.provider.chainId, switchChainInfo),
+		onclick: () => connection.switchWalletChain(chainId, switchChainInfo),
 		disabled: !!$connection.wallet?.switchingChain
 	}}
 	onCancel={() => connection.cancel()}
