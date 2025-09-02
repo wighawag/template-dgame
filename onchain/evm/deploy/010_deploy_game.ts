@@ -1,6 +1,6 @@
-import {Abi_Avatars} from '@generated/types/Avatars.js';
-import {Abi_IGame} from '@generated/types/IGame.js';
-import {deployScript, artifacts} from '@rocketh';
+import {Abi_Avatars} from '#generated/types/Avatars.js';
+import {Abi_IGame} from '#generated/types/IGame.js';
+import {deployScript, artifacts} from '#rocketh';
 import {zeroAddress} from 'viem';
 
 export default deployScript(

@@ -34,25 +34,30 @@ export const config = {
 // ------------------------------------------------------------------------------------------------
 // We regroup all what is needed for the deploy scripts
 // so that they just need to import this file
-// We also added an alias (@rocketh) in tsconfig.json
-// so they just need to do `import {deployScript, artifacts} from '@rocketh';`
+// We also added an alias (#rocketh) in package.json's imports
+// so they just need to do `import {deployScript, artifacts} from '#rocketh';`
 // and this work anywhere in the file hierarchy
 // ------------------------------------------------------------------------------------------------
 // we add here the module we need, so that they are available in the deploy scripts
-import * as deployExtensions from '@rocketh/deploy'; // this one provide a deploy function
-import * as readExecuteExtensions from '@rocketh/read-execute'; // this one provide read,execute functions
-import * as deployProxyExtensions from '@rocketh/proxy'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
-import * as deployRouterExtensions from '@rocketh/router'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
-const extensions = {...deployExtensions, ...readExecuteExtensions, ...deployProxyExtensions, ...deployRouterExtensions};
+import * as deployExtension from '@rocketh/deploy'; // this one provide a deploy function
+import * as readExecuteExtension from '@rocketh/read-execute'; // this one provide read,execute functions
+import * as deployProxyExtension from '@rocketh/proxy'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
+import * as deployRouterExtension from '@rocketh/router'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
+const extensions = {...deployExtension, ...readExecuteExtension, ...deployProxyExtension, ...deployRouterExtension};
 // ------------------------------------------------------------------------------------------------
 // we re-export the artifacts, so they are easily available from the alias
 import artifacts from './generated/artifacts.js';
 export {artifacts};
 // ------------------------------------------------------------------------------------------------
-
+// we create the rocketh function we need by passing the extensions
 import {setup} from 'rocketh';
 const {deployScript, loadAndExecuteDeployments} = setup<typeof extensions, typeof config.accounts, typeof config.data>(
 	extensions,
 );
-
-export {loadAndExecuteDeployments, deployScript};
+// ------------------------------------------------------------------------------------------------
+// we do the same for hardhat-deploy
+import {setupHardhatDeploy} from 'hardhat-deploy/helpers';
+const {loadEnvironmentFromHardhat} = setupHardhatDeploy(extensions);
+// ------------------------------------------------------------------------------------------------
+// finally we export them
+export {loadAndExecuteDeployments, deployScript, loadEnvironmentFromHardhat};

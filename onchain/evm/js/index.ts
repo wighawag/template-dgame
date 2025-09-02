@@ -1,4 +1,4 @@
-import type {Abi_IGame} from '@generated/types/IGame.js';
+import type {Abi_IGame} from '#generated/types/IGame.js';
 import type {Abi, ExtractAbiEvent, ExtractAbiEventNames} from 'abitype';
 import {Methods, type EIP1193ProviderWithoutEvents} from 'eip-1193';
 import {createCurriedJSONRPC, CurriedRPC} from 'remote-procedure-call';

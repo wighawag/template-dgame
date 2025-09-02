@@ -1,6 +1,6 @@
-import {Abi_IGame} from '@generated/types/IGame.js';
+import {Abi_IGame} from '#generated/types/IGame.js';
 import hre from 'hardhat';
-import {loadEnvironmentFromHardhat} from 'hardhat-deploy/helpers';
+import {loadEnvironmentFromHardhat} from '#rocketh';
 import {zeroAddress} from 'viem';
 
 async function main() {
