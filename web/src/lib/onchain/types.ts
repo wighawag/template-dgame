@@ -1,13 +1,21 @@
-import type { Readable } from "svelte/store";
+import type { Readable } from 'svelte/store';
 
-export type Character = {
-	id: string;
-	position: { x: number; y: number };
+export type BaseEntity = { id: string; position: { x: number; y: number } };
+
+export type PlayerEntity = BaseEntity & {
+	type: 'player';
+	life: number;
+	epoch: number;
 };
+export type BombEntity = BaseEntity & {
+	type: 'bomb';
+	explosion_start: number;
+	explosion_end: number;
+};
+export type Entity = PlayerEntity | BombEntity;
 export type OnchainState = {
-	[id: string]: Character;
+	entities: { [id: string]: Entity };
 };
-
 
 export type OnChainLayer = Readable<OnchainState>;
 

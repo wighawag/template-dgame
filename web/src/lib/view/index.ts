@@ -1,5 +1,79 @@
-import { writable } from 'svelte/store';
+import { createDirectReadStore } from '$lib/onchain/direct-read';
+import type {
+	BaseEntity,
+	BombEntity,
+	Entity,
+	OnchainState,
+	PlayerEntity
+} from '$lib/onchain/types';
+import { camera } from '$lib/render/camera';
+import { derived, get, writable } from 'svelte/store';
+import { localState } from './localState';
+import { epochInfo, time } from '$lib/time';
 
-export type ViewState = {};
+export type Position = { x: number; y: number };
 
-export const viewState = writable<ViewState>({});
+export type PlayerViewEntity = PlayerEntity & {
+	path?: Position[];
+};
+export type ViewEntity = PlayerViewEntity | BombEntity;
+export type ViewState = {
+	playerID?: `0x${string}`;
+	entities: { [id: string]: ViewEntity };
+};
+
+export const onchainState = createDirectReadStore(camera);
+
+export const viewState = derived(
+	[onchainState, localState],
+	([$onchainState, $localState]): ViewState => {
+		const playerID = $localState.signer?.owner; // TODO avatar ID
+		const entities = { ...$onchainState.entities } as { [id: string]: ViewEntity };
+		if (playerID) {
+			const onchain_player = $onchainState.entities[playerID] as PlayerEntity | undefined;
+
+			if (onchain_player) {
+				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
+
+				let current_position = { ...onchain_player.position };
+				const path: Position[] = [];
+				if ($localState.actions.length > 0 && $localState.epoch == epoch) {
+					for (const action of $localState.actions) {
+						path.push(current_position);
+						if (action.type === 'move') {
+							current_position = { x: action.x, y: action.y };
+						} else if (action.type == 'placeBomb') {
+							// TODO proper BombID
+							const bombID = `${current_position.x},${current_position.y}`;
+							entities[bombID] = {
+								type: 'bomb',
+								id: bombID,
+								position: current_position,
+								explosion_start: epoch + 1,
+								explosion_end: epoch + 1
+							};
+						}
+					}
+				}
+				entities[playerID] = {
+					...onchain_player,
+					position: current_position,
+					path
+				};
+
+				return {
+					playerID,
+					entities
+				};
+			}
+		}
+
+		return {
+			playerID,
+			entities
+		};
+	}
+);
+
+(globalThis as any).viewState = viewState;
+(globalThis as any).get = get;

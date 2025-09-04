@@ -1,8 +1,9 @@
 import { PUBLIC_WALLET_HOST } from '$env/static/public';
 import { createConnection } from '@etherplay/connect';
-import type { Methods } from 'eip-1193';
 import contracts from '$lib/contracts';
 import { viemChainInfoToSwitchChainInfo } from '$lib/utils/ethereum/chains';
+import { createPublicClient, createWalletClient, custom } from 'viem';
+import { derived } from 'svelte/store';
 
 export const chainId = contracts.chainId;
 export const chainInfo = contracts.chainInfo;
@@ -19,4 +20,30 @@ export const connection = createConnection({
 	requestSignatureAutomaticallyIfPossible: true
 });
 
+export const walletClient = createWalletClient({
+	chain: chainInfo,
+	transport: custom(connection.provider)
+});
+
+export const publicClient = createPublicClient({
+	chain: chainInfo,
+	transport: custom(connection.provider)
+});
+
+export type OptionalSigner =
+	| { owner: `0x${string}`; address: `0x${string}`; privateKey: `0x${string}` }
+	| undefined;
+
+export const signer = derived<typeof connection, OptionalSigner>(connection, ($connection) => {
+	return $connection.step === 'SignedIn'
+		? {
+				owner: $connection.account.address,
+				address: $connection.account.signer.address,
+				privateKey: $connection.account.signer.privateKey
+			}
+		: undefined;
+});
+
 (globalThis as any).connection = connection;
+(globalThis as any).walletClient = walletClient;
+(globalThis as any).publicClient = publicClient;

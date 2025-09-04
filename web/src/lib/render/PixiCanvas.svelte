@@ -1,8 +1,18 @@
 <script lang="ts">
 	import { Viewport } from 'pixi-viewport';
-	import { Application, Graphics } from 'pixi.js';
+	import { Application, Container, Graphics } from 'pixi.js';
 	import { initDevtools } from '@pixi/devtools';
 	import { onMount } from 'svelte';
+	import { type Writable } from 'svelte/store';
+	import type { Camera } from './camera';
+	import type { Renderer } from './renderer';
+	import { keyboardController } from '$lib/ui/keyboard-controller';
+
+	interface Props {
+		camera: Writable<Camera>;
+		renderer: Renderer;
+	}
+	let { camera, renderer }: Props = $props();
 
 	function buildGrid(graphics: Graphics, witdh: number, height: number, cellSize: number) {
 		const numRows = Math.floor(height / cellSize) + 1;
@@ -13,149 +23,6 @@
 
 		for (let i = 0; i < numRows; i++) {
 			graphics.moveTo(0, i * cellSize).lineTo(witdh, i * cellSize);
-		}
-
-		return graphics;
-	}
-
-	function buildTriangleMeshGrid(
-		graphics: Graphics,
-		width: number,
-		height: number,
-		triangleEdgeSize: number,
-		orientation: 'vertical' | 'horizontal' = 'vertical'
-	) {
-		// Calculate the distance between parallel lines
-		// For equilateral triangles, the height is √3/2 times the side length
-		const spacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
-
-		// Store the spacing info as properties on the graphics object for scrolling calculations
-		(graphics as any).triangleGridInfo = {
-			edgeSize: triangleEdgeSize,
-			spacing: spacing,
-			orientation: orientation
-		};
-
-		if (orientation === 'vertical') {
-			// Vertical orientation (default) - horizontal base lines
-
-			// Calculate number of lines needed
-			const numHorizontalLines = Math.floor(height / spacing) + 2;
-			const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
-
-			// Draw horizontal lines
-			for (let i = 0; i < numHorizontalLines; i++) {
-				const y = i * spacing;
-				graphics.moveTo(0, y).lineTo(width, y);
-			}
-
-			// Draw diagonal lines going down-right (/)
-			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-				const startX = i * triangleEdgeSize;
-				graphics.moveTo(startX, 0).lineTo(startX + height / Math.sqrt(3), height);
-			}
-
-			// Draw diagonal lines going down-left (\)
-			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-				const startX = i * triangleEdgeSize + width;
-				graphics.moveTo(startX, 0).lineTo(startX - height / Math.sqrt(3), height);
-			}
-		} else {
-			// Horizontal orientation - vertical base lines
-
-			// Calculate number of lines needed
-			const numVerticalLines = Math.floor(width / spacing) + 2;
-			const numDiagonalLines = Math.floor((width + height) / triangleEdgeSize) + 2;
-
-			// Draw vertical lines
-			for (let i = 0; i < numVerticalLines; i++) {
-				const x = i * spacing;
-				graphics.moveTo(x, 0).lineTo(x, height);
-			}
-
-			// Draw diagonal lines going down-right (\)
-			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-				const startY = i * triangleEdgeSize;
-				graphics.moveTo(0, startY).lineTo(width, startY + width / Math.sqrt(3));
-			}
-
-			// Draw diagonal lines going up-right (/)
-			for (let i = -numDiagonalLines; i < numDiagonalLines; i++) {
-				const startY = i * triangleEdgeSize + height;
-				graphics.moveTo(0, startY).lineTo(width, startY - width / Math.sqrt(3));
-			}
-		}
-
-		return graphics;
-	}
-
-	function buildTriangleMeshPoints(
-		graphics: Graphics,
-		width: number,
-		height: number,
-		triangleEdgeSize: number,
-		pointSize: number,
-		orientation: 'vertical' | 'horizontal' = 'vertical'
-	) {
-		// Calculate the distance between parallel rows of points
-		// For equilateral triangles, the height is √3/2 times the side length
-		const spacing = (Math.sqrt(3) / 2) * triangleEdgeSize;
-
-		// Store the spacing info as properties on the graphics object for scrolling calculations
-		(graphics as any).triangleGridInfo = {
-			edgeSize: triangleEdgeSize,
-			spacing: spacing,
-			orientation: orientation
-		};
-
-		// Calculate the number of points needed in each direction
-		// Add extra points to ensure coverage when scrolling
-		const extraBuffer = 2;
-
-		if (orientation === 'vertical') {
-			// Vertical orientation (triangles with horizontal base)
-
-			// Calculate rows and columns needed
-			const numRows = Math.ceil(height / spacing) + extraBuffer;
-			const numCols = Math.ceil(width / triangleEdgeSize) + extraBuffer;
-
-			// Draw points at each vertex
-			for (let row = -extraBuffer; row < numRows; row++) {
-				const y = row * spacing;
-				const isEvenRow = row % 2 === 0;
-
-				// In vertical orientation, every other row is offset by half triangleEdgeSize
-				for (let col = -extraBuffer; col < numCols + extraBuffer; col++) {
-					const x = col * triangleEdgeSize + (isEvenRow ? 0 : triangleEdgeSize / 2);
-
-					// Draw a circle at each point
-					graphics.beginFill(0xffffff);
-					graphics.drawCircle(x, y, pointSize);
-					graphics.endFill();
-				}
-			}
-		} else {
-			// Horizontal orientation (triangles with vertical base)
-
-			// Calculate rows and columns needed
-			const numCols = Math.ceil(width / spacing) + extraBuffer;
-			const numRows = Math.ceil(height / triangleEdgeSize) + extraBuffer;
-
-			// Draw points at each vertex
-			for (let col = -extraBuffer; col < numCols; col++) {
-				const x = col * spacing;
-				const isEvenCol = col % 2 === 0;
-
-				// In horizontal orientation, every other column is offset by half triangleEdgeSize
-				for (let row = -extraBuffer; row < numRows + extraBuffer; row++) {
-					const y = row * triangleEdgeSize + (isEvenCol ? 0 : triangleEdgeSize / 2);
-
-					// Draw a circle at each point
-					graphics.beginFill(0xffffff);
-					graphics.drawCircle(x, y, pointSize);
-					graphics.endFill();
-				}
-			}
 		}
 
 		return graphics;
@@ -189,13 +56,18 @@
 			});
 			viewport.moveCenter(0, 0);
 
+			renderer.onAppStarted(viewport);
+			keyboardController.start();
+
 			// add the viewport to the stage
 			app.stage.addChild(viewport);
 
-			const minWidth = 10;
-			const minHeight = 10;
-			const maxWidth = 100;
-			const maxHeight = 100;
+			const cellSize = 10;
+
+			const minWidth = 5 * cellSize;
+			const minHeight = 5 * cellSize;
+			const maxWidth = 50 * cellSize;
+			const maxHeight = 50 * cellSize;
 
 			// activate plugins
 			viewport.drag().pinch().wheel().clampZoom({
@@ -205,25 +77,50 @@
 				minWidth
 			});
 
-			viewport.fit(true, 20, 20);
+			viewport.fit(true, 20 * cellSize, 20 * cellSize);
 
-			const cellSize = 10;
 			const gridSize = Math.max(maxWidth, maxHeight) + 2 * cellSize;
 
-			const gridPixel = buildTriangleMeshPoints(
-				new Graphics(),
-				gridSize,
-				gridSize,
-				cellSize,
-				0.2,
-				'horizontal' // Change to 'vertical' for vertical orientation
-			).stroke({
+			const gridPixel = buildGrid(new Graphics(), gridSize, gridSize, cellSize).stroke({
 				color: 0xffffff,
 				pixelLine: true,
 				width: 1
 			});
+			viewport.moveCenter(0, 0);
 
 			viewport.addChild(gridPixel);
+
+			// const displayObject = new Container();
+			// {
+			// 	const graphics = new Graphics().rect(0, 0, 10, 10).fill(0x00ff00);
+			// 	displayObject.addChild(graphics);
+			// }
+
+			// {
+			// 	const graphics = new Graphics().rect(0, -40, 10, 90).fill(0xff0000);
+			// 	displayObject.addChild(graphics);
+			// 	graphics.visible = false;
+			// }
+			// {
+			// 	const graphics = new Graphics().rect(-40, 0, 90, 10).fill(0xff0000);
+			// 	displayObject.addChild(graphics);
+			// 	graphics.visible = false;
+			// }
+			// {
+			// 	const text = new LoadingBitmapText({
+			// 		text: '1',
+			// 		style: {
+			// 			fontURL: 'https://pixijs.com/assets/bitmap-font/desyrel.xml',
+			// 			fontFamily: 'Desyrel',
+			// 			fontSize: 8,
+			// 			fill: 'black'
+			// 		}
+			// 	});
+			// 	text.x = 3;
+			// 	text.y = -3;
+			// 	displayObject.addChild(text);
+			// }
+			// viewport.addChild(displayObject);
 
 			// Listen for animate update
 			app.ticker.add((time) => {
@@ -240,6 +137,13 @@
 
 				const offsetX = viewportX / scale;
 				const offsetY = viewportY / scale;
+
+				camera.set({
+					x: viewport.center.x / cellSize,
+					y: viewport.center.y / cellSize,
+					width: viewport.worldScreenWidth / cellSize,
+					height: viewport.worldScreenHeight / cellSize
+				});
 
 				// Get triangle grid spacing information
 				const gridInfo = (gridPixel as any).triangleGridInfo;
@@ -286,7 +190,12 @@
 				console.log(`unmounting while app was not initialised, waiting for it...`);
 				appInitialising.then(() => {
 					console.log(`destroying Pixi Application...`);
+					// try {
+					keyboardController.stop();
+					renderer.onAppStopped();
+					// } finally {
 					app.destroy();
+					// }
 				});
 			}
 		};

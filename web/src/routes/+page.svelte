@@ -2,9 +2,8 @@
 	import ConnectionFlow from '$lib/connection/ConnectionFlow.svelte';
 	import TopBar from '$lib/ui/structure/TopBar.svelte';
 	import PixiCanvas from '$lib/render/PixiCanvas.svelte';
-
-	// TODO:
-	// import { viewState } from '$lib/view';
+	import { camera } from '$lib/render/camera';
+	import { renderer } from '$lib/render/renderer';
 </script>
 
 <main>
@@ -16,7 +15,7 @@
 <ConnectionFlow />
 
 <div class="canvas">
-	<PixiCanvas />
+	<PixiCanvas {camera} {renderer} />
 </div>
 
 <style>
