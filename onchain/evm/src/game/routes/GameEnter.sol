@@ -9,6 +9,6 @@ contract GameEnter is IGameEnter, UsingGameInternal {
 
     function enter(uint256 avatarID, uint64 position) external {
         // TODO only specific position allowed to entered from
-        _enter(avatarID, position);
+        _enter(msg.sender, avatarID, position);
     }
 }

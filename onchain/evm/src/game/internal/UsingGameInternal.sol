@@ -18,7 +18,23 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit AvatarDeposited(avatarID, owner, controller);
     }
 
-    function _enter(uint256 avatarID, uint64 position) internal {
+    function _withdraw(address owner, uint256 avatarID, address to) internal {
+        if (_players[avatarID].owner != owner) {
+            revert UsingGameErrors.NotAuthorizedOwner(owner);
+        }
+
+        if (_avatars[avatarID].startEpoch != 0) {
+            revert UsingGameErrors.AvatarStillInGame(avatarID);
+        }
+        AVATARS.safeTransferFrom(address(this), to, avatarID);
+    }
+
+    function _enter(address controller, uint256 avatarID, uint64 position) internal {
+        // TODO should owner be able to block this ?
+        if (_players[avatarID].controller != controller) {
+            revert UsingGameErrors.NotAuthorizedController(controller);
+        }
+
         if (_avatars[avatarID].startEpoch != 0) {
             revert UsingGameErrors.AvatarAlreadyInGame(avatarID);
         }
@@ -29,17 +45,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64 zone = PositionUtils.getZone(position);
         _addToZone(zone, avatarID);
         emit EnteredTheGame(avatarID, epoch, zone, position);
-    }
-
-    function _withdraw(address owner, uint256 avatarID, address to) internal {
-        if (_players[avatarID].owner != owner) {
-            revert UsingGameErrors.NotAuthorizedOwner(owner);
-        }
-
-        if (_avatars[avatarID].startEpoch != 0) {
-            revert UsingGameErrors.AvatarStillInGame(avatarID);
-        }
-        AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
 
     function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {
