@@ -8,13 +8,22 @@ interface UsingGameErrors is UsingGameTypes {
     error GameNotStarted();
 
     /// @notice happen when an unauthorized account attempt to control an avatar
-    error NotAuthorizedController(address sender);
+    error NotAuthorizedController(address account);
+
+    /// @notice happen when an unauthorized account attempt to withdraw an avatar
+    error NotAuthorizedOwner(address account);
+
+    /// @notice happen when transfering an avatar with invalid data
+    error InvalidData();
 
     /// @notice happen when attempting to leave the game from a non-exit position
     error UnableToExitFromThisPosition(uint64 position);
 
     /// @notice happen when attempting to move an avatar not in the game
     error AvatarNotInGame(uint256 avatarID);
+
+    /// @notice happen when attempting to enter an avatar already in the game
+    error AvatarAlreadyInGame(uint256 avatarID);
 
     /// @notice happen when attempting to extract an avatar still in the game
     error AvatarStillInGame(uint256 avatarID);

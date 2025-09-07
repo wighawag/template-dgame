@@ -43,11 +43,13 @@ interface IGameGetters is UsingGameTypes {
 }
 
 interface IGameEnter is UsingGameTypes {
-    function enter(uint256 avatarID, address payable payee) external payable;
+    function enter(uint256 avatarID, uint64 position) external;
+    // exit is handled by commit/reveal
 }
 
-interface IGameExtract is UsingGameTypes {
-    function extract(uint256 avatarID, address to) external;
+interface IGameDeposit is UsingGameTypes {
+    function deposit(uint256 avatarID, address controller, address payable payee) external payable;
+    function withdraw(uint256 avatarID, address to) external;
 }
 
-interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameExtract {}
+interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameDeposit {}

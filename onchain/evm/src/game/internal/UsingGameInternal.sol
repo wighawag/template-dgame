@@ -13,21 +13,27 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     //-------------------------------------------------------------------------
     // ENTRY POINTS
     //-------------------------------------------------------------------------
-    function _enter(address controller, uint256 avatarID) internal {
-        (uint64 epoch, ) = _epoch();
+    function _deposit(uint256 avatarID, address owner, address controller) internal {
+        _players[avatarID] = Player({owner: owner, controller: controller});
+        emit AvatarDeposited(avatarID, owner, controller);
+    }
 
-        _avatarControllers[avatarID][controller] = ControllerType.Basic;
+    function _enter(uint256 avatarID, uint64 position) internal {
+        if (_avatars[avatarID].startEpoch != 0) {
+            revert UsingGameErrors.AvatarAlreadyInGame(avatarID);
+        }
+        (uint64 epoch, ) = _epoch();
         _avatars[avatarID].startEpoch = epoch + 1;
-        uint64 position = 0; // TODO allow enter at other position
+
         _avatars[avatarID].position = position;
         uint64 zone = PositionUtils.getZone(position);
         _addToZone(zone, avatarID);
-        emit EnteredTheGame(avatarID, epoch, zone, controller, position);
+        emit EnteredTheGame(avatarID, epoch, zone, position);
     }
 
-    function _extract(address controller, uint256 avatarID, address to) internal {
-        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.Owner) {
-            revert UsingGameErrors.NotAuthorizedController(controller);
+    function _withdraw(address owner, uint256 avatarID, address to) internal {
+        if (_players[avatarID].owner != owner) {
+            revert UsingGameErrors.NotAuthorizedOwner(owner);
         }
 
         if (_avatars[avatarID].startEpoch != 0) {
@@ -37,7 +43,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {
-        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+        if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
 
@@ -64,7 +70,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _cancelCommitment(address controller, uint256 avatarID) internal {
-        if (_avatarControllers[avatarID][controller] == UsingGameTypes.ControllerType.None) {
+        if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
 
@@ -174,7 +180,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
                     // East
                     x += 1;
                 }
-            } else if (action.actionType == ActionType.Use) {
+            } else if (action.actionType == ActionType.Exit) {
                 // TODO use cell action
                 // for now consider it an Exit
                 left = true;

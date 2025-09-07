@@ -12,7 +12,7 @@ interface UsingGameTypes {
     /// @notice The set of possible action
     enum ActionType {
         Move,
-        Use
+        Exit
     }
 
     /// @notice Move struct that define the action, type and position
@@ -40,10 +40,9 @@ interface UsingGameTypes {
     // STORAGE TYPES
     // ------------------------------------------------------------------------
 
-    enum ControllerType {
-        None,
-        Basic,
-        Owner
+    struct Player {
+        address owner;
+        address controller;
     }
 
     struct Avatar {

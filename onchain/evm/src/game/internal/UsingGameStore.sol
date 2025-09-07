@@ -17,7 +17,7 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
     /// @notice the number of moves a hash represent, after that players make use of furtherMoves
     uint8 internal constant MAX_NUM_MOVES_PER_HASH = 32;
 
-    mapping(uint256 => mapping(address => ControllerType)) internal _avatarControllers;
+    mapping(uint256 => Player) internal _players;
     mapping(uint256 => Avatar) internal _avatars;
     mapping(uint256 => Commitment) internal _commitments;
     mapping(uint64 => Zone) internal _zones;
