@@ -40,8 +40,15 @@ describe('Game', function () {
 
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
+			functionName: 'deposit',
+			args: [avatarID, env.unnamedAccounts[0], zeroAddress],
+		});
+
+		const entrancePosition = 0n;
+		await env.execute(Game, {
+			account: env.unnamedAccounts[0],
 			functionName: 'enter',
-			args: [avatarID, zeroAddress],
+			args: [avatarID, entrancePosition],
 		});
 
 		await advanceToEpoch(initialEpoch + 3);

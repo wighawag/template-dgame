@@ -19,10 +19,10 @@ export default deployScript(
 
 		const routes = [
 			{name: 'Getters', artifact: artifacts.GameGetters, args: [config]},
+			{name: 'Deposit', artifact: artifacts.GameDeposit, args: [config]},
+			{name: 'Enter', artifact: artifacts.GameEnter, args: [config]},
 			{name: 'Commit', artifact: artifacts.GameCommit, args: [config]},
 			{name: 'Reveal', artifact: artifacts.GameReveal, args: [config]},
-			{name: 'Enter', artifact: artifacts.GameEnter, args: [config]},
-			{name: 'Extract', artifact: artifacts.GameExtract, args: [config]},
 		];
 
 		const Game = await deployViaProxy<Abi_IGame>(
