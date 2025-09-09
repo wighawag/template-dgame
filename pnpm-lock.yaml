@@ -191,6 +191,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      dgame-contracts:
+        specifier: workspace:*
+        version: link:../onchain/evm
       eip-1193:
         specifier: ^0.6.3
         version: 0.6.3

@@ -1,18 +1,20 @@
 <script lang="ts">
 	import { Viewport } from 'pixi-viewport';
-	import { Application, Container, Graphics } from 'pixi.js';
+	import { Application, FederatedPointerEvent, Graphics } from 'pixi.js';
 	import { initDevtools } from '@pixi/devtools';
 	import { onMount } from 'svelte';
 	import { type Writable } from 'svelte/store';
 	import type { Camera } from './camera';
 	import type { Renderer } from './renderer';
 	import { keyboardController } from '$lib/ui/keyboard-controller';
+	import type { Events } from './events';
 
 	interface Props {
 		camera: Writable<Camera>;
 		renderer: Renderer;
+		events: Events;
 	}
-	let { camera, renderer }: Props = $props();
+	let { camera, renderer, events }: Props = $props();
 
 	function buildGrid(graphics: Graphics, witdh: number, height: number, cellSize: number) {
 		const numRows = Math.floor(height / cellSize) + 1;
@@ -31,6 +33,18 @@
 	let canvas: HTMLCanvasElement;
 	let viewport: Viewport;
 	onMount(() => {
+		const cellSize = 10;
+
+		const minWidth = 5 * cellSize;
+		const minHeight = 5 * cellSize;
+		const maxWidth = 50 * cellSize;
+		const maxHeight = 50 * cellSize;
+
+		function onclick(event: FederatedPointerEvent) {
+			const pos = viewport.toWorld(event.x, event.y);
+			events.onClick({ x: Math.round(pos.x / cellSize), y: Math.round(pos.y / cellSize) });
+		}
+
 		function resizeViewport() {
 			viewport && viewport.resize();
 		}
@@ -62,13 +76,6 @@
 			// add the viewport to the stage
 			app.stage.addChild(viewport);
 
-			const cellSize = 10;
-
-			const minWidth = 5 * cellSize;
-			const minHeight = 5 * cellSize;
-			const maxWidth = 50 * cellSize;
-			const maxHeight = 50 * cellSize;
-
 			// activate plugins
 			viewport.drag().pinch().wheel().clampZoom({
 				maxWidth,
@@ -89,6 +96,8 @@
 			viewport.moveCenter(0, 0);
 
 			viewport.addChild(gridPixel);
+
+			viewport.on('click', onclick);
 
 			// const displayObject = new Container();
 			// {
@@ -145,36 +154,8 @@
 					height: viewport.worldScreenHeight / cellSize
 				});
 
-				// Get triangle grid spacing information
-				const gridInfo = (gridPixel as any).triangleGridInfo;
-
-				if (gridInfo) {
-					// Get grid orientation and spacing
-					const orientation = gridInfo.orientation;
-					const spacing = gridInfo.spacing;
-					const edgeSize = gridInfo.edgeSize;
-
-					// Calculate the period of the pattern (2 triangles make a rhombus)
-					const periodX = orientation === 'vertical' ? edgeSize * 2 : spacing * 2;
-					const periodY = orientation === 'vertical' ? spacing * 2 : edgeSize * 2;
-
-					// Calculate the repeating offset
-					// We use two periods to ensure smooth wrapping and avoid floating point issues
-					let gridOffsetX = offsetX % periodX;
-					let gridOffsetY = offsetY % periodY;
-
-					// Ensure positive offsets (avoid negative modulo issues)
-					if (gridOffsetX < 0) gridOffsetX += periodX;
-					if (gridOffsetY < 0) gridOffsetY += periodY;
-
-					// Position grid with calculated offset
-					gridPixel.x = -offsetX + gridOffsetX - periodX;
-					gridPixel.y = -offsetY + gridOffsetY - periodY;
-				} else {
-					// Fallback for regular grid
-					gridPixel.x = -offsetX - cellSize + (offsetX % cellSize);
-					gridPixel.y = -offsetY - cellSize + (offsetY % cellSize);
-				}
+				gridPixel.x = -offsetX - cellSize - cellSize / 2 + (offsetX % cellSize);
+				gridPixel.y = -offsetY - cellSize - cellSize / 2 + (offsetY % cellSize);
 
 				gridPixel.alpha = viewport.scaled / 48;
 			});

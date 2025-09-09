@@ -1,7 +1,5 @@
 import { get, writable, type Readable } from 'svelte/store';
-import { viewState } from '.';
 import { createAutoSubmitter } from '$lib/onchain/auto-submit';
-import { writes } from '$lib/onchain/writes';
 import { epochInfo } from '$lib/time';
 import { signer, type OptionalSigner } from '$lib/connection';
 

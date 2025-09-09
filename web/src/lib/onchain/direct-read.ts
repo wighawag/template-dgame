@@ -1,6 +1,9 @@
 import { get, writable, type Readable } from 'svelte/store';
 import type { OnchainState } from './types';
 import { epochInfo } from '$lib/time';
+import { bigIntIDToXY, calculateVisibleZones } from 'dgame-contracts';
+import { publicClient } from '$lib/connection';
+import contracts from '$lib/contracts';
 
 type Camera = {
 	x: number;
@@ -36,54 +39,38 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 	}
 
 	async function fetchState(camera: Camera) {
-		// const zones = calculateSurroundingZones({
-		// 	x: Math.floor(camera.x),
-		// 	y: Math.floor(camera.y)
-		// });
-
+		const zones = calculateVisibleZones(camera);
 		const $epochInfo = epochInfo.now();
 
-		// const result = await gameContract.functions.get_zones(zones).get();
-		// if (hasCameraChanged($camera, camera)) {
-		// 	return;
-		// }
+		const result = await publicClient.readContract({
+			abi: contracts.contracts.Game.abi,
+			address: contracts.contracts.Game.address,
+			functionName: 'getAvatarsInMultipleZones',
+			args: [zones, 0n, 100n] // TODO use pagination
+		});
+		if (hasCameraChanged($camera, camera)) {
+			// if changed while fetching, we stop right here
+			return;
+		}
+
 		const state: OnchainState = defaultState();
 
-		// for (const entitiesFetched of result.value.zones) {
-		// 	for (const entity of entitiesFetched) {
-		// 		const player = entity.Player;
-		// 		const bomb = entity.Bomb;
-		// 		if (player) {
-		// 			const id = player.account.Address?.bits || player.account.ContractId!.bits;
+		for (const entityFetched of result[0]) {
+			const id = entityFetched.avatarID.toString();
 
-		// 			const entity = {
-		// 				id,
-		// 				type: 'player',
-		// 				position: {
-		// 					x: player.position.x.toNumber() - (1 << 30),
-		// 					y: player.position.y.toNumber() - (1 << 30)
-		// 				},
-		// 				life: player.life.toNumber(),
-		// 				epoch: player.epoch.toNumber()
-		// 			} as const;
-		// 			state.entities[id] = entity;
-		// 		} else if (bomb) {
-		// 			const id = `${bomb.position.x},${bomb.position.y}`;
-		// 			state.entities[id] = {
-		// 				id,
-		// 				type: 'bomb',
-		// 				position: {
-		// 					x: bomb.position.x.toNumber() - (1 << 30),
-		// 					y: bomb.position.y.toNumber() - (1 << 30)
-		// 				},
-		// 				explosion_start: bomb.start.toNumber(),
-		// 				explosion_end: bomb.end.toNumber()
-		// 			};
-		// 		} else {
-		// 			console.error(`unknown type`, entity);
-		// 		}
-		// 	}
-		// }
+			const { x, y } = bigIntIDToXY(entityFetched.position);
+			const entity = {
+				id,
+				type: 'player',
+				position: {
+					x: Number(x),
+					y: Number(y)
+				},
+				life: 1,
+				epoch: 1 // TODO
+			} as const;
+			state.entities[id] = entity;
+		}
 
 		set(state);
 	}
