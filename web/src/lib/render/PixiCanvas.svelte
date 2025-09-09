@@ -6,15 +6,16 @@
 	import { type Writable } from 'svelte/store';
 	import type { Camera } from './camera';
 	import type { Renderer } from './renderer';
-	import { keyboardController } from '$lib/ui/keyboard-controller';
-	import type { Events } from './events';
+	import { createKeyboardController } from '$lib/ui/keyboard-controller';
+	import type { EventEnitter } from './eventEmitter';
+	import { startListening } from '$lib/operations';
 
 	interface Props {
 		camera: Writable<Camera>;
 		renderer: Renderer;
-		events: Events;
+		eventEmitter: EventEnitter;
 	}
-	let { camera, renderer, events }: Props = $props();
+	let { camera, renderer, eventEmitter }: Props = $props();
 
 	function buildGrid(graphics: Graphics, witdh: number, height: number, cellSize: number) {
 		const numRows = Math.floor(height / cellSize) + 1;
@@ -40,9 +41,16 @@
 		const maxWidth = 50 * cellSize;
 		const maxHeight = 50 * cellSize;
 
+		const keyboardController = createKeyboardController(eventEmitter);
+
+		startListening();
+
 		function onclick(event: FederatedPointerEvent) {
 			const pos = viewport.toWorld(event.x, event.y);
-			events.onClick({ x: Math.round(pos.x / cellSize), y: Math.round(pos.y / cellSize) });
+			eventEmitter.emit('clicked', {
+				x: Math.round(pos.x / cellSize),
+				y: Math.round(pos.y / cellSize)
+			});
 		}
 
 		function resizeViewport() {

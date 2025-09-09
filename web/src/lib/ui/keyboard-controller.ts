@@ -1,29 +1,29 @@
+import type { EventEnitter } from '$lib/render/eventEmitter';
 import { epochInfo } from '$lib/time';
-import { localState } from '$lib/view/localState.js';
 
 interface KeyboardController {
 	start: () => void;
 	stop: () => void;
 }
 
-export function createKeyboardController(): KeyboardController {
+export function createKeyboardController(eventEmitter: EventEnitter): KeyboardController {
 	// Store the event handler as a property so we can remove it later
 
 	function onUp() {
-		localState.move(0, -1);
+		eventEmitter.emit('up');
 	}
 	function onDown() {
-		localState.move(0, 1);
+		eventEmitter.emit('down');
 	}
 	function onLeft() {
-		localState.move(-1, 0);
+		eventEmitter.emit('left');
 	}
 	function onRight() {
-		localState.move(1, 0);
+		eventEmitter.emit('right');
 	}
 
 	function onSpace() {
-		localState.placeBomb();
+		eventEmitter.emit('action');
 	}
 
 	function keydownHandler(event: KeyboardEvent) {
@@ -74,7 +74,7 @@ export function createKeyboardController(): KeyboardController {
 	// The controller object to be returned
 	const controller = {
 		/**
-		 * Start listening for keyboard events
+		 * Start listening for keyboard eventEmitter
 		 */
 		start: function () {
 			// Create the event handler function
@@ -84,7 +84,7 @@ export function createKeyboardController(): KeyboardController {
 		},
 
 		/**
-		 * Stop listening for keyboard events
+		 * Stop listening for keyboard eventEmitter
 		 */
 		stop: function () {
 			document.removeEventListener('keydown', keydownHandler);
@@ -93,5 +93,3 @@ export function createKeyboardController(): KeyboardController {
 
 	return controller;
 }
-
-export const keyboardController = createKeyboardController();

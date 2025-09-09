@@ -2,8 +2,9 @@
 	import ConnectionFlow from '$lib/connection/ConnectionFlow.svelte';
 	import TopBar from '$lib/ui/structure/TopBar.svelte';
 	import PixiCanvas from '$lib/render/PixiCanvas.svelte';
-	import { camera } from '$lib/render/camera';
-	import { renderer } from '$lib/render/renderer';
+	import { camera } from '$lib/render/camera.js';
+	import { renderer } from '$lib/render/renderer.js';
+	import { eventEmitter } from '$lib/render/eventEmitter.js';
 </script>
 
 <main>
@@ -15,7 +16,7 @@
 <ConnectionFlow />
 
 <div class="canvas">
-	<PixiCanvas {camera} {renderer} />
+	<PixiCanvas {camera} {renderer} {eventEmitter} />
 </div>
 
 <style>
