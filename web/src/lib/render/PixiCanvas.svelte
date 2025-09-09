@@ -174,6 +174,9 @@
 			console.log(`Unmounting PixiCanvas...`);
 			if (initialised) {
 				console.log(`destroying Pixi Application...`);
+				stopListening();
+				keyboardController.stop();
+				renderer.onAppStopped();
 				app.destroy();
 			} else {
 				console.log(`unmounting while app was not initialised, waiting for it...`);

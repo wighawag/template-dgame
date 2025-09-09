@@ -21,6 +21,7 @@ function defaultState() {
 export function createDirectReadStore(camera: Readable<Camera>): Readable<OnchainState> {
 	let $state: OnchainState = defaultState();
 	let $camera: Camera = get(camera);
+	let lastZones: bigint[] | undefined;
 
 	const _store = writable<OnchainState>($state, start);
 	function set(state: OnchainState) {
@@ -38,8 +39,33 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 		);
 	}
 
+	function hasZonesChanged(zonesA?: bigint[], zonesB?: bigint[]) {
+		if (!zonesA) {
+			return true;
+		}
+		if (!zonesB) {
+			return true;
+		}
+		if (zonesA == zonesB) {
+			return false;
+		}
+		if (zonesA.length != zonesB.length) {
+			return true;
+		}
+		for (let i = 0, l = zonesA.length; i < l; i++) {
+			if (zonesA[i] != zonesB[i]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	async function fetchState(camera: Camera) {
 		const zones = calculateVisibleZones(camera);
+
+		if (!hasZonesChanged(lastZones, zones)) {
+			return;
+		}
 		const $epochInfo = epochInfo.now();
 
 		const result = await publicClient.readContract({
@@ -72,6 +98,7 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 			state.entities[id] = entity;
 		}
 
+		lastZones = zones;
 		set(state);
 	}
 
@@ -80,27 +107,34 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 	function start() {
 		unsubscribeFromCamera = camera.subscribe(async (camera) => {
 			const cameraChanged = hasCameraChanged($camera, camera);
-			$camera = { ...camera };
 			if (cameraChanged) {
-				if (timeout) {
-					clearTimeout(timeout);
-				}
-				try {
-					await fetchState($camera);
-				} finally {
-					timeout = setTimeout(fetchLater, 15000);
-				}
+				$camera = { ...camera };
+				fetchContinuously();
 			}
 		});
 
-		function fetchLater() {
-			fetchState($camera);
-			timeout = setTimeout(fetchLater, 500);
+		async function fetchContinuously() {
+			if (timeout) {
+				clearTimeout(timeout);
+			}
+
+			let retryIn = 15000;
+			try {
+				await fetchState($camera);
+			} catch (err) {
+				console.error(`failed to fetch state`, err);
+				retryIn = 1000;
+			} finally {
+				if (!timeout) {
+					timeout = setTimeout(fetchContinuously, retryIn);
+				}
+			}
 		}
 		if (timeout) {
 			clearTimeout(timeout);
+			timeout = undefined;
 		}
-		timeout = setTimeout(fetchLater, 500);
+		fetchContinuously();
 
 		return stop;
 	}

@@ -39,7 +39,8 @@ export function createAvatarCollectionStore(
 			step: 'Loading'
 		});
 
-		let result: readonly bigint[];
+		// TODO use pagination
+		let result: readonly [readonly bigint[], boolean];
 		try {
 			result = await publicClient.readContract({
 				...contracts.contracts.Avatars,
@@ -56,7 +57,7 @@ export function createAvatarCollectionStore(
 
 		set({
 			step: 'Loaded',
-			avatars: result
+			avatars: result[0]
 		});
 		return true;
 	}
