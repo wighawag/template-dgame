@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { connection } from '$lib/connection';
+	import { avatars } from '$lib/onchain/avatars';
 	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
 	import Button from '../generic/Button.svelte';
 	import Spinner from '../generic/Spinner.svelte';
@@ -24,7 +25,14 @@
 	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
 		<span class="text-lg font-bold">DGame</span>
+		<span
+			>{#if $avatars.step == 'Loaded'}
+				{$avatars.avatars.length}
+			{:else if $avatars.step === 'Loading'}
+				Loading...{/if}</span
+		>
 	</div>
+
 	<div class="relative flex h-full items-center space-x-4">
 		{#if $connection.step === 'Idle' && $connection.loading}
 			<Button disabled class="m-0 flex h-8 w-8 items-center justify-center p-0">

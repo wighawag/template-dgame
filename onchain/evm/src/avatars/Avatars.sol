@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "solidity-kit/solc_0_8/ERC721/implementations/BasicERC721.sol";
+import "solidity-kit/solc_0_8/ERC721/implementations/EnumerableERC721.sol";
 
-contract Avatars is BasicERC721 {
+contract Avatars is EnumerableERC721 {
     /// @notice the amount sent is not enough
     /// @param sent amount sent
     /// @param expected amount expected

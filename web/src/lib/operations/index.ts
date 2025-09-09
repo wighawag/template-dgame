@@ -1,3 +1,4 @@
+import { writes } from '$lib/onchain/writes';
 import { eventEmitter } from '$lib/render/eventEmitter';
 import { localState } from '$lib/view/localState';
 
@@ -20,9 +21,14 @@ export function startListening() {
 
 	eventEmitter.on('action', () => {
 		// TODO
+		writes.enter();
 	});
 
 	eventEmitter.on('clicked', (pos) => {
 		console.log(pos);
 	});
+}
+
+export function stopListening() {
+	eventEmitter.removeAllListeners();
 }

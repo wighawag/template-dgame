@@ -44,6 +44,16 @@ export const signer = derived<typeof connection, OptionalSigner>(connection, ($c
 		: undefined;
 });
 
+export type Account = `0x${string}` | undefined;
+
+export const account = derived<typeof connection, Account>(connection, ($connection) => {
+	return $connection.step === 'SignedIn'
+		? $connection.account.address
+		: 'account' in $connection
+			? ($connection.account as any)?.address || undefined
+			: undefined;
+});
+
 (globalThis as any).connection = connection;
 (globalThis as any).walletClient = walletClient;
 (globalThis as any).publicClient = publicClient;

@@ -8,7 +8,7 @@
 	import type { Renderer } from './renderer';
 	import { createKeyboardController } from '$lib/ui/keyboard-controller';
 	import type { EventEnitter } from './eventEmitter';
-	import { startListening } from '$lib/operations';
+	import { startListening, stopListening } from '$lib/operations';
 
 	interface Props {
 		camera: Writable<Camera>;
@@ -42,8 +42,6 @@
 		const maxHeight = 50 * cellSize;
 
 		const keyboardController = createKeyboardController(eventEmitter);
-
-		startListening();
 
 		function onclick(event: FederatedPointerEvent) {
 			const pos = viewport.toWorld(event.x, event.y);
@@ -80,6 +78,8 @@
 
 			renderer.onAppStarted(viewport);
 			keyboardController.start();
+			// TODO move this from here
+			startListening();
 
 			// add the viewport to the stage
 			app.stage.addChild(viewport);
@@ -180,6 +180,7 @@
 				appInitialising.then(() => {
 					console.log(`destroying Pixi Application...`);
 					// try {
+					stopListening();
 					keyboardController.stop();
 					renderer.onAppStopped();
 					// } finally {
