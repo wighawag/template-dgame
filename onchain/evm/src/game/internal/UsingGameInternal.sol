@@ -15,6 +15,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     //-------------------------------------------------------------------------
     function _deposit(uint256 avatarID, address owner, address controller) internal {
         _players[avatarID] = Player({owner: owner, controller: controller});
+
+        uint256 length = _ownedAvatars[owner].length;
+        _ownedAvatars[owner].push(avatarID);
+        _ownedAvatarsIndex[avatarID] = length;
+
         emit AvatarDeposited(avatarID, owner, controller);
     }
 
@@ -26,6 +31,23 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         if (_avatars[avatarID].startEpoch != 0) {
             revert UsingGameErrors.AvatarStillInGame(avatarID);
         }
+
+        // --------------------------------------------------------------------
+        // REMOVING FROM LIST
+        // --------------------------------------------------------------------
+        uint256[] storage _ownedAvatarsByOwner = _ownedAvatars[owner];
+        uint256 lastAvatarIndex = _ownedAvatarsByOwner.length - 1;
+        uint256 avatarIndex = _ownedAvatarsIndex[avatarID];
+        if (avatarIndex != lastAvatarIndex) {
+            uint256 lastAvatarId = _ownedAvatarsByOwner[lastAvatarIndex];
+
+            _ownedAvatarsByOwner[avatarIndex] = lastAvatarId;
+            _ownedAvatarsIndex[lastAvatarId] = avatarIndex;
+        }
+        delete _ownedAvatarsIndex[avatarID];
+        _ownedAvatarsByOwner.pop();
+        // --------------------------------------------------------------------
+
         AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
 
@@ -40,7 +62,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         }
         (uint64 epoch, ) = _epoch();
         _avatars[avatarID].startEpoch = epoch + 1;
-
         _avatars[avatarID].position = position;
         uint64 zone = PositionUtils.getZone(position);
         _addToZone(zone, avatarID);

@@ -1,6 +1,6 @@
 import { writes } from '$lib/onchain/writes';
 import { eventEmitter } from '$lib/render/eventEmitter';
-import { localState } from '$lib/view/localState';
+import { localState } from '$lib/private/localState';
 
 export function startListening() {
 	eventEmitter.on('down', () => {

@@ -58,37 +58,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 						displayObject.addChild(graphics);
 						graphics.visible = false;
 					}
-				} else if (entity.type == 'bomb') {
-					{
-						const graphics = new Graphics().rect(0, 0, 10, 10).fill(0x00ff00);
-						displayObject.addChild(graphics);
-					}
-
-					{
-						const graphics = new Graphics().rect(0, -40, 10, 90).fill(0xff0000);
-						displayObject.addChild(graphics);
-						graphics.visible = false;
-					}
-					{
-						const graphics = new Graphics().rect(-40, 0, 90, 10).fill(0xff0000);
-						displayObject.addChild(graphics);
-						graphics.visible = false;
-					}
-					{
-						const text = new LoadingBitmapText({
-							text: '',
-							style: {
-								fontURL: 'https://pixijs.com/assets/bitmap-font/desyrel.xml',
-								fontFamily: 'Desyrel',
-								fontSize: 8,
-								fill: 'black'
-							}
-						});
-						text.x = 3;
-						text.y = -3;
-						displayObject.addChild(text);
-						text.visible = false;
-					}
 				} else {
 					console.error(`no render for entity type : ${(entity as any).type}`);
 				}
@@ -143,28 +112,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 						} else {
 							displayObject.children[1].visible = true;
 							displayObject.children[2].visible = false;
-						}
-					}
-				} else if (entity.type === 'bomb') {
-					if (entity.explosion_end < epoch) {
-						displayObject.visible = false;
-					} else {
-						const epochLeft = Math.floor(entity.explosion_start - epoch);
-						let t = '' + epochLeft;
-						if (epochLeft <= 0) {
-							t = '-';
-						}
-						// console.log({ secondsLeft });
-						if (epochLeft >= 0) {
-							displayObject.children[3].visible = true;
-							(displayObject.children[3] as BitmapText).text = t;
-						} else {
-							displayObject.children[3].visible = false;
-						}
-
-						if (entity.explosion_start < epochLeft) {
-							displayObject.children[1].visible = true;
-							displayObject.children[2].visible = true;
 						}
 					}
 				}

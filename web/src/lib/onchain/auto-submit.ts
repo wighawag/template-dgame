@@ -1,5 +1,5 @@
 import { epochInfo, time } from '$lib/time';
-import { localState } from '$lib/view/localState';
+import { localState } from '$lib/private/localState';
 
 export function createAutoSubmitter() {
 	function start() {

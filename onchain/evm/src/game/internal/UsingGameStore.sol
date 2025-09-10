@@ -19,6 +19,11 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
 
     mapping(uint256 => Player) internal _players;
     mapping(uint256 => Avatar) internal _avatars;
+
+    // allow to get all avatars per owner in the game
+    mapping(address owner => uint256[]) internal _ownedAvatars;
+    mapping(uint256 avatarID => uint256) internal _ownedAvatarsIndex;
+
     mapping(uint256 => Commitment) internal _commitments;
     mapping(uint64 => Zone) internal _zones;
 

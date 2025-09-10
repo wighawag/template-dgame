@@ -1,14 +1,8 @@
 import { createDirectReadStore } from '$lib/onchain/direct-read';
-import type {
-	BaseEntity,
-	BombEntity,
-	Entity,
-	OnchainState,
-	PlayerEntity
-} from '$lib/onchain/types';
+import type { PlayerEntity } from '$lib/onchain/types';
 import { camera } from '$lib/render/camera';
 import { derived, get, writable } from 'svelte/store';
-import { localState } from './localState';
+import { localState } from '../private/localState';
 import { epochInfo, time } from '$lib/time';
 
 export type Position = { x: number; y: number };
@@ -16,7 +10,7 @@ export type Position = { x: number; y: number };
 export type PlayerViewEntity = PlayerEntity & {
 	path?: Position[];
 };
-export type ViewEntity = PlayerViewEntity | BombEntity;
+export type ViewEntity = PlayerViewEntity;
 export type ViewState = {
 	playerID?: `0x${string}`;
 	entities: { [id: string]: ViewEntity };
@@ -42,16 +36,6 @@ export const viewState = derived(
 						path.push(current_position);
 						if (action.type === 'move') {
 							current_position = { x: action.x, y: action.y };
-						} else if (action.type == 'placeBomb') {
-							// TODO proper BombID
-							const bombID = `${current_position.x},${current_position.y}`;
-							entities[bombID] = {
-								type: 'bomb',
-								id: bombID,
-								position: current_position,
-								explosion_start: epoch + 1,
-								explosion_end: epoch + 1
-							};
 						}
 					}
 				}

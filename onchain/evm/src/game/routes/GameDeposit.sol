@@ -41,4 +41,25 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
     function withdraw(uint256 avatarID, address to) external {
         _withdraw(msg.sender, avatarID, to);
     }
+
+    function avatarsPerOwner(
+        address owner,
+        uint256 startIndex,
+        uint256 limit
+    ) external view returns (uint256[] memory avatarIDs, bool more) {
+        uint256 total = _ownedAvatars[owner].length;
+        if (startIndex >= total) {
+            return (new uint256[](0), false);
+        }
+        uint256 max = total - startIndex;
+        uint256 actualLimit = limit > max ? max : limit;
+
+        uint256[] memory list = new uint256[](actualLimit);
+
+        for (uint256 i = 0; i < actualLimit; i++) {
+            list[i] = _ownedAvatars[owner][startIndex + i];
+        }
+
+        return (list, actualLimit != limit);
+    }
 }

@@ -11,7 +11,8 @@ export type AvatarCollection = { error?: { message: string } } & (
 	  }
 	| {
 			step: 'Loaded';
-			avatars: readonly bigint[];
+			avatarsInWallet: readonly bigint[];
+			avatarsInGame: readonly bigint[];
 	  }
 );
 
@@ -40,9 +41,9 @@ export function createAvatarCollectionStore(
 		});
 
 		// TODO use pagination
-		let result: readonly [readonly bigint[], boolean];
+		let avatarsOwnedResult: readonly [readonly bigint[], boolean];
 		try {
-			result = await publicClient.readContract({
+			avatarsOwnedResult = await publicClient.readContract({
 				...contracts.contracts.Avatars,
 				functionName: 'tokensOfOwner',
 				args: [$account, 0n, 100n] // TODO use pagination
@@ -50,14 +51,31 @@ export function createAvatarCollectionStore(
 		} catch (err) {
 			set({
 				step: 'Loading',
-				error: { message: `failed to fetch avatars for ${$account}` }
+				error: { message: `failed to fetch owned avatars for ${$account}` }
+			});
+			return false;
+		}
+
+		// TODO use pagination
+		let avatarsInGameResult: readonly [readonly bigint[], boolean];
+		try {
+			avatarsInGameResult = await publicClient.readContract({
+				...contracts.contracts.Game,
+				functionName: 'avatarsPerOwner',
+				args: [$account, 0n, 100n] // TODO use pagination
+			});
+		} catch (err) {
+			set({
+				step: 'Loading',
+				error: { message: `failed to fetch in-game avatars for ${$account}` }
 			});
 			return false;
 		}
 
 		set({
 			step: 'Loaded',
-			avatars: result[0]
+			avatarsInWallet: avatarsOwnedResult[0],
+			avatarsInGame: avatarsInGameResult[0]
 		});
 		return true;
 	}

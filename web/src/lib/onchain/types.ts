@@ -7,12 +7,7 @@ export type PlayerEntity = BaseEntity & {
 	life: number;
 	epoch: number;
 };
-export type BombEntity = BaseEntity & {
-	type: 'bomb';
-	explosion_start: number;
-	explosion_end: number;
-};
-export type Entity = PlayerEntity | BombEntity;
+export type Entity = PlayerEntity;
 export type OnchainState = {
 	entities: { [id: string]: Entity };
 };

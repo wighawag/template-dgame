@@ -1,7 +1,7 @@
 import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
 import { connection, publicClient, walletClient } from '$lib/connection';
 import contracts from '$lib/contracts';
-import type { LocalAction } from '$lib/view/localState';
+import type { LocalAction } from '$lib/private/localState';
 import { parseEther, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
