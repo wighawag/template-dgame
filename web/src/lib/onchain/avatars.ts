@@ -23,8 +23,13 @@ function defaultState() {
 }
 
 export function createAvatarCollectionStore(
-	account: Readable<Account>
+	account: Readable<Account>,
+	options?: {
+		fetchInterval?: number;
+	}
 ): Readable<AvatarCollection> {
+	const fetchInterval = options?.fetchInterval || 30 * 60 * 1000; // 30 minutes
+
 	let $state: AvatarCollection = defaultState();
 	let $account = get(account);
 
@@ -104,24 +109,21 @@ export function createAvatarCollectionStore(
 			}
 			if (timeout) {
 				clearTimeout(timeout);
+				timeout = undefined;
 			}
 			if ($account) {
-				let retryIn = 15000;
+				let interval = fetchInterval;
 				try {
 					const success = await fetchState($account);
 					if (!success) {
-						retryIn = 1000;
+						interval = 500;
 					}
 				} finally {
 					if (!timeout) {
-						timeout = setTimeout(fetchContinuously, retryIn);
+						timeout = setTimeout(fetchContinuously, interval);
 					}
 				}
 			}
-		}
-		if (timeout) {
-			clearTimeout(timeout);
-			timeout = undefined;
 		}
 		fetchContinuously();
 
