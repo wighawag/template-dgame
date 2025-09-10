@@ -1,4 +1,5 @@
 import {Abi_Avatars} from '#generated/types/Avatars.js';
+import {Abi_AvatarsSale} from '#generated/types/AvatarsSale.js';
 import {Abi_IGame} from '#generated/types/IGame.js';
 import {loadAndExecuteDeployments} from '#rocketh';
 import {EthereumProvider} from 'hardhat/types/providers';
@@ -12,6 +13,7 @@ export function setupFixtures(provider: EthereumProvider) {
 
 			const Game = env.get<Abi_IGame>('Game');
 			const Avatars = env.get<Abi_Avatars>('Avatars');
+			const AvatarsSale = env.get<Abi_AvatarsSale>('AvatarsSale');
 
 			const linkedData = Game.linkedData as {
 				startTime: string;
@@ -73,6 +75,7 @@ export function setupFixtures(provider: EthereumProvider) {
 				env,
 				Game,
 				Avatars,
+				AvatarsSale,
 				getEpoch,
 				getTimestamp,
 				advanceToRevealPhase,

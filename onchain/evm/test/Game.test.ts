@@ -2,47 +2,79 @@ import {expect} from 'earl';
 import {describe, it} from 'node:test'; // using node:test as hardhat v3 do not support vitest
 import {network} from 'hardhat';
 import {setupFixtures} from './utils/index.js';
-import {zeroAddress} from 'viem';
+import {decodeEventLog, encodeAbiParameters, zeroAddress} from 'viem';
 
-const {provider, networkHelpers} = await network.connect();
+const {provider, networkHelpers, viem} = await network.connect();
 const {deployAll} = setupFixtures(provider);
 
 describe('Game', function () {
 	it('basic test', async function () {
-		const {env, Game, Avatars, unnamedAccounts, advanceToEpoch, advanceToRevealPhase, getEpoch, getTimestamp} =
-			await networkHelpers.loadFixture(deployAll);
+		const {
+			env,
+			Game,
+			Avatars,
+			AvatarsSale,
+			unnamedAccounts,
+			advanceToEpoch,
+			advanceToRevealPhase,
+			getEpoch,
+			getTimestamp,
+		} = await networkHelpers.loadFixture(deployAll);
 
 		const before_avatars = await env.read(Game, {
 			functionName: 'getAvatarsInZone',
 			args: [0n, 0n, 100n],
 		});
 
-		console.log(before_avatars);
+		// console.log(before_avatars);
 
 		const timestamp = await getTimestamp();
 		const {epoch: initialEpoch, commiting: initialCommiting} = getEpoch(timestamp);
 
 		await advanceToEpoch(initialEpoch + 2);
 
-		await env.execute(Avatars, {
+		const subID = 0n;
+		const avatarID = (BigInt(unnamedAccounts[0]) << 96n) + subID;
+		const txHash = await env.execute(AvatarsSale, {
 			account: env.unnamedAccounts[0],
-			functionName: 'mint',
-			args: [unnamedAccounts[0], 0n],
+			functionName: 'purchase',
+			args: [
+				Game.address,
+				0n,
+				encodeAbiParameters([{type: 'address'}, {type: 'address'}], [unnamedAccounts[0], unnamedAccounts[0]]),
+				zeroAddress,
+			],
+			value: BigInt(AvatarsSale.linkedData!.paymentAmount as string),
 		});
 
-		const avatarID = BigInt(unnamedAccounts[0]) << 92n;
+		const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({hash: txHash});
+		// console.log(receipt);
+		// for (const log of receipt.logs) {
+		// 	let event;
+		// 	if (log.address === Game.address) {
+		// 		event = decodeEventLog({
+		// 			abi: Game.abi,
+		// 			topics: log.topics,
+		// 			data: log.data,
+		// 		});
+		// 	} else if (log.address === Avatars.address) {
+		// 		event = decodeEventLog({
+		// 			abi: Avatars.abi,
+		// 			topics: log.topics,
+		// 			data: log.data,
+		// 		});
+		// 	} else if (log.address === AvatarsSale.address) {
+		// 		event = decodeEventLog({
+		// 			abi: AvatarsSale.abi,
+		// 			topics: log.topics,
+		// 			data: log.data,
+		// 		});
+		// 	}
 
-		await env.execute(Avatars, {
-			account: env.unnamedAccounts[0],
-			functionName: 'approve',
-			args: [Game.address, avatarID],
-		});
-
-		await env.execute(Game, {
-			account: env.unnamedAccounts[0],
-			functionName: 'deposit',
-			args: [avatarID, env.unnamedAccounts[0], zeroAddress],
-		});
+		// 	if (event) {
+		// 		console.log(event);
+		// 	}
+		// }
 
 		const entrancePosition = 0n;
 		await env.execute(Game, {
@@ -87,6 +119,6 @@ describe('Game', function () {
 			args: [[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 0n], 0n, 100n],
 		});
 
-		console.log(after_avatars);
+		// console.log(after_avatars);
 	});
 });

@@ -20,6 +20,9 @@ interface UsingGameErrors is UsingGameTypes {
     error UnableToExitFromThisPosition(uint64 position);
 
     /// @notice happen when attempting to move an avatar not in the game
+    error AvatarNotAvailable(uint256 avatarID);
+
+    /// @notice happen when attempting to move an avatar not in the game
     error AvatarNotInGame(uint256 avatarID);
 
     /// @notice happen when attempting to enter an avatar already in the game

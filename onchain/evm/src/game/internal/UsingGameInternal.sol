@@ -52,6 +52,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     }
 
     function _enter(address controller, uint256 avatarID, uint64 position) internal {
+        if (_players[avatarID].controller == address(0)) {
+            revert UsingGameErrors.AvatarNotAvailable(avatarID);
+        }
         // TODO should owner be able to block this ?
         if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
