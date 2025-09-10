@@ -5,7 +5,14 @@ export function createAutoSubmitter() {
 	function start() {
 		return time.subscribe(($time) => {
 			const localData = localState.value;
-			if (localData.actions.length == 0) {
+			if (!localData.signer) {
+				return;
+			}
+			if (!localData.avatar) {
+				return;
+			}
+
+			if (localData.avatar.actions.length == 0) {
 				return;
 			}
 
@@ -13,8 +20,8 @@ export function createAutoSubmitter() {
 			if ($epochInfo.isCommitPhase) {
 				if ($epochInfo.timeLeftForCommitEnd < 3) {
 					if (
-						!localData.submission ||
-						localData.submission.commit.epoch < $epochInfo.currentEpoch
+						!localData.avatar.submission ||
+						localData.avatar.submission.commit.epoch < $epochInfo.currentEpoch
 					) {
 						localState.commit();
 					} else {
@@ -24,10 +31,13 @@ export function createAutoSubmitter() {
 					// still time for player to setup its move
 				}
 			} else {
-				if (localData.submission && localData.submission.commit.epoch == $epochInfo.currentEpoch) {
+				if (
+					localData.avatar.submission &&
+					localData.avatar.submission.commit.epoch == $epochInfo.currentEpoch
+				) {
 					if (
-						!localData.submission.reveal ||
-						localData.submission.reveal.epoch < $epochInfo.currentEpoch
+						!localData.avatar.submission.reveal ||
+						localData.avatar.submission.reveal.epoch < $epochInfo.currentEpoch
 					) {
 						localState.reveal();
 					} else {

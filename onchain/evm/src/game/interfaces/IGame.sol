@@ -54,7 +54,7 @@ interface IGameDeposit is UsingGameTypes {
         address owner,
         uint256 startIndex,
         uint256 limit
-    ) external view returns (uint256[] memory avatarIDs, bool more);
+    ) external view returns (AvatarStatus[] memory avatarIDs, bool more);
 }
 
 interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameDeposit {}

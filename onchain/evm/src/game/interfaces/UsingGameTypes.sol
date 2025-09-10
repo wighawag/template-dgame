@@ -34,6 +34,12 @@ interface UsingGameTypes {
         ITime time;
         IERC721 avatars;
     }
+
+    struct AvatarStatus {
+        uint256 avatarID;
+        bool inGame;
+        uint64 position;
+    }
     // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------

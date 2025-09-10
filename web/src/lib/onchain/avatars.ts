@@ -13,6 +13,7 @@ export type AvatarCollection = { error?: { message: string } } & (
 			step: 'Loaded';
 			avatarsInWallet: readonly bigint[];
 			avatarsInGame: readonly bigint[];
+			avatarsOnBench: readonly bigint[];
 	  }
 );
 
@@ -62,9 +63,12 @@ export function createAvatarCollectionStore(
 		}
 
 		// TODO use pagination
-		let avatarsInGameResult: readonly [readonly bigint[], boolean];
+		let avatarsDepositedResult: readonly [
+			readonly { avatarID: bigint; inGame: boolean; position: bigint }[],
+			boolean
+		];
 		try {
-			avatarsInGameResult = await publicClient.readContract({
+			avatarsDepositedResult = await publicClient.readContract({
 				...contracts.contracts.Game,
 				functionName: 'avatarsPerOwner',
 				args: [$account, 0n, 100n] // TODO use pagination
@@ -77,10 +81,16 @@ export function createAvatarCollectionStore(
 			return false;
 		}
 
+		const avatarsOnBench = avatarsDepositedResult[0]
+			.filter((v) => !v.inGame)
+			.map((v) => v.avatarID);
+		const avatarsInGame = avatarsDepositedResult[0].filter((v) => v.inGame).map((v) => v.avatarID);
+
 		set({
 			step: 'Loaded',
 			avatarsInWallet: avatarsOwnedResult[0],
-			avatarsInGame: avatarsInGameResult[0]
+			avatarsOnBench,
+			avatarsInGame
 		});
 		return true;
 	}

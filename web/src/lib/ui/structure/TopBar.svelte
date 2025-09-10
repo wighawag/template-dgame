@@ -27,7 +27,8 @@
 		<span class="text-lg font-bold">DGame</span>
 		<span
 			>{#if $avatars.step == 'Loaded'}
-				{$avatars.avatars.length}
+				{$avatars.avatarsInWallet.length} / {$avatars.avatarsOnBench.length} / {$avatars
+					.avatarsInGame.length}
 			{:else if $avatars.step === 'Loading'}
 				Loading...{/if}</span
 		>

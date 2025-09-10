@@ -46,18 +46,20 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
         address owner,
         uint256 startIndex,
         uint256 limit
-    ) external view returns (uint256[] memory avatarIDs, bool more) {
+    ) external view returns (AvatarStatus[] memory avatarIDs, bool more) {
         uint256 total = _ownedAvatars[owner].length;
         if (startIndex >= total) {
-            return (new uint256[](0), false);
+            return (new AvatarStatus[](0), false);
         }
         uint256 max = total - startIndex;
         uint256 actualLimit = limit > max ? max : limit;
 
-        uint256[] memory list = new uint256[](actualLimit);
+        AvatarStatus[] memory list = new AvatarStatus[](actualLimit);
 
         for (uint256 i = 0; i < actualLimit; i++) {
-            list[i] = _ownedAvatars[owner][startIndex + i];
+            uint256 avatarID = _ownedAvatars[owner][startIndex + i];
+            Avatar storage avatar = _avatars[avatarID];
+            list[i] = AvatarStatus({avatarID: avatarID, inGame: avatar.startEpoch != 0, position: avatar.position});
         }
 
         return (list, actualLimit != limit);

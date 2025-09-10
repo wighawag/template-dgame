@@ -4,21 +4,9 @@ pragma solidity ^0.8.0;
 import "solidity-kit/solc_0_8/ERC721/implementations/EnumerableERC721.sol";
 
 contract Avatars is EnumerableERC721 {
-    /// @notice the amount sent is not enough
-    /// @param sent amount sent
-    /// @param expected amount expected
-    error NotEnoughAmountSent(uint256 sent, uint256 expected);
+    constructor() {}
 
-    uint256 immutable _price;
-
-    constructor(uint256 initialPrice) {
-        _price = initialPrice;
-    }
-
-    function mint(address to, uint96 data) external payable {
-        if (msg.value < _price) {
-            revert NotEnoughAmountSent(msg.value, _price);
-        }
-        _safeMint(to, (uint256(uint160(msg.sender)) << 92) | data, false);
+    function mint(address to, uint256 tokenID, bytes calldata data) external payable {
+        _safeMint(to, tokenID, false, data);
     }
 }

@@ -23,7 +23,7 @@ interface IERC20Permit {
     ) external;
 }
 
-abstract contract Sale is Proxied {
+abstract contract SaleViaERC20Payment is Proxied {
     error WrongPaymentAmount(uint256 amount, uint256 expected);
     error TransferFailed(IERC20 token, address from, address to, uint256 amount);
     error FailedToTransferNativeToken(address recipient);
@@ -72,6 +72,7 @@ abstract contract Sale is Proxied {
 
     function purchaseViaTokenWithPermit(
         address payable to,
+        uint96 subID,
         bytes calldata data,
         uint256 amount,
         uint256 deadline,
@@ -104,10 +105,15 @@ abstract contract Sale is Proxied {
             freemap[msg.sender] = false;
         }
 
-        _mint(msg.sender, to, referrer, data);
+        _mint(msg.sender, to, subID, referrer, data);
     }
 
-    function purchaseViaApprovedToken(address payable to, bytes calldata data, address referrer) external {
+    function purchaseViaApprovedToken(
+        address payable to,
+        uint96 subID,
+        bytes calldata data,
+        address referrer
+    ) external {
         if (!freemap[msg.sender]) {
             if (PAYMENT_TOKEN.transferFrom(msg.sender, RECIPIENT, PAYMENT_AMOUNT) == false) {
                 revert TransferFailed(PAYMENT_TOKEN, msg.sender, RECIPIENT, PAYMENT_AMOUNT);
@@ -116,11 +122,12 @@ abstract contract Sale is Proxied {
             freemap[msg.sender] = false;
         }
 
-        _mint(msg.sender, to, referrer, data);
+        _mint(msg.sender, to, subID, referrer, data);
     }
 
     function purchaseViaETH(
         address payable to,
+        uint96 subID,
         bytes calldata data,
         uint256 deadline,
         address referrer
@@ -171,7 +178,7 @@ abstract contract Sale is Proxied {
             }
         }
 
-        _mint(msg.sender, to, referrer, data);
+        _mint(msg.sender, to, subID, referrer, data);
     }
 
     function addToFreeMap(address[] calldata addresses) external {
@@ -214,10 +221,10 @@ abstract contract Sale is Proxied {
         // TODO use proxy that can receive it
     }
 
-    function _mint(address sender, address payable to, address referrer, bytes calldata data) internal {
-        uint256 tokenID = _executeMint(to, data);
+    function _mint(address sender, address payable to, uint96 subID, address referrer, bytes calldata data) internal {
+        uint256 tokenID = _executeMint(to, subID, data);
         emit Mint(sender, to, referrer, tokenID);
     }
 
-    function _executeMint(address to, bytes calldata data) internal virtual returns (uint256 tokenID);
+    function _executeMint(address to, uint96 subID, bytes calldata data) internal virtual returns (uint256 tokenID);
 }
