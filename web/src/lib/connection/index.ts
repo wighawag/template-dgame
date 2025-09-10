@@ -30,9 +30,8 @@ export const publicClient = createPublicClient({
 	transport: custom(connection.provider)
 });
 
-export type OptionalSigner =
-	| { owner: `0x${string}`; address: `0x${string}`; privateKey: `0x${string}` }
-	| undefined;
+export type Signer = { owner: `0x${string}`; address: `0x${string}`; privateKey: `0x${string}` };
+export type OptionalSigner = Signer | undefined;
 
 export const signer = derived<typeof connection, OptionalSigner>(connection, ($connection) => {
 	return $connection.step === 'SignedIn'

@@ -12,7 +12,7 @@ export type PlayerViewEntity = PlayerEntity & {
 };
 export type ViewEntity = PlayerViewEntity;
 export type ViewState = {
-	playerID?: `0x${string}`;
+	avatarID?: string;
 	entities: { [id: string]: ViewEntity };
 };
 
@@ -21,39 +21,40 @@ export const onchainState = createDirectReadStore(camera);
 export const viewState = derived(
 	[onchainState, localState],
 	([$onchainState, $localState]): ViewState => {
-		const playerID = $localState.signer?.owner; // TODO avatar ID
 		const entities = { ...$onchainState.entities } as { [id: string]: ViewEntity };
-		if (playerID) {
-			const onchain_player = $onchainState.entities[playerID] as PlayerEntity | undefined;
+		let avatarID: string | undefined;
+		if ($localState.signer && $localState.avatar) {
+			avatarID = $localState.avatar.avatarID;
+			const avatarEntity = $onchainState.entities[avatarID] as PlayerEntity | undefined;
 
-			if (onchain_player) {
+			if (avatarEntity) {
 				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
 
-				let current_position = { ...onchain_player.position };
+				let current_position = { ...avatarEntity.position };
 				const path: Position[] = [];
-				if ($localState.actions.length > 0 && $localState.epoch == epoch) {
-					for (const action of $localState.actions) {
+				if ($localState.avatar.actions.length > 0 && $localState.avatar.epoch == epoch) {
+					for (const action of $localState.avatar.actions) {
 						path.push(current_position);
 						if (action.type === 'move') {
 							current_position = { x: action.x, y: action.y };
 						}
 					}
 				}
-				entities[playerID] = {
-					...onchain_player,
+				entities[avatarID] = {
+					...avatarEntity,
 					position: current_position,
 					path
 				};
 
 				return {
-					playerID,
+					avatarID,
 					entities
 				};
 			}
 		}
 
 		return {
-			playerID,
+			avatarID,
 			entities
 		};
 	}

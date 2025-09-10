@@ -1,31 +1,34 @@
 import { get, writable, type Readable } from 'svelte/store';
 import { createAutoSubmitter } from '$lib/onchain/auto-submit';
 import { epochInfo } from '$lib/time';
-import { signer, type OptionalSigner } from '$lib/connection';
+import { signer, type OptionalSigner, type Signer } from '$lib/connection';
 
 export type LocalAction = { type: 'move'; x: number; y: number } | { type: 'placeBomb' };
-export type LocalState = {
-	signer: OptionalSigner;
-	actions: LocalAction[];
-	submission?: {
-		commit: {
-			secret: string;
-			epoch: number;
-			txHash: string;
-		};
-		reveal?: {
-			epoch: number;
-			txHash: string;
-		};
-	};
-	epoch: number;
-};
+export type LocalState =
+	| { signer: undefined }
+	| {
+			signer: Signer;
+			avatar?: {
+				actions: LocalAction[];
+				submission?: {
+					commit: {
+						secret: string;
+						epoch: number;
+						txHash: string;
+					};
+					reveal?: {
+						epoch: number;
+						txHash: string;
+					};
+				};
+				epoch: number;
+				avatarID: string;
+			};
+	  };
 
 function defaultState() {
 	return {
-		signer: undefined,
-		actions: [],
-		epoch: 0
+		signer: undefined
 	};
 }
 const $state: LocalState = defaultState();
@@ -33,19 +36,40 @@ const $state: LocalState = defaultState();
 export function createLocalState(signer: Readable<OptionalSigner>) {
 	const _localState = writable<LocalState>($state, start);
 
+	function set(state: LocalState) {
+		for (const key of Object.keys(state)) {
+			($state as any)[key] = (state as any)[key];
+		}
+
+		if ($state.signer) {
+			try {
+				localStorage.setItem(`__private__${$state.signer.owner}`, JSON.stringify($state));
+			} catch (err) {
+				console.error(`failed to write to local storage`, err);
+			}
+		}
+		_localState.set($state);
+		return $state;
+	}
+
 	function start() {
 		const unsubscribeFromOptionalSigner = signer.subscribe(($signer) => {
 			if ($signer?.owner !== $state.signer?.owner) {
-				// TODO use local storage
 				if ($signer) {
-					$state.signer = { ...$signer };
+					try {
+						const fromStorageStr = localStorage.getItem(`__private__${$signer.owner}`);
+						if (fromStorageStr) {
+							const fromStorage = JSON.parse(fromStorageStr);
+							set(fromStorage);
+						} else {
+							set({ signer: $signer });
+						}
+					} catch (err) {
+						set({ signer: $signer });
+					}
 				} else {
-					$state.signer = undefined;
+					set({ signer: undefined });
 				}
-				$state.actions = [];
-				$state.epoch = 0;
-
-				_localState.set($state);
 			}
 		});
 		return unsubscribeFromOptionalSigner;
@@ -62,57 +86,36 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`no signer`);
 			}
 
+			if (!$state.avatar) {
+				throw new Error(`no avatar`);
+			}
+
 			// TODO not entered
 
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
 
-			if (epoch != $state.epoch) {
-				$state.actions = [];
-				$state.epoch = epoch;
+			if (epoch != $state.avatar.epoch) {
+				$state.avatar.actions = [];
+				$state.avatar.epoch = epoch;
 			}
 
 			// TODO player.position;
 			let currentPosition = { x: 0, y: 0 };
-			if ($state.actions.length > 0) {
-				for (const action of $state.actions) {
+			if ($state.avatar.actions.length > 0) {
+				for (const action of $state.avatar.actions) {
 					if (action.type === 'move') {
 						currentPosition = { x: action.x, y: action.y };
 					}
 				}
 			}
 
-			$state.actions.push({
+			$state.avatar.actions.push({
 				type: 'move',
 				x: currentPosition.x + x,
 				y: currentPosition.y + y
 			});
 			_localState.set($state);
-		},
-		placeBomb() {
-			// TODO
-			// const player = get(viewState).entities[wallet.address.toAddress()];
-			// const $epochInfo = epochInfo.now();
-			// const { currentEpoch: epoch } = $epochInfo;
-			// if (!player) {
-			// 	throw new Error(`no player`);
-			// }
-			// if (epoch.currentEpoch != $state.epoch) {
-			// 	$state.actions = [];
-			// 	$state.epoch = epoch.currentEpoch;
-			// }
-			// let currentPosition = player.position;
-			// if ($state.actions.length > 0) {
-			// 	for (const action of $state.actions) {
-			// 		if (action.type === 'move') {
-			// 			currentPosition = { x: action.x, y: action.y };
-			// 		}
-			// 	}
-			// }
-			// $state.actions.push({
-			// 	type: 'placeBomb'
-			// });
-			// _localState.set($state);
 		},
 
 		async commit() {
@@ -121,12 +124,20 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				return;
 			}
 
+			if (!$state.signer) {
+				throw new Error(`no signer`);
+			}
+
+			if (!$state.avatar) {
+				throw new Error(`no avatar`);
+			}
+
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
 
-			if (epoch != $state.epoch) {
-				$state.actions = [];
-				$state.epoch = epoch;
+			if (epoch != $state.avatar.epoch) {
+				$state.avatar.actions = [];
+				$state.avatar.epoch = epoch;
 				_localState.set($state);
 				throw new Error(`too late`);
 			}
@@ -162,19 +173,28 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				console.log(`already revealing...`);
 				return;
 			}
+
+			if (!$state.signer) {
+				throw new Error(`no signer`);
+			}
+
+			if (!$state.avatar) {
+				throw new Error(`no avatar`);
+			}
+
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
 
-			if (epoch != $state.epoch) {
-				$state.actions = [];
-				$state.epoch = epoch;
+			if (epoch != $state.avatar.epoch) {
+				$state.avatar.actions = [];
+				$state.avatar.epoch = epoch;
 				_localState.set($state);
 				throw new Error(`too late`);
 			}
 
 			console.log(`revealing for epoch ${epoch}...`);
 
-			const commitment = $state.submission?.commit;
+			const commitment = $state.avatar.submission?.commit;
 			if (!commitment) {
 				throw new Error(`cannot reveal without commitment info`);
 			}

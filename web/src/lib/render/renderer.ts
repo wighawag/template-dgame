@@ -91,7 +91,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 						displayObject.children[3].visible = false;
 					}
 
-					if (id == $viewState.playerID) {
+					if (id == $viewState.avatarID) {
 						// TODO move that elseewhere and remove the need to delete all and reconstruct
 						// Make sure to destroy all children first to prevent memory leaks
 						pathDisplayObject.removeChildren();
