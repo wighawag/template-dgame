@@ -1,17 +1,19 @@
 import { Blockie } from '$lib/utils/ethereum/blockie';
 import { viewState, type ViewEntity, type ViewState } from '$lib/view';
-import { BitmapText, Container, Graphics } from 'pixi.js';
+import { Container, Graphics } from 'pixi.js';
 import type { Readable } from 'svelte/store';
 import { LoadingSprite } from './LoadingSprite';
-import { LoadingBitmapText } from './LoadingBtimapText';
 import { epochInfo, time } from '$lib/time';
-import { connection } from '$lib/connection';
 
 export function createRenderer(viewState: Readable<ViewState>) {
 	let displayObjects: { [id: string]: Container } = {};
 	let unsubscribe: (() => void) | undefined = undefined;
 
 	function onAppStarted(container: Container) {
+		const entrance = new Graphics().rect(-4, -4, 8, 8).fill(0xffff34);
+		entrance.alpha = 0.4;
+		container.addChild(entrance);
+
 		let pathDisplayObject = new Container();
 		container.addChild(pathDisplayObject);
 
@@ -29,8 +31,8 @@ export function createRenderer(viewState: Readable<ViewState>) {
 					// const graphics = new Graphics().rect(0, 0, 10, 10).fill(0xff0000);
 					// displayObject.addChild(graphics);
 					displayObject.addChild(sprite);
-					sprite.x = 2;
-					sprite.y = 2;
+					sprite.x = -5 + 2;
+					sprite.y = -5 + 2;
 					sprite.scale = 6 / 8;
 
 					{

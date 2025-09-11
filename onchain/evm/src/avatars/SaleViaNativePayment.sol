@@ -121,16 +121,29 @@ abstract contract SaleViaNativePayment is Proxied {
     //     _mint(msg.sender, to, referrer, data);
     // }
 
-    function purchase(address payable to, uint96 subID, bytes calldata data, address referrer) external payable {
+    function purchase(
+        address payable to,
+        uint96 subID,
+        bytes calldata data,
+        address payable extraNativeTokenRecipient,
+        uint256 extraNativeTokenAmount,
+        address referrer
+    ) external payable {
+        uint256 paymentAmount = msg.value;
+        if (extraNativeTokenRecipient != address(0)) {
+            paymentAmount -= extraNativeTokenAmount;
+            extraNativeTokenRecipient.transfer(extraNativeTokenAmount);
+        }
         if (!freemap[msg.sender]) {
-            if (msg.value != PAYMENT_AMOUNT) {
-                revert WrongPaymentAmount(msg.value, PAYMENT_AMOUNT);
+            if (paymentAmount != PAYMENT_AMOUNT) {
+                revert WrongPaymentAmount(paymentAmount, PAYMENT_AMOUNT);
             }
-            RECIPIENT.transfer(msg.value);
+            // TODO RECIPIENT support sending it to destination
+            RECIPIENT.transfer(paymentAmount);
         } else {
             freemap[msg.sender] = false;
-            if (msg.value != 0) {
-                revert WrongPaymentAmount(msg.value, 0);
+            if (paymentAmount != 0) {
+                revert WrongPaymentAmount(paymentAmount, 0);
             }
         }
 

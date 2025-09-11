@@ -130,8 +130,15 @@ abstract contract SaleViaERC20Payment is Proxied {
         uint96 subID,
         bytes calldata data,
         uint256 deadline,
+        address payable extraNativeTokenRecipient,
+        uint256 extraNativeTokenAmount,
         address referrer
     ) external payable {
+        uint256 paymentAmount = msg.value;
+        if (extraNativeTokenRecipient != address(0)) {
+            paymentAmount -= extraNativeTokenAmount;
+            extraNativeTokenRecipient.transfer(extraNativeTokenAmount);
+        }
         if (!freemap[msg.sender]) {
             // Commands:
             // 0x0B: WRAP_ETH (convert ETH to WETH)
@@ -146,7 +153,7 @@ abstract contract SaleViaERC20Payment is Proxied {
             // Parameters: (address recipient, uint256 amountMinimum)
             inputs[0] = abi.encode(
                 address(UNIVERSAL_ROUTER), // Recipient - the router itself needs the WETH
-                msg.value // Amount to wrap - all the ETH sent
+                paymentAmount // Amount to wrap - all the ETH sent
             );
 
             // Construct the path for the swap in reverse order for exact output swaps: TOKEN -> WETH
@@ -157,7 +164,7 @@ abstract contract SaleViaERC20Payment is Proxied {
             inputs[1] = abi.encode(
                 RECIPIENT, // Recipient of USDC
                 PAYMENT_AMOUNT, // Exact amount of USDC to receive
-                msg.value, // Maximum amount of WETH to spend
+                paymentAmount, // Maximum amount of WETH to spend
                 path,
                 false // payerIsUser: false since we've have given WETH via UNWRAP already
             );
@@ -170,11 +177,11 @@ abstract contract SaleViaERC20Payment is Proxied {
             );
 
             // Execute the swap through Universal Router
-            UNIVERSAL_ROUTER.execute{value: msg.value}(commands, inputs, deadline);
+            UNIVERSAL_ROUTER.execute{value: paymentAmount}(commands, inputs, deadline);
         } else {
             freemap[msg.sender] = false;
-            if (msg.value != 0) {
-                revert WrongPaymentAmount(msg.value, 0);
+            if (paymentAmount != 0) {
+                revert WrongPaymentAmount(paymentAmount, 0);
             }
         }
 

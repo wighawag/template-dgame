@@ -118,6 +118,17 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			_localState.set($state);
 		},
 
+		enter(avatarID: bigint, location: bigint, hash: `0x${string}`) {
+			if (!$state.signer) {
+				throw new Error(`no signer`);
+			}
+			$state.avatar = {
+				actions: [],
+				avatarID: avatarID.toString(),
+				epoch: 0 // TODO
+			};
+			_localState.set($state);
+		},
 		async commit() {
 			if (commiting) {
 				console.log(`already commiting...`);
