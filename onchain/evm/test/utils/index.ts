@@ -1,6 +1,6 @@
-import {Abi_Avatars} from '#generated/types/Avatars.js';
-import {Abi_AvatarsSale} from '#generated/types/AvatarsSale.js';
-import {Abi_IGame} from '#generated/types/IGame.js';
+import {Abi_Avatars} from '#generated/abis/Avatars.js';
+import {Abi_AvatarsSale} from '#generated/abis/AvatarsSale.js';
+import {Abi_IGame} from '#generated/abis/IGame.js';
 import {loadAndExecuteDeployments} from '#rocketh';
 import {EthereumProvider} from 'hardhat/types/providers';
 
