@@ -18,7 +18,7 @@ function defaultState() {
 	};
 }
 
-export function createDirectReadStore(camera: Readable<Camera>): Readable<OnchainState> {
+export function createDirectReadStore(camera: Readable<Camera>) {
 	let $state: OnchainState = defaultState();
 	let $camera: Camera = get(camera);
 	let lastZones: bigint[] | undefined;
@@ -60,10 +60,10 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 		return false;
 	}
 
-	async function fetchState(camera: Camera) {
+	async function fetchState(camera: Camera, fromCameraUpdate: boolean) {
 		const zones = calculateVisibleZones(camera);
 
-		if (!hasZonesChanged(lastZones, zones)) {
+		if (fromCameraUpdate && !hasZonesChanged(lastZones, zones)) {
 			return;
 		}
 		const $epochInfo = epochInfo.now();
@@ -74,9 +74,12 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 			functionName: 'getAvatarsInMultipleZones',
 			args: [zones, 0n, 100n] // TODO use pagination
 		});
-		if (hasCameraChanged($camera, camera)) {
-			// if changed while fetching, we stop right here
-			return;
+		if (fromCameraUpdate) {
+			const newZones = calculateVisibleZones($camera);
+			if (hasZonesChanged(zones, newZones)) {
+				// if changed while fetching, we stop right here
+				return;
+			}
 		}
 
 		const state: OnchainState = defaultState();
@@ -102,41 +105,45 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 		set(state);
 	}
 
-	let unsubscribeFromCamera: (() => void) | undefined;
 	let timeout: NodeJS.Timeout | undefined;
+	async function fetchContinuously(fromCameraUpdate?: boolean) {
+		if (timeout) {
+			clearTimeout(timeout);
+			timeout = undefined;
+		}
+
+		let retryIn = 15000;
+		try {
+			await fetchState($camera, fromCameraUpdate || false);
+		} catch (err) {
+			console.error(`failed to fetch state`, err);
+			retryIn = 1000;
+		} finally {
+			if (!timeout) {
+				timeout = setTimeout(fetchContinuously, retryIn);
+			}
+		}
+	}
+
+	let unsubscribeFromCamera: (() => void) | undefined;
+
 	function start() {
 		unsubscribeFromCamera = camera.subscribe(async (camera) => {
 			const cameraChanged = hasCameraChanged($camera, camera);
 			if (cameraChanged) {
 				$camera = { ...camera };
-				fetchContinuously();
+				fetchContinuously(true);
 			}
 		});
 
-		async function fetchContinuously() {
-			if (timeout) {
-				clearTimeout(timeout);
-			}
-
-			let retryIn = 15000;
-			try {
-				await fetchState($camera);
-			} catch (err) {
-				console.error(`failed to fetch state`, err);
-				retryIn = 1000;
-			} finally {
-				if (!timeout) {
-					timeout = setTimeout(fetchContinuously, retryIn);
-				}
-			}
-		}
-		if (timeout) {
-			clearTimeout(timeout);
-			timeout = undefined;
-		}
-		fetchContinuously();
+		fetchContinuously(false);
 
 		return stop;
+	}
+
+	async function update() {
+		await fetchContinuously();
+		return $state;
 	}
 
 	function stop() {
@@ -152,6 +159,7 @@ export function createDirectReadStore(camera: Readable<Camera>): Readable<Onchai
 	}
 
 	return {
-		subscribe: _store.subscribe
+		subscribe: _store.subscribe,
+		update
 	};
 }

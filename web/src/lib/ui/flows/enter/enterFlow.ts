@@ -4,6 +4,7 @@ import { writes } from '$lib/onchain/writes';
 import type { Connection } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
+import { onchainState } from '$lib/view';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
@@ -93,7 +94,28 @@ function createEnterFlow() {
 	}
 
 	async function enter(avatarID: bigint) {
-		await writes.enter(avatarID);
+		if ($data.step != 'Ready') {
+			throw new Error(`need to be ready to enter`);
+		}
+		const { wait, transactionID } = await writes.enter(avatarID);
+		set({
+			step: 'Ready',
+			avatars: $data.avatars,
+			pendingTransaction: transactionID
+		});
+		await wait();
+		let $avatars = await avatars.update();
+		// TODO need to trigger specific coordinate on top of current camera
+		let $onchainState = await onchainState.update();
+		// TODO check for avatar
+		const hasAvatar = () =>
+			$avatars.step === 'Loaded' && $avatars.avatarsInGame.find((v) => v == avatarID);
+		while (!hasAvatar()) {
+			$avatars = await avatars.update();
+		}
+		set({
+			step: 'Idle'
+		});
 	}
 
 	function cancel() {
