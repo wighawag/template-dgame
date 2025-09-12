@@ -16,6 +16,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 
 		let pathDisplayObject = new Container();
 		container.addChild(pathDisplayObject);
+		pathDisplayObject.zIndex = 1;
 
 		unsubscribe = viewState.subscribe(($viewState) => {
 			const now = time.now();
@@ -93,6 +94,9 @@ export function createRenderer(viewState: Readable<ViewState>) {
 					} else {
 						displayObject.children[3].visible = false;
 					}
+
+					displayObject.children[1].visible = false;
+					displayObject.children[2].visible = false;
 
 					if (id == $viewState.avatarID) {
 						displayObject.zIndex = 2;
