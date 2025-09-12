@@ -37,14 +37,14 @@ export function createRenderer(viewState: Readable<ViewState>) {
 
 					{
 						const graphics = new Graphics()
-							.rect(0, 0, 10, 10)
+							.rect(-5, -5, 10, 10)
 							.stroke({ width: 1, color: 0x00ff00 });
 						displayObject.addChild(graphics);
 						graphics.visible = false;
 					}
 					{
 						const graphics = new Graphics()
-							.rect(0, 0, 10, 10)
+							.rect(-5, -5, 10, 10)
 							.stroke({ width: 1, color: 0xff0000 });
 						displayObject.addChild(graphics);
 						graphics.visible = false;
@@ -102,7 +102,10 @@ export function createRenderer(viewState: Readable<ViewState>) {
 						if (path) {
 							for (const pos of path) {
 								const graphics = new Graphics();
-								pathDisplayObject.addChild(graphics).rect(4, 4, 2, 2).fill(0x00ff00);
+								pathDisplayObject
+									.addChild(graphics)
+									.rect(-5 + 4, -5 + 4, 2, 2)
+									.fill(0x00ff00);
 								graphics.x = 10 * pos.x;
 								graphics.y = 10 * pos.y;
 							}

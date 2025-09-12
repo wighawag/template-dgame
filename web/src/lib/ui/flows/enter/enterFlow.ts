@@ -1,7 +1,6 @@
 import { connection } from '$lib/connection';
 import { avatars, type AvatarCollection } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
-import { localState } from '$lib/private/localState';
 import type { Connection } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 

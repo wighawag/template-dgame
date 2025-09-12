@@ -3,7 +3,7 @@ import { createAutoSubmitter } from '$lib/onchain/auto-submit';
 import { epochInfo } from '$lib/time';
 import { signer, type OptionalSigner, type Signer } from '$lib/connection';
 
-export type LocalAction = { type: 'move'; x: number; y: number } | { type: 'placeBomb' };
+export type LocalAction = { type: 'move'; x: number; y: number };
 export type LocalState =
 	| { signer: undefined }
 	| {
@@ -37,8 +37,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 	const _localState = writable<LocalState>($state, start);
 
 	function set(state: LocalState) {
-		for (const key of Object.keys(state)) {
-			($state as any)[key] = (state as any)[key];
+		if ($state != state) {
+			for (const key of Object.keys(state)) {
+				($state as any)[key] = (state as any)[key];
+			}
 		}
 
 		if ($state.signer) {
@@ -81,7 +83,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			return $state;
 		},
 		subscribe: _localState.subscribe,
-		move(x: number, y: number) {
+		addAction(epoch: number, action: LocalAction) {
 			if (!$state.signer) {
 				throw new Error(`no signer`);
 			}
@@ -90,35 +92,16 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`no avatar`);
 			}
 
-			// TODO not entered
-
-			const $epochInfo = epochInfo.now();
-			const { currentEpoch: epoch } = $epochInfo;
-
 			if (epoch != $state.avatar.epoch) {
 				$state.avatar.actions = [];
 				$state.avatar.epoch = epoch;
 			}
 
-			// TODO player.position;
-			let currentPosition = { x: 0, y: 0 };
-			if ($state.avatar.actions.length > 0) {
-				for (const action of $state.avatar.actions) {
-					if (action.type === 'move') {
-						currentPosition = { x: action.x, y: action.y };
-					}
-				}
-			}
-
-			$state.avatar.actions.push({
-				type: 'move',
-				x: currentPosition.x + x,
-				y: currentPosition.y + y
-			});
-			_localState.set($state);
+			$state.avatar.actions.push(action);
+			set($state);
 		},
 
-		enter(avatarID: bigint, location: bigint, hash: `0x${string}`) {
+		enter(epoch: number, avatarID: bigint, location: bigint, hash: `0x${string}`) {
 			if (!$state.signer) {
 				throw new Error(`no signer`);
 			}
@@ -127,7 +110,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				avatarID: avatarID.toString(),
 				epoch: 0 // TODO
 			};
-			_localState.set($state);
+			set($state);
 		},
 		async commit() {
 			if (commiting) {
@@ -149,7 +132,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			if (epoch != $state.avatar.epoch) {
 				$state.avatar.actions = [];
 				$state.avatar.epoch = epoch;
-				_localState.set($state);
+				set($state);
 				throw new Error(`too late`);
 			}
 
@@ -170,7 +153,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			// 			txHash: transactionID
 			// 		}
 			// 	};
-			// 	_localState.set($state);
+			// 	set($state);
 
 			// 	await wait();
 			// } catch (err) {
@@ -199,7 +182,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			if (epoch != $state.avatar.epoch) {
 				$state.avatar.actions = [];
 				$state.avatar.epoch = epoch;
-				_localState.set($state);
+				set($state);
 				throw new Error(`too late`);
 			}
 
@@ -227,7 +210,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				// 		txHash: transactionID
 				// 	}
 				// };
-				// _localState.set($state);
+				// set($state);
 
 				// await wait();
 			} catch (err) {

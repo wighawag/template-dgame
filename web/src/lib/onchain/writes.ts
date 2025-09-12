@@ -2,6 +2,7 @@ import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
 import { connection, publicClient, walletClient } from '$lib/connection';
 import contracts from '$lib/contracts';
 import { localState, type LocalAction } from '$lib/private/localState';
+import { epochInfo } from '$lib/time';
 import { encodeAbiParameters, parseEther, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
@@ -72,7 +73,8 @@ export class Writes {
 			functionName: 'enter',
 			args: [avatarID, location]
 		});
-		localState.enter(avatarID, location, hash);
+		const { currentEpoch: epoch } = epochInfo.now();
+		localState.enter(epoch, avatarID, location, hash);
 		return {
 			transactionID: hash,
 			wait: () => publicClient.waitForTransactionReceipt({ hash })

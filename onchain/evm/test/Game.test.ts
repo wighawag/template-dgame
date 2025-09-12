@@ -43,6 +43,8 @@ describe('Game', function () {
 				0n,
 				encodeAbiParameters([{type: 'address'}, {type: 'address'}], [unnamedAccounts[0], unnamedAccounts[0]]),
 				zeroAddress,
+				0n,
+				zeroAddress,
 			],
 			value: BigInt(AvatarsSale.linkedData!.paymentAmount as string),
 		});

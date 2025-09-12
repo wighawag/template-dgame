@@ -1,25 +1,52 @@
-import { writes } from '$lib/onchain/writes';
 import { eventEmitter } from '$lib/render/eventEmitter';
 import { localState } from '$lib/private/localState';
 import { get } from 'svelte/store';
 import { avatars } from '$lib/onchain/avatars';
 import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
+import { epochInfo } from '$lib/time';
+import { viewState, type Position } from '$lib/view';
+
+function addMove(dx: number, dy: number) {
+	const $epochInfo = epochInfo.now();
+	const { currentEpoch: epoch } = $epochInfo;
+
+	const $localState = get(localState);
+	const $viewState = get(viewState);
+	const playerEntity =
+		$localState.signer && $localState.avatar?.avatarID
+			? $viewState.entities[$localState.avatar.avatarID]
+			: undefined;
+	if ($localState.signer && $localState.avatar && playerEntity) {
+		let currentPosition: Position;
+		if ($localState.avatar.epoch === epoch && $localState.avatar.actions.length > 0) {
+			currentPosition = $localState.avatar.actions[$localState.avatar.actions.length - 1];
+		} else {
+			currentPosition = playerEntity.position;
+		}
+
+		localState.addAction(epoch, {
+			type: 'move',
+			x: currentPosition.x + dx,
+			y: currentPosition.y + dy
+		});
+	}
+}
 
 export function startListening() {
 	eventEmitter.on('down', () => {
-		localState.move(0, 1);
+		addMove(0, 1);
 	});
 
 	eventEmitter.on('up', () => {
-		localState.move(0, -1);
+		addMove(0, -1);
 	});
 
 	eventEmitter.on('left', () => {
-		localState.move(-1, 0);
+		addMove(-1, 0);
 	});
 
 	eventEmitter.on('right', () => {
-		localState.move(1, 0);
+		addMove(1, 0);
 	});
 
 	eventEmitter.on('action', () => {
