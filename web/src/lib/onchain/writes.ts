@@ -3,6 +3,7 @@ import { connection, publicClient, walletClient } from '$lib/connection';
 import contracts from '$lib/contracts';
 import { localState, type LocalAction } from '$lib/private/localState';
 import { epochInfo } from '$lib/time';
+import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { encodeAbiParameters, parseEther, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
@@ -33,13 +34,15 @@ export class Writes {
 		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
 		const stippend = parseEther('0.0003');
 		const totalValue = value + stippend;
+		const subID = generateRandom96BitBigInt();
+		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
 		const hash = await walletClient.writeContract({
 			account: faucetAccount,
 			...contracts.contracts.AvatarsSale,
 			functionName: 'purchase',
 			args: [
 				contracts.contracts.Game.address,
-				0n /* TODO random 96 bits */,
+				subID,
 				data,
 				$connection.account.signer.address,
 				stippend,
@@ -48,6 +51,7 @@ export class Writes {
 			value: totalValue
 		});
 		return {
+			avatarID,
 			transactionID: hash,
 			wait: () => publicClient.waitForTransactionReceipt({ hash })
 		};

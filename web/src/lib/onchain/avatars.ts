@@ -28,7 +28,7 @@ export function createAvatarCollectionStore(
 	options?: {
 		fetchInterval?: number;
 	}
-): Readable<AvatarCollection> {
+) {
 	const fetchInterval = options?.fetchInterval || 30 * 60 * 1000; // 30 minutes
 
 	let $state: AvatarCollection = defaultState();
@@ -95,6 +95,35 @@ export function createAvatarCollectionStore(
 		return true;
 	}
 
+	async function fetchContinuously() {
+		if ($account) {
+			set({
+				step: 'Loading'
+			});
+		} else {
+			set({
+				step: 'Idle'
+			});
+		}
+		if (timeout) {
+			clearTimeout(timeout);
+			timeout = undefined;
+		}
+		if ($account) {
+			let interval = fetchInterval;
+			try {
+				const success = await fetchState($account);
+				if (!success) {
+					interval = 500;
+				}
+			} finally {
+				if (!timeout) {
+					timeout = setTimeout(fetchContinuously, interval);
+				}
+			}
+		}
+	}
+
 	let unsubscribeFromAccount: (() => void) | undefined;
 	let timeout: NodeJS.Timeout | undefined;
 	function start() {
@@ -107,37 +136,14 @@ export function createAvatarCollectionStore(
 			}
 		});
 
-		async function fetchContinuously() {
-			if ($account) {
-				set({
-					step: 'Loading'
-				});
-			} else {
-				set({
-					step: 'Idle'
-				});
-			}
-			if (timeout) {
-				clearTimeout(timeout);
-				timeout = undefined;
-			}
-			if ($account) {
-				let interval = fetchInterval;
-				try {
-					const success = await fetchState($account);
-					if (!success) {
-						interval = 500;
-					}
-				} finally {
-					if (!timeout) {
-						timeout = setTimeout(fetchContinuously, interval);
-					}
-				}
-			}
-		}
 		fetchContinuously();
 
 		return stop;
+	}
+
+	async function update() {
+		await fetchContinuously();
+		return $state;
 	}
 
 	function stop() {
@@ -155,7 +161,8 @@ export function createAvatarCollectionStore(
 	}
 
 	return {
-		subscribe: _store.subscribe
+		subscribe: _store.subscribe,
+		update
 	};
 }
 

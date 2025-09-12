@@ -3,7 +3,6 @@
 	import { avatars } from '$lib/onchain/avatars.js';
 	import Button from '$lib/ui/generic/Button.svelte';
 	import Modal from '$lib/ui/modal/Modal.svelte';
-	import { purchaseFlow } from '../purchase/purchaseFlow.js';
 	import { enterFlow } from './enterFlow.js';
 </script>
 
@@ -20,7 +19,7 @@
 	{#snippet title()}
 		You do not have any avatar
 	{/snippet}
-	<Button onclick={() => purchaseFlow.start()}>Purchase</Button>
+	<Button onclick={() => enterFlow.startPurchaseFlow()}>Purchase</Button>
 </Modal>
 <Modal openWhen={$enterFlow.step === 'RequireDeposit'} onCancel={() => enterFlow.cancel()}>
 	{#snippet title()}

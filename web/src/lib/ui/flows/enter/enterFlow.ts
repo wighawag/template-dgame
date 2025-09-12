@@ -3,6 +3,7 @@ import { avatars, type AvatarCollection } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
 import type { Connection } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
+import { purchaseFlow } from '../purchase/purchaseFlow';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
@@ -101,10 +102,16 @@ function createEnterFlow() {
 		set({ step: 'Idle' });
 	}
 
+	async function startPurchaseFlow() {
+		await purchaseFlow.start();
+		setTimeout(start, 1);
+	}
+
 	return {
 		subscribe: store.subscribe,
 		cancel,
 		start,
+		startPurchaseFlow,
 		enter
 	};
 }

@@ -38,7 +38,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 	function set(state: LocalState) {
 		if ($state != state) {
-			for (const key of Object.keys(state)) {
+			const keys = Object.keys(state).concat(Object.keys($state));
+			for (const key of keys) {
 				($state as any)[key] = (state as any)[key];
 			}
 		}
@@ -225,3 +226,5 @@ export const localState = createLocalState(signer);
 
 export const autoSubmitter = createAutoSubmitter();
 autoSubmitter.start();
+
+(globalThis as any).localState = localState;
