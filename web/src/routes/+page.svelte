@@ -7,12 +7,14 @@
 	import { eventEmitter } from '$lib/render/eventEmitter.js';
 	import EnterFlow from '$lib/ui/flows/enter/EnterFlow.svelte';
 	import PurchaseFlow from '$lib/ui/flows/purchase/PurchaseFlow.svelte';
+	import GameClock from '$lib/time/GameClock.svelte';
 </script>
 
 <main>
 	<div class="pointer-events-auto">
 		<TopBar />
 	</div>
+	<div class="ml-2 mt-16"><GameClock /></div>
 </main>
 
 <EnterFlow />

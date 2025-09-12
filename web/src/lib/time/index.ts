@@ -1,4 +1,5 @@
 import { connection } from '$lib/connection';
+import contracts from '$lib/contracts';
 import { derived, writable } from 'svelte/store';
 
 export type SyncedTime = {
@@ -85,6 +86,9 @@ export type EpochInfo = {
 	timeLeftInPhase: number;
 	timeLeftForCommitEnd: number;
 	timeLeftForRevealEnd: number;
+	commitPhaseDuration: number;
+	revealPhaseDuration: number;
+	currentPhaseDuration: number;
 };
 
 export function createLocalComputer(config: {
@@ -129,7 +133,10 @@ export function createLocalComputer(config: {
 				? COMMIT_PHASE_DURATION - timeInCurrentEpochCycle
 				: REVEAL_PHASE_DURATION - (timeInCurrentEpochCycle - COMMIT_PHASE_DURATION),
 			timeLeftForCommitEnd,
-			timeLeftForRevealEnd
+			timeLeftForRevealEnd,
+			commitPhaseDuration: COMMIT_PHASE_DURATION,
+			revealPhaseDuration: REVEAL_PHASE_DURATION,
+			currentPhaseDuration: isCommitPhase ? COMMIT_PHASE_DURATION : REVEAL_PHASE_DURATION
 		};
 	}
 
@@ -140,14 +147,19 @@ export function createLocalComputer(config: {
 
 const localComputer = createLocalComputer({
 	// TODO get it from Contract Data
-	COMMIT_PHASE_DURATION: 13,
-	REVEAL_PHASE_DURATION: 4,
-	START_TIME: 0
+	COMMIT_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.commitPhaseDuration),
+	REVEAL_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.revealPhaseDuration),
+	START_TIME: Number(contracts.contracts.Game.linkedData.startTime)
 });
 
 // export const epochInfo = derived(time, (t) => localComputer.calculateEpochInfo(t.value));
 
-const _epochInfo = writable<EpochInfo>();
+const _epochInfo = writable<EpochInfo>(localComputer.calculateEpochInfo(time.now()), (set) => {
+	const unsubscribeFromTime = time.subscribe(($time) => {
+		set(localComputer.calculateEpochInfo($time.value));
+	});
+	return unsubscribeFromTime;
+});
 
 export const epochInfo = {
 	subscribe: _epochInfo.subscribe,
