@@ -29,8 +29,6 @@
 
 	let color = $derived($twoPhase.phase == 'play' ? 'red' : 'oklch(85.2% 0.199 91.936)');
 	let background = $derived($twoPhase.phase == 'play' ? '#00ff00' : 'red');
-
-	$inspect(percentage);
 </script>
 
 <div
