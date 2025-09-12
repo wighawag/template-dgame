@@ -88,9 +88,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         Commitment storage commitment = _commitments[avatarID];
 
-        if (commitment.epoch != 0 && commitment.epoch != epoch) {
-            revert PreviousCommitmentNotRevealed();
-        }
+        // TODO reenable
+        // if (commitment.epoch != 0 && commitment.epoch != epoch) {
+        //     revert PreviousCommitmentNotRevealed();
+        // }
 
         commitment.hash = commitmentHash;
         commitment.epoch = epoch;
