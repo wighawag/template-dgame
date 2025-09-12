@@ -1,6 +1,6 @@
 import { connection } from '$lib/connection';
 import contracts from '$lib/contracts';
-import { derived, writable } from 'svelte/store';
+import { derived, writable, type Readable } from 'svelte/store';
 
 export type SyncedTime = {
 	lastSync?: number;
@@ -171,5 +171,63 @@ export const epochInfo = {
 	}
 };
 
+export type ThreePhase = {
+	phase: 'play' | 'commit' | 'reveal';
+	timeLeft: number;
+	duration: number;
+};
+
+const COMMIT_TIME_ALLOWANCE = 3.1;
+export const threePhase = derived<Readable<EpochInfo>, ThreePhase>(epochInfo, ($epochInfo) => {
+	let phase: 'play' | 'commit' | 'reveal' = 'reveal';
+	let timeLeft = $epochInfo.timeLeftInPhase;
+	let duration = $epochInfo.currentPhaseDuration;
+
+	if ($epochInfo.isCommitPhase) {
+		phase = 'play';
+		if ($epochInfo.timeLeftInPhase < COMMIT_TIME_ALLOWANCE) {
+			phase = 'commit';
+			duration = COMMIT_TIME_ALLOWANCE;
+		} else {
+			duration -= COMMIT_TIME_ALLOWANCE;
+			timeLeft -= COMMIT_TIME_ALLOWANCE;
+		}
+	}
+	return {
+		phase,
+		timeLeft,
+		duration
+	};
+});
+
+export type TwoPhase = {
+	phase: 'play' | 'wait';
+	timeLeft: number;
+	duration: number;
+};
+
+export const twoPhase = derived<Readable<ThreePhase>, TwoPhase>(threePhase, ($threePhase) => {
+	let phase: 'play' | 'wait' = 'play';
+	let timeLeft = $threePhase.timeLeft;
+	let duration = $threePhase.duration;
+	if ($threePhase.phase === 'commit') {
+		phase = 'wait';
+		timeLeft =
+			$threePhase.timeLeft + Number(contracts.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
+		duration =
+			$threePhase.duration + Number(contracts.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
+	}
+	if ($threePhase.phase === 'reveal') {
+		phase = 'wait';
+		duration = $threePhase.duration + COMMIT_TIME_ALLOWANCE;
+	}
+	return {
+		phase,
+		timeLeft,
+		duration
+	};
+});
+
 (globalThis as any).epochInfo = epochInfo;
 (globalThis as any).time = time;
+(globalThis as any).threePhase = threePhase;

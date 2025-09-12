@@ -1,12 +1,34 @@
 <script lang="ts">
-	import { epochInfo, time } from './index';
+	import { epochInfo, time, threePhase, twoPhase } from './index';
 
-	let percentage = $derived(
-		100 - Math.floor(($epochInfo.timeLeftInPhase * 100) / $epochInfo.currentPhaseDuration)
-	);
+	// let percentage = $derived(
+	// 	100 - Math.floor(($epochInfo.timeLeftInPhase * 100) / $epochInfo.currentPhaseDuration)
+	// );
 
-	let color = $derived($epochInfo.isCommitPhase ? '#ff0000' : 'oklch(85.2% 0.199 91.936)');
-	let background = $derived($epochInfo.isCommitPhase ? '#00ff00' : '#ff0000');
+	// let color = $derived($epochInfo.isCommitPhase ? '#ff0000' : 'oklch(85.2% 0.199 91.936)');
+	// let background = $derived($epochInfo.isCommitPhase ? '#00ff00' : '#ff0000');
+
+	// let percentage = $derived(100 - Math.floor(($threePhase.timeLeft * 100) / $threePhase.duration));
+
+	// let color = $derived(
+	// 	$threePhase.phase == 'play'
+	// 		? 'oklch(85.2% 0.199 91.936)'
+	// 		: $threePhase.phase == 'commit'
+	// 			? 'red'
+	// 			: 'blue'
+	// );
+	// let background = $derived(
+	// 	$threePhase.phase == 'play'
+	// 		? '#00ff00'
+	// 		: $threePhase.phase == 'commit'
+	// 			? 'oklch(85.2% 0.199 91.936)'
+	// 			: 'red'
+	// );
+
+	let percentage = $derived(100 - Math.floor(($twoPhase.timeLeft * 100) / $twoPhase.duration));
+
+	let color = $derived($twoPhase.phase == 'play' ? 'red' : 'oklch(85.2% 0.199 91.936)');
+	let background = $derived($twoPhase.phase == 'play' ? '#00ff00' : 'red');
 
 	$inspect(percentage);
 </script>
