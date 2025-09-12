@@ -1,7 +1,11 @@
 import { get, writable, type Readable } from 'svelte/store';
 import { createAutoSubmitter } from '$lib/onchain/auto-submit';
 import { epochInfo } from '$lib/time';
-import { signer, type OptionalSigner, type Signer } from '$lib/connection';
+import { connection, signer, type OptionalSigner, type Signer } from '$lib/connection';
+import { writes } from '$lib/onchain/writes';
+import { keccak256 } from 'viem';
+import contracts from '$lib/contracts';
+import { privateKeyToAccount } from 'viem/accounts';
 
 export type LocalAction = { type: 'move'; x: number; y: number };
 export type LocalState =
@@ -12,7 +16,7 @@ export type LocalState =
 				actions: LocalAction[];
 				submission?: {
 					commit: {
-						secret: string;
+						secret: `0x${string}`;
 						epoch: number;
 						txHash: string;
 					};
@@ -139,28 +143,33 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			console.log(`commiting for epoch ${epoch}...`);
 
-			// TODO
-			// const secret = '0x0000000000000000000000000000000000000000000000000000000000000001';
+			try {
+				commiting = true;
+				const account = privateKeyToAccount($state.signer.privateKey);
+				const secretSig = await account.signMessage({
+					message: `Commit:${contracts.chainId}:${contracts.contracts.Game.address}:${epoch}`
+				});
+				const secret = keccak256(secretSig);
+				const { transactionID, wait } = await writes.commit_actions(
+					BigInt($state.avatar.avatarID),
+					secret,
+					$state.avatar.actions
+				);
+				commiting = false;
+				$state.avatar.submission = {
+					commit: {
+						epoch,
+						secret,
+						txHash: transactionID
+					}
+				};
+				set($state);
 
-			// TODO
-			// try {
-			// 	commiting = true;
-			// 	const { transactionID, wait } = await writes.commit_actions(secret, $state.actions);
-			// 	commiting = false;
-			// 	$state.submission = {
-			// 		commit: {
-			// 			epoch,
-			// 			secret,
-			// 			txHash: transactionID
-			// 		}
-			// 	};
-			// 	set($state);
-
-			// 	await wait();
-			// } catch (err) {
-			// 	console.error(err);
-			// 	commiting = false;
-			// }
+				await wait();
+			} catch (err) {
+				console.error(err);
+				commiting = false;
+			}
 		},
 
 		async reveal() {
@@ -196,24 +205,23 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			try {
 				revealing = true;
-				// TODO
-				// const { transactionID, wait } = await writes.reveal_actions(
-				// 	wallet.address.toAddress(),
-				// 	commitment.secret,
-				// 	$state.actions
-				// );
+				const { transactionID, wait } = await writes.reveal_actions(
+					BigInt($state.avatar.avatarID),
+					commitment.secret,
+					$state.avatar.actions
+				);
 				revealing = false;
 
-				// $state.submission = {
-				// 	commit: commitment,
-				// 	reveal: {
-				// 		epoch,
-				// 		txHash: transactionID
-				// 	}
-				// };
-				// set($state);
+				$state.avatar.submission = {
+					commit: commitment,
+					reveal: {
+						epoch,
+						txHash: transactionID
+					}
+				};
+				set($state);
 
-				// await wait();
+				await wait();
 			} catch (err) {
 				console.error(err);
 				revealing = false;

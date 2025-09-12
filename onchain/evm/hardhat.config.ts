@@ -37,6 +37,8 @@ const config: HardhatUserConfig = {
 			hardhat: {
 				type: 'edr-simulated',
 				chainType: 'l1',
+				allowBlocksWithSameTimestamp: true,
+				gasPrice: 1n,
 			},
 		}),
 	),

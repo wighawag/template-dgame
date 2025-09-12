@@ -82,6 +82,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				displayObject.y = 10 * entity.position.y;
 
 				if (entity.type === 'player') {
+					displayObject.zIndex = 0;
 					if (entity.epoch > epoch) {
 						displayObject.alpha = 0.2;
 					} else {
@@ -94,6 +95,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 					}
 
 					if (id == $viewState.avatarID) {
+						displayObject.zIndex = 2;
 						// TODO move that elseewhere and remove the need to delete all and reconstruct
 						// Make sure to destroy all children first to prevent memory leaks
 						pathDisplayObject.removeChildren();
