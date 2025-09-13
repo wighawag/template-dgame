@@ -4,7 +4,7 @@
   "devDependencies": {
     "ldenv": "^0.3.10",
     "set-defaults": "^0.0.5",
-    "wait-on": "^8.0.4"
+    "wait-on": "^8.0.5"
   },
   "scripts": {}
 }
