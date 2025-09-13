@@ -131,22 +131,32 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
     function _reveal(uint256 avatarID, Action[] calldata actions, bytes32 secret) internal {
         (uint64 epoch, bool commiting) = _epoch();
+
+        console.log("checking phase...");
         if (commiting) {
             revert InCommitmentPhase();
         }
         Commitment storage commitment = _commitments[avatarID];
 
+        console.log("checking commitment...");
         if (commitment.epoch == 0) {
             revert NothingToReveal();
         }
+
+        console.log("checking epoch...");
         if (commitment.epoch != epoch) {
             revert InvalidEpoch();
         }
 
+        console.log("checking hash...");
         bytes24 hashRevealed = commitment.hash;
         _checkHash(hashRevealed, actions, secret);
 
+        console.log("resolving actions...");
+
         uint64 newPosition = _resolveActions(avatarID, epoch, actions);
+
+        console.log("...done");
 
         emit CommitmentRevealed(avatarID, epoch, PositionUtils.getZone(newPosition), hashRevealed, actions);
 

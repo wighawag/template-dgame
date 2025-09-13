@@ -1,4 +1,4 @@
-import { epochInfo, time } from '$lib/time';
+import { epochInfo, time, timeConfig } from '$lib/time';
 import { localState } from '$lib/private/localState';
 
 export function createAutoSubmitter() {
@@ -18,14 +18,15 @@ export function createAutoSubmitter() {
 
 			const $epochInfo = epochInfo.fromTime($time.value);
 			if ($epochInfo.isCommitPhase) {
-				if ($epochInfo.timeLeftForCommitEnd < 3) {
+				if ($epochInfo.timeLeftForCommitEnd < timeConfig.COMMIT_TIME_ALLOWANCE) {
 					if (
 						!localData.avatar.submission ||
 						localData.avatar.submission.commit.epoch < $epochInfo.currentEpoch
 					) {
 						localState.commit();
 					} else {
-						// already submiited
+						// already submitted
+						console.log(`${localData.avatar.submission.commit.epoch}, ${$epochInfo.currentEpoch}`);
 					}
 				} else {
 					// still time for player to setup its move

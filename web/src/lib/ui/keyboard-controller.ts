@@ -26,6 +26,10 @@ export function createKeyboardController(eventEmitter: EventEnitter): KeyboardCo
 		eventEmitter.emit('action');
 	}
 
+	function onBackspace() {
+		eventEmitter.emit('backspace');
+	}
+
 	function keydownHandler(event: KeyboardEvent) {
 		const $epochInfo = epochInfo.now();
 
@@ -68,7 +72,13 @@ export function createKeyboardController(eventEmitter: EventEnitter): KeyboardCo
 			case ' ':
 				onSpace();
 				break;
+
+			case 'Backspace':
+				onBackspace();
+				break;
 		}
+
+		// console.log(event);
 	}
 
 	// The controller object to be returned

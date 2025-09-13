@@ -172,6 +172,26 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 		},
 
+		rewind(epoch: number) {
+			if (!$state.signer) {
+				throw new Error(`no signer`);
+			}
+
+			if (!$state.avatar) {
+				throw new Error(`no avatar`);
+			}
+
+			if (epoch != $state.avatar.epoch) {
+				$state.avatar.actions = [];
+				$state.avatar.epoch = epoch;
+			}
+
+			if ($state.avatar.actions.length > 0) {
+				$state.avatar.actions.pop();
+			}
+			set($state);
+		},
+
 		async reveal() {
 			if (revealing) {
 				console.log(`already revealing...`);

@@ -48,14 +48,14 @@ importers:
         specifier: ^0.14.6
         version: 0.14.6(rocketh@0.14.6(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5))
       '@rocketh/proxy':
-        specifier: ^0.14.2
-        version: 0.14.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
+        specifier: ^0.14.3
+        version: 0.14.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
       '@rocketh/read-execute':
         specifier: ^0.14.0
         version: 0.14.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
       '@rocketh/router':
-        specifier: ^0.14.1
-        version: 0.14.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
+        specifier: ^0.14.2
+        version: 0.14.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
       '@rocketh/verifier':
         specifier: ^0.14.6
         version: 0.14.6(rocketh@0.14.6(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5))
@@ -2206,14 +2206,14 @@ packages:
     peerDependencies:
       rocketh: 0.14.6
 
-  '@rocketh/proxy@0.14.2':
-    resolution: {integrity: sha512-9F1P4wKjDairBKEAaGn1cD4HOslAG8LAEFHkZ4xTkaLhGlyASGfHCLrWT0PasfSBDgKgLiytlJpvk+7AOYCL9Q==}
+  '@rocketh/proxy@0.14.3':
+    resolution: {integrity: sha512-PqCWGUtfGNqFVamRnj6R1H6X7t8DjUGJTmPxblqn7HVOEiGkuiI2oqq39r1SphWbt2luYj9ScEkfiUW3n4LTJg==}
 
   '@rocketh/read-execute@0.14.0':
     resolution: {integrity: sha512-+QhG2I34kg36FklCVotZdKp5UuNlq+AfnKka75wVJigdAn3+RSheYf9yhofT8tIGa4dv6p4LE5eett2HOmfENQ==}
 
-  '@rocketh/router@0.14.1':
-    resolution: {integrity: sha512-dXdizSWyQl2c+Go2Ppp3IqJyKQG+foAbgXSCjLV3xEw0XRBs1FXvCr0eFiLbLQQg/3gqQaEmhfTMHuGHzkO23A==}
+  '@rocketh/router@0.14.2':
+    resolution: {integrity: sha512-6tdfDtQjrpU99kSaeYivIuzzHsp4Y/5PIF3uD5o8GA29Rq7B3hm9+49jQPjD28JA4/0tqkPay9pM2XGrE/2cgQ==}
 
   '@rocketh/verifier@0.14.6':
     resolution: {integrity: sha512-LUdKvVy91XA7jpGGcNiBfbwXJoxAgEqDm3OHxHgrQMMEKi2d558Aox+jmGcg4tQZ/lpu+yJxm0XsKZCGC+uiQA==}
@@ -5257,6 +5257,9 @@ packages:
   solidity-kit@0.5.7:
     resolution: {integrity: sha512-Y119gmB8JJvNKTOohHpCMPFrb0wgB234pw0MgnfWjys4gby8emr4TKAyl7DeSkMd18DFs9nABEWXZ1ngudA06g==}
 
+  solidity-proxy@0.4.2:
+    resolution: {integrity: sha512-HIU0Vaym6/d1tcJJeT+XCSgp5seqNg/2cIvltDJYu8V1ShRG9+56/YAR44aU/Rba0pjNljw3IusRDxy5amAM2A==}
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -8227,7 +8230,7 @@ snapshots:
       fs-extra: 11.3.1
       rocketh: 0.14.6(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
 
-  '@rocketh/proxy@0.14.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)':
+  '@rocketh/proxy@0.14.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)':
     dependencies:
       '@rocketh/deploy': 0.14.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
       '@rocketh/read-execute': 0.14.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
@@ -8249,11 +8252,12 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/router@0.14.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)':
+  '@rocketh/router@0.14.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)':
     dependencies:
       '@rocketh/deploy': 0.14.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
       ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       named-logs: 0.3.2
+      solidity-proxy: 0.4.2
       viem: 2.37.5(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
     transitivePeerDependencies:
       - bufferutil
@@ -11658,6 +11662,8 @@ snapshots:
       is-fullwidth-code-point: 2.0.0
 
   solidity-kit@0.5.7: {}
+
+  solidity-proxy@0.4.2: {}
 
   source-map-js@1.2.1: {}
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { connection } from '$lib/connection';
 	import { avatars } from '$lib/onchain/avatars';
+	import { epochInfo } from '$lib/time';
 	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
 	import Button from '../generic/Button.svelte';
 	import Spinner from '../generic/Spinner.svelte';
@@ -32,6 +33,7 @@
 			{:else if $avatars.step === 'Loading'}
 				Loading...{/if}</span
 		>
+		<span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span>
 	</div>
 
 	<div class="relative flex h-full items-center space-x-4">

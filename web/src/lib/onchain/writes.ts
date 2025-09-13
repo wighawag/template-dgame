@@ -40,7 +40,7 @@ export class Writes {
 			[$connection.account.address, $connection.account.signer.address]
 		);
 		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
-		const stippend = parseEther('0.0003');
+		const stippend = parseEther('0.003'); // parseEther('0.0003');
 		const totalValue = value + stippend;
 		const subID = generateRandom96BitBigInt();
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;

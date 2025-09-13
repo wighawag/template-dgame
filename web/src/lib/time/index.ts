@@ -23,7 +23,7 @@ export function createTime() {
 		let interval = setInterval(() => {
 			const now = performance.now();
 			const timePassed = now - last_fetch_time;
-			set({ value: last_time + timePassed / 1000, lastSync: now });
+			set({ value: last_time + timePassed / 1000, lastSync: $time.lastSync });
 		}, 1000);
 
 		attemptToUpdateTimeUntilSynced();
@@ -52,10 +52,12 @@ export function createTime() {
 			'latest',
 			false as true // TODO fix eip-1193 Methods
 		]);
+
 		if (blockResponse.success && blockResponse.value) {
 			const lastBlockTime = Number(blockResponse.value.timestamp);
 			const after_fetch = performance.now();
 			const predicted_fetch_time = (before_fetch + after_fetch) / 2;
+			console.log(`syncing from last block: ${lastBlockTime}`);
 			updateTimeFromFetchedTime(lastBlockTime, predicted_fetch_time);
 			return true;
 		}
@@ -145,12 +147,14 @@ export function createLocalComputer(config: {
 	};
 }
 
-const localComputer = createLocalComputer({
-	// TODO get it from Contract Data
+export const timeConfig = {
 	COMMIT_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.commitPhaseDuration),
 	REVEAL_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.revealPhaseDuration),
-	START_TIME: Number(contracts.contracts.Game.linkedData.startTime)
-});
+	START_TIME: Number(contracts.contracts.Game.linkedData.startTime),
+	COMMIT_TIME_ALLOWANCE: Number(contracts.contracts.Game.linkedData.revealPhaseDuration) + 0.1
+};
+
+const localComputer = createLocalComputer(timeConfig);
 
 // export const epochInfo = derived(time, (t) => localComputer.calculateEpochInfo(t.value));
 
@@ -177,7 +181,6 @@ export type ThreePhase = {
 	duration: number;
 };
 
-const COMMIT_TIME_ALLOWANCE = 3.1;
 export const threePhase = derived<Readable<EpochInfo>, ThreePhase>(epochInfo, ($epochInfo) => {
 	let phase: 'play' | 'commit' | 'reveal' = 'reveal';
 	let timeLeft = $epochInfo.timeLeftInPhase;
@@ -185,12 +188,12 @@ export const threePhase = derived<Readable<EpochInfo>, ThreePhase>(epochInfo, ($
 
 	if ($epochInfo.isCommitPhase) {
 		phase = 'play';
-		if ($epochInfo.timeLeftInPhase < COMMIT_TIME_ALLOWANCE) {
+		if ($epochInfo.timeLeftInPhase < timeConfig.COMMIT_TIME_ALLOWANCE) {
 			phase = 'commit';
-			duration = COMMIT_TIME_ALLOWANCE;
+			duration = timeConfig.COMMIT_TIME_ALLOWANCE;
 		} else {
-			duration -= COMMIT_TIME_ALLOWANCE;
-			timeLeft -= COMMIT_TIME_ALLOWANCE;
+			duration -= timeConfig.COMMIT_TIME_ALLOWANCE;
+			timeLeft -= timeConfig.COMMIT_TIME_ALLOWANCE;
 		}
 	}
 	return {
@@ -219,7 +222,7 @@ export const twoPhase = derived<Readable<ThreePhase>, TwoPhase>(threePhase, ($th
 	}
 	if ($threePhase.phase === 'reveal') {
 		phase = 'wait';
-		duration = $threePhase.duration + COMMIT_TIME_ALLOWANCE;
+		duration = $threePhase.duration + timeConfig.COMMIT_TIME_ALLOWANCE;
 	}
 	return {
 		phase,

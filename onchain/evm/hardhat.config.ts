@@ -34,11 +34,14 @@ const config: HardhatUserConfig = {
 		//  configVariable('SECRET_ETH_NODE_URI_<network>')
 		//  configVariable('SECRET_MNEMONIC_<network>')
 		addNetworksFromEnv({
-			hardhat: {
+			default: {
 				type: 'edr-simulated',
 				chainType: 'l1',
 				allowBlocksWithSameTimestamp: true,
 				gasPrice: 1n,
+				mining: {
+					interval: 1000,
+				},
 			},
 		}),
 	),

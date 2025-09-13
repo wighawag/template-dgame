@@ -61,6 +61,12 @@ export function startListening() {
 			// }
 		}
 	});
+
+	eventEmitter.on('backspace', () => {
+		const $epochInfo = epochInfo.now();
+		const { currentEpoch: epoch } = $epochInfo;
+		localState.rewind(epoch);
+	});
 }
 
 export function stopListening() {

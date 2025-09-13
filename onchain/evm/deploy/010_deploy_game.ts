@@ -11,8 +11,8 @@ export default deployScript(
 
 		const config = {
 			startTime: 0n,
-			commitPhaseDuration: 12n,
-			revealPhaseDuration: 3n,
+			commitPhaseDuration: 30n,
+			revealPhaseDuration: 5n,
 			time: zeroAddress,
 			avatars: Avatars.address,
 		};
@@ -30,13 +30,27 @@ export default deployScript(
 			{
 				account: deployer,
 				artifact: (name, params) => {
-					return deployViaRouter<Abi_IGame>(name, params, routes);
+					return deployViaRouter<Abi_IGame>(
+						name,
+						params,
+						routes,
+						// 	{
+						// 	routerContract: {
+						// 		type: 'custom',
+						// 		artifact: artifacts.Router10X60,
+						// 	},
+						// }
+					);
 				},
 				args: [config],
 			},
 			{
 				owner: admin,
 				linkedData: config,
+				// proxyContract: {
+				// 	type: 'custom',
+				// 	artifact: artifacts.ERC173Proxy,
+				// },
 			},
 		);
 	},
