@@ -1,5 +1,5 @@
 import type { EventEnitter } from '$lib/render/eventEmitter';
-import { epochInfo } from '$lib/time';
+import { epochInfo, timeConfig } from '$lib/time';
 
 interface KeyboardController {
 	start: () => void;
@@ -33,7 +33,10 @@ export function createKeyboardController(eventEmitter: EventEnitter): KeyboardCo
 	function keydownHandler(event: KeyboardEvent) {
 		const $epochInfo = epochInfo.now();
 
-		if (!$epochInfo.isCommitPhase || $epochInfo.timeLeftInPhase < 3.1) {
+		if (
+			!$epochInfo.isCommitPhase ||
+			$epochInfo.timeLeftInPhase < timeConfig.COMMIT_TIME_ALLOWANCE - 0.2
+		) {
 			return;
 		}
 		switch (event.key) {
