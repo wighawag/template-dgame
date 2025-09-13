@@ -207,19 +207,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
             // NWSE (North, West, South, East)
             if (action.actionType == ActionType.Move) {
-                if (action.data == 1) {
-                    // North
-                    y -= 1;
-                } else if (action.data == 2) {
-                    // West
-                    x -= 1;
-                } else if (action.data == 3) {
-                    // South
-                    y += 1;
-                } else if (action.data == 4) {
-                    // East
-                    x += 1;
-                }
+                uint64 movePosition = uint64(action.data);
+                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(movePosition);
+                // TODO check valid move
+                x = moveToX;
+                y = moveToY;
             } else if (action.actionType == ActionType.Exit) {
                 // TODO use cell action
                 // for now consider it an Exit
