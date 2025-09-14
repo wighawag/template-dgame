@@ -1,4 +1,4 @@
-import type {Abi_IGame} from '#generated/types/IGame.js';
+import type {Abi_IGame} from '#generated/abis/IGame.js';
 import type {Abi, ExtractAbiEvent, ExtractAbiEventNames} from 'abitype';
 import {Methods, type EIP1193ProviderWithoutEvents} from 'eip-1193';
 import {createCurriedJSONRPC, CurriedRPC} from 'remote-procedure-call';
@@ -111,11 +111,12 @@ export async function getAvatarsFromContract(
 	if (!callResult.success) {
 		throw new Error(callResult.error.message, {cause: callResult.error});
 	}
-	return decodeFunctionResult({
+	const result = decodeFunctionResult({
 		abi: Game.abi,
 		functionName: 'getAvatarsInMultipleZones',
 		data: callResult.value,
 	});
+	return result;
 }
 
 export function createReader(
