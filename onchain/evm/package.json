@@ -74,8 +74,6 @@
 		"test:watch": "wait-on ./generated && as-soon -w generated -w test hardhat --network test test --no-compile",
 		"export": "ldenv rocketh-export -n @@MODE @@",
 		"export:ts": "ldenv rocketh-export -n @@MODE --ts @@",
-		"export:index": "ldenv rocketh-export -n @@MODE --js deployments/@@MODE@:/index.js @@",
-		"export:index:watch": "ldenv as-soon -w deployments/@@MODE pnpm export:index @@MODE @@",
 		"format:check": "prettier --check .",
 		"format": "prettier --write .",
 		"export-script-data": "ldenv rocketh-export -n @@MODE --ts ./scripts/data/contracts.ts @@",
