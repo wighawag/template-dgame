@@ -14,6 +14,9 @@ const config: HardhatUserConfig = {
 		profiles: {
 			default: {
 				version: '0.8.28',
+				settings: {
+					evmVersion: 'prague',
+				},
 			},
 			production: {
 				version: '0.8.28',
@@ -22,6 +25,7 @@ const config: HardhatUserConfig = {
 						enabled: true,
 						runs: 999999,
 					},
+					evmVersion: 'prague',
 				},
 			},
 		},
