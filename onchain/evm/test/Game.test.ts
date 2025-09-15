@@ -40,7 +40,7 @@ describe('Game', function () {
 			functionName: 'purchase',
 			args: [
 				Game.address,
-				0n,
+				subID,
 				encodeAbiParameters([{type: 'address'}, {type: 'address'}], [unnamedAccounts[0], unnamedAccounts[0]]),
 				zeroAddress,
 				0n,
