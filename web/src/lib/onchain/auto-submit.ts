@@ -26,7 +26,7 @@ export function createAutoSubmitter() {
 						localState.commit();
 					} else {
 						// already submitted
-						console.log(`${localData.avatar.submission.commit.epoch}, ${$epochInfo.currentEpoch}`);
+						// console.log(`${localData.avatar.submission.commit.epoch}, ${$epochInfo.currentEpoch}`);
 					}
 				} else {
 					// still time for player to setup its move

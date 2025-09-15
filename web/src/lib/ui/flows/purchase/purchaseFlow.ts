@@ -61,7 +61,9 @@ function createPurchaseFlow() {
 	async function purchase() {
 		try {
 			console.log(`purchasing...`);
-			const { wait, avatarID } = await writes.purchaseViaFaucet();
+			set({ step: 'ConfirmTransaction' });
+			const { wait, avatarID, transactionID } = await writes.purchaseViaFaucet();
+			set({ step: 'PendingTransaction', pendingTransaction: transactionID });
 			await wait();
 			let $avatars = await avatars.update();
 			const hasAvatar = () =>

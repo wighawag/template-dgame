@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { connection } from '$lib/connection/index.js';
 	import { avatars } from '$lib/onchain/avatars.js';
+	import { localState } from '$lib/private/localState.js';
 	import Button from '$lib/ui/generic/Button.svelte';
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import { enterFlow } from './enterFlow.js';
@@ -46,7 +47,7 @@
 	>
 		<span>To play <Button onclick={() => connection.connect()}>sign-in</Button></span>
 	</div>
-{:else if $avatars.step == 'Loaded' && $avatars.avatarsInGame.length == 0}
+{:else if $avatars.step == 'Loaded' && $avatars.avatarsInGame.length == 0 && !($localState.signer && $localState.avatar)}
 	<div
 		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-yellow-400 px-4 text-black shadow-md"
 	>
