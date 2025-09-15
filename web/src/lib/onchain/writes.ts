@@ -9,9 +9,22 @@ import { encodeAbiParameters, keccak256, parseEther, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
 
+function actionTypeNameToEnum(actionType: string): number {
+	switch (actionType) {
+		case 'enter':
+			return 0;
+		case 'move':
+			return 1;
+		case 'exit':
+			return 2;
+		default:
+			throw new Error(`unknown action type: ${actionType}`);
+	}
+}
+
 function fromLocalActionToContractValue(action: LocalAction) {
 	return {
-		actionType: action.type === 'move' ? 0 : 1, // TODO 1
+		actionType: actionTypeNameToEnum(action.type),
 		data: xyToBigIntID(action.x, action.y)
 	};
 }
@@ -40,7 +53,7 @@ export class Writes {
 			[$connection.account.address, $connection.account.signer.address]
 		);
 		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
-		const stippend = parseEther('0.003'); // parseEther('0.0003');
+		const stippend = parseEther('0.01'); // parseEther('0.0003');
 		const totalValue = value + stippend;
 		const subID = generateRandom96BitBigInt();
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
@@ -62,34 +75,6 @@ export class Writes {
 			avatarID,
 			transactionID: hash,
 			wait: () => publicClient.waitForTransactionReceipt({ hash })
-		};
-	}
-
-	async enter(avatarID: bigint) {
-		const $connection = await connection.ensureConnected();
-		const nativeTokenBalanceResponse = await connection.provider.call('eth_getBalance')([
-			$connection.account.signer.address
-		]);
-		if (!nativeTokenBalanceResponse.success) {
-			throw new Error(`cannot get native token balance`);
-		}
-		if (BigInt(nativeTokenBalanceResponse.value) < parseEther('0.0001')) {
-			throw new Error(`cannot enter with too low balance`);
-		}
-		const location = 0n; // TODO
-		const signerAccount = privateKeyToAccount($connection.account.signer.privateKey);
-		// TODO pre-enter :localState.enter(avatarID, location);
-		const transactionID = await walletClient.writeContract({
-			account: signerAccount,
-			...contracts.contracts.Game,
-			functionName: 'enter',
-			args: [avatarID, location]
-		});
-		const { currentEpoch: epoch } = epochInfo.now();
-		localState.enter(epoch, avatarID, location, transactionID);
-		return {
-			transactionID,
-			wait: () => publicClient.waitForTransactionReceipt({ hash: transactionID })
 		};
 	}
 

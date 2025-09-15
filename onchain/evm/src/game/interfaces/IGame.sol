@@ -42,11 +42,6 @@ interface IGameGetters is UsingGameTypes {
     function getConfig() external view returns (Config memory config);
 }
 
-interface IGameEnter is UsingGameTypes {
-    function enter(uint256 avatarID, uint64 position) external;
-    // exit is handled by commit/reveal
-}
-
 interface IGameDeposit is UsingGameTypes {
     function deposit(uint256 avatarID, address controller, address payable payee) external payable;
     function withdraw(uint256 avatarID, address to) external;
@@ -57,4 +52,4 @@ interface IGameDeposit is UsingGameTypes {
     ) external view returns (AvatarStatus[] memory avatarIDs, bool more);
 }
 
-interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameEnter, IGameDeposit {}
+interface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameDeposit {}

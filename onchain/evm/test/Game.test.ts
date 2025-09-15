@@ -31,11 +31,9 @@ describe('Game', function () {
 		const timestamp = await getTimestamp();
 		const {epoch: initialEpoch, commiting: initialCommiting} = getEpoch(timestamp);
 
-		await advanceToEpoch(initialEpoch + 2);
-
 		const subID = 0n;
 		const avatarID = (BigInt(unnamedAccounts[0]) << 96n) + subID;
-		const txHash = await env.execute(AvatarsSale, {
+		await env.execute(AvatarsSale, {
 			account: env.unnamedAccounts[0],
 			functionName: 'purchase',
 			args: [
@@ -49,46 +47,26 @@ describe('Game', function () {
 			value: BigInt(AvatarsSale.linkedData!.paymentAmount as string),
 		});
 
-		const receipt = await (await viem.getPublicClient()).waitForTransactionReceipt({hash: txHash});
-		// console.log(receipt);
-		// for (const log of receipt.logs) {
-		// 	let event;
-		// 	if (log.address === Game.address) {
-		// 		event = decodeEventLog({
-		// 			abi: Game.abi,
-		// 			topics: log.topics,
-		// 			data: log.data,
-		// 		});
-		// 	} else if (log.address === Avatars.address) {
-		// 		event = decodeEventLog({
-		// 			abi: Avatars.abi,
-		// 			topics: log.topics,
-		// 			data: log.data,
-		// 		});
-		// 	} else if (log.address === AvatarsSale.address) {
-		// 		event = decodeEventLog({
-		// 			abi: AvatarsSale.abi,
-		// 			topics: log.topics,
-		// 			data: log.data,
-		// 		});
-		// 	}
-
-		// 	if (event) {
-		// 		console.log(event);
-		// 	}
-		// }
-
+		await advanceToEpoch(initialEpoch + 2);
 		const entrancePosition = 0n;
+		const hash = '0x000000000000000000000000000000000000000000000000';
+		const secret = '0x0000000000000000000000000000000000000000000000000000000000000000';
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
-			functionName: 'enter',
-			args: [avatarID, entrancePosition],
+			functionName: 'commit',
+			args: [avatarID, hash, zeroAddress],
+		});
+
+		await advanceToRevealPhase(initialEpoch + 2);
+
+		await env.execute(Game, {
+			account: env.unnamedAccounts[0],
+			functionName: 'reveal',
+			args: [avatarID, [{actionType: 0, data: entrancePosition}], secret, zeroAddress],
 		});
 
 		await advanceToEpoch(initialEpoch + 3);
 
-		const hash = '0x000000000000000000000000000000000000000000000000';
-		const secret = '0x0000000000000000000000000000000000000000000000000000000000000000';
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
 			functionName: 'commit',
@@ -103,8 +81,8 @@ describe('Game', function () {
 			args: [
 				avatarID,
 				[
-					{actionType: 0, data: 4n},
-					{actionType: 0, data: 4n},
+					{actionType: 1, data: 4n},
+					{actionType: 1, data: 4n},
 				],
 				secret,
 				zeroAddress,
@@ -121,6 +99,7 @@ describe('Game', function () {
 			args: [[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 0n], 0n, 100n],
 		});
 
+		expect(after_avatars[0][0].position).toEqual(4n);
 		// console.log(after_avatars);
 	});
 });

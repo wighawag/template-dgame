@@ -6,8 +6,9 @@ import { writes } from '$lib/onchain/writes';
 import { keccak256 } from 'viem';
 import contracts from '$lib/contracts';
 import { privateKeyToAccount } from 'viem/accounts';
+import type { Position } from 'dgame-contracts';
 
-export type LocalAction = { type: 'move'; x: number; y: number };
+export type LocalAction = { type: 'move' | 'exit' | 'enter'; x: number; y: number };
 export type LocalState =
 	| { signer: undefined }
 	| {
@@ -105,18 +106,81 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			$state.avatar.actions.push(action);
 			set($state);
 		},
-
-		enter(epoch: number, avatarID: bigint, location: bigint, hash: `0x${string}`) {
+		enter(avatarID: bigint, epoch: number, position: Position) {
 			if (!$state.signer) {
 				throw new Error(`no signer`);
 			}
+
+			if ($state.avatar) {
+				throw new Error(`got an avatar already`);
+			}
+
+			const actions: LocalAction[] = [{ type: 'enter', x: position.x, y: position.y }];
+
 			$state.avatar = {
-				actions: [],
 				avatarID: avatarID.toString(),
-				epoch: 0 // TODO
+				actions,
+				epoch
 			};
+
 			set($state);
 		},
+
+		// async enter(avatarID: bigint, entrance: Position) {
+		// 	if (!$state.signer) {
+		// 		throw new Error(`no signer`);
+		// 	}
+
+		// 	const $epochInfo = epochInfo.now();
+		// 	const { currentEpoch: epoch } = $epochInfo;
+
+		// 	if ($state.avatar) {
+		// 		throw new Error(`you got already one avatar in`);
+		// 	}
+
+		// 	console.log(`enterring for epoch ${epoch}...`);
+
+		// 	let transactonHash: `0x${string}` | undefined;
+		// 	try {
+		// 		commiting = true;
+		// 		const account = privateKeyToAccount($state.signer.privateKey);
+		// 		const secretSig = await account.signMessage({
+		// 			message: `Commit:${contracts.chainId}:${contracts.contracts.Game.address}:${epoch}`
+		// 		});
+		// 		const secret = keccak256(secretSig);
+		// 		const actions: LocalAction[] = [
+		// 			{
+		// 				type: 'enter',
+		// 				x: entrance.x,
+		// 				y: entrance.y
+		// 			}
+		// 		];
+		// 		const { transactionID, wait } = await writes.commit_actions(avatarID, secret, actions);
+		// 		transactonHash = transactionID;
+		// 		commiting = false;
+		// 		$state.avatar = {
+		// 			actions,
+		// 			avatarID: avatarID.toString(),
+		// 			epoch,
+		// 			submission: {
+		// 				commit: {
+		// 					epoch,
+		// 					secret,
+		// 					txHash: transactionID
+		// 				}
+		// 			}
+		// 		};
+		// 		set($state);
+
+		// 		await wait();
+		// 	} catch (err) {
+		// 		console.error(err);
+		// 		commiting = false;
+		// 	}
+
+		// 	return transactonHash;
+		// },
+
 		async commit() {
 			if (commiting) {
 				console.log(`already commiting...`);

@@ -59,7 +59,7 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
         for (uint256 i = 0; i < actualLimit; i++) {
             uint256 avatarID = _ownedAvatars[owner][startIndex + i];
             Avatar storage avatar = _avatars[avatarID];
-            list[i] = AvatarStatus({avatarID: avatarID, inGame: avatar.startEpoch != 0, position: avatar.position});
+            list[i] = AvatarStatus({avatarID: avatarID, inGame: avatar.inGame, position: avatar.position});
         }
 
         return (list, actualLimit != limit);

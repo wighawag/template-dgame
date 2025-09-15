@@ -28,7 +28,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             revert UsingGameErrors.NotAuthorizedOwner(owner);
         }
 
-        if (_avatars[avatarID].startEpoch != 0) {
+        if (_avatars[avatarID].inGame) {
             revert UsingGameErrors.AvatarStillInGame(avatarID);
         }
 
@@ -51,26 +51,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
 
-    function _enter(address controller, uint256 avatarID, uint64 position) internal {
-        if (_players[avatarID].controller == address(0)) {
-            revert UsingGameErrors.AvatarNotAvailable(avatarID);
-        }
-        // TODO should owner be able to block this ?
-        if (_players[avatarID].controller != controller) {
-            revert UsingGameErrors.NotAuthorizedController(controller);
-        }
-
-        if (_avatars[avatarID].startEpoch != 0) {
-            revert UsingGameErrors.AvatarAlreadyInGame(avatarID);
-        }
-        (uint64 epoch, ) = _epoch();
-        _avatars[avatarID].startEpoch = epoch + 1;
-        _avatars[avatarID].position = position;
-        uint64 zone = PositionUtils.getZone(position);
-        _addToZone(zone, avatarID);
-        emit EnteredTheGame(avatarID, epoch, zone, position);
-    }
-
     function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {
         if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
@@ -80,10 +60,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         if (!commiting) {
             revert InRevealPhase();
-        }
-
-        if (_avatars[avatarID].startEpoch > epoch) {
-            revert AvatarNotReady(avatarID);
+            // we could allow commiting in reveal phase but this act as if commiting next epoch
+            //  TODO would need to make it explicit on external function
+            //  by passing an argument for it
+            // epoch += 1;
         }
 
         Commitment storage commitment = _commitments[avatarID];
@@ -102,10 +82,6 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
     function _cancelCommitment(address controller, uint256 avatarID) internal {
         if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
-        }
-
-        if (_avatars[avatarID].startEpoch == 0) {
-            revert AvatarNotInGame(avatarID);
         }
 
         (uint64 epoch, bool commiting) = _epoch();
@@ -202,11 +178,20 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
         uint64 initialZone = PositionUtils.getZone(x, y);
         bool left = false;
+        bool entering = false;
         for (uint256 i = 0; i < actions.length; i++) {
             Action memory action = actions[i];
 
             // NWSE (North, West, South, East)
-            if (action.actionType == ActionType.Move) {
+            if (action.actionType == ActionType.Enter) {
+                uint64 entryPosition = uint64(action.data);
+                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(entryPosition);
+                // TODO check valid entry
+                x = moveToX;
+                y = moveToY;
+                entering = true;
+                break; // we ignore any more action
+            } else if (action.actionType == ActionType.Move) {
                 uint64 movePosition = uint64(action.data);
                 (int32 moveToX, int32 moveToY) = PositionUtils.toXY(movePosition);
                 // TODO check valid move
@@ -222,10 +207,20 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         newPosition = PositionUtils.fromXY(x, y);
         if (left) {
-            _avatars[avatarID].startEpoch = 0;
+            // Note if we can die, does exiting should still be conditional to not dying
+            //  extra data needed ?
+            _avatars[avatarID].inGame = false;
             _avatars[avatarID].position = 0;
             _removeFromZone(initialZone, avatarID);
             emit LeftTheGame(avatarID, epoch, PositionUtils.getZone(x, y), newPosition);
+        } else if (entering) {
+            // Note if we can die, enterring should not die upon entering
+            //  extra data needed
+            _avatars[avatarID].inGame = true;
+            _avatars[avatarID].position = newPosition;
+            uint64 zone = PositionUtils.getZone(newPosition);
+            _addToZone(zone, avatarID);
+            emit EnteredTheGame(avatarID, epoch, zone, newPosition);
         } else {
             uint64 newZone = PositionUtils.getZone(x, y);
             if (initialZone != newZone) {

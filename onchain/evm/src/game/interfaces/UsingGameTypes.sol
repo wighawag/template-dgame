@@ -11,6 +11,7 @@ interface UsingGameTypes {
 
     /// @notice The set of possible action
     enum ActionType {
+        Enter,
         Move,
         Exit
     }
@@ -52,7 +53,7 @@ interface UsingGameTypes {
     }
 
     struct Avatar {
-        uint64 startEpoch;
+        bool inGame;
         uint64 position;
         uint64 zoneIndex;
     }

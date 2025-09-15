@@ -43,6 +43,10 @@ const config: HardhatUserConfig = {
 					interval: 1000,
 				},
 			},
+			test: {
+				type: 'edr-simulated',
+				chainType: 'l1',
+			},
 		}),
 	),
 	paths: {

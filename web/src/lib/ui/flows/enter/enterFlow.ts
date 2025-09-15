@@ -5,6 +5,8 @@ import type { Connection } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
 import { onchainState } from '$lib/view';
+import { localState } from '$lib/private/localState';
+import { epochInfo, twoPhase } from '$lib/time';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
@@ -97,22 +99,14 @@ function createEnterFlow() {
 		if ($data.step != 'Ready') {
 			throw new Error(`need to be ready to enter`);
 		}
-		const { wait, transactionID } = await writes.enter(avatarID);
-		set({
-			step: 'Ready',
-			avatars: $data.avatars,
-			pendingTransaction: transactionID
-		});
-		await wait();
-		let $avatars = await avatars.update();
-		// TODO need to trigger specific coordinate on top of current camera
-		let $onchainState = await onchainState.update();
-		// TODO check for avatar
-		const hasAvatar = () =>
-			$avatars.step === 'Loaded' && $avatars.avatarsInGame.find((v) => v == avatarID);
-		while (!hasAvatar()) {
-			$avatars = await avatars.update();
+		const $epochInfo = get(epochInfo);
+		const $twoPhase = get(twoPhase);
+		let epoch = $epochInfo.currentEpoch;
+
+		if ($twoPhase.phase !== 'play') {
+			epoch += 1;
 		}
+		localState.enter(avatarID, epoch, { x: 0, y: 0 });
 		set({
 			step: 'Idle'
 		});

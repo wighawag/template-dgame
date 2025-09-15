@@ -50,6 +50,17 @@ export const viewState = derived(
 					avatarID,
 					entities
 				};
+			} else {
+				if ($localState.avatar.actions[0].type === 'enter') {
+					entities[avatarID] = {
+						type: 'player',
+						epoch: $localState.avatar.epoch,
+						id: avatarID,
+						life: 1,
+						position: $localState.avatar.actions[0],
+						path: []
+					};
+				}
 			}
 		}
 
