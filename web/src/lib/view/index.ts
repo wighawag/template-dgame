@@ -25,7 +25,16 @@ export const viewState = derived(
 		let avatarID: string | undefined;
 		if ($localState.signer && $localState.avatar) {
 			avatarID = $localState.avatar.avatarID;
-			const avatarEntity = $onchainState.entities[avatarID] as PlayerEntity | undefined;
+			let avatarEntity = $onchainState.entities[avatarID] as PlayerEntity | undefined;
+			if ($localState.avatar.actions[0]?.type === 'enter') {
+				avatarEntity = {
+					type: 'player',
+					epoch: $localState.avatar.epoch,
+					id: avatarID,
+					life: 1,
+					position: $localState.avatar.actions[0]
+				};
+			}
 
 			if (avatarEntity) {
 				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
@@ -45,22 +54,6 @@ export const viewState = derived(
 					position: current_position,
 					path
 				};
-
-				return {
-					avatarID,
-					entities
-				};
-			} else {
-				if ($localState.avatar.actions[0].type === 'enter') {
-					entities[avatarID] = {
-						type: 'player',
-						epoch: $localState.avatar.epoch,
-						id: avatarID,
-						life: 1,
-						position: $localState.avatar.actions[0],
-						path: []
-					};
-				}
 			}
 		}
 

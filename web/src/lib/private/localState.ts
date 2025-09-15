@@ -103,6 +103,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				$state.avatar.epoch = epoch;
 			}
 
+			if ($state.avatar.actions[0]?.type === 'enter') {
+				return;
+			}
+
 			$state.avatar.actions.push(action);
 			set($state);
 		},
@@ -251,7 +255,9 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			if ($state.avatar.actions.length > 0) {
-				$state.avatar.actions.pop();
+				if ($state.avatar.actions[$state.avatar.actions.length - 1].type !== 'enter') {
+					$state.avatar.actions.pop();
+				}
 			}
 			set($state);
 		},
