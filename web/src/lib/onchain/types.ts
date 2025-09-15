@@ -1,15 +1,17 @@
+import type { Position } from 'dgame-contracts';
 import type { Readable } from 'svelte/store';
 
 export type BaseEntity = { id: string; position: { x: number; y: number } };
 
-export type PlayerEntity = BaseEntity & {
-	type: 'player';
+export type AvatarEntity = BaseEntity & {
+	type: 'avatar';
 	life: number;
-	epoch: number;
+	path: Position[];
 };
-export type Entity = PlayerEntity;
+export type Entity = AvatarEntity;
 export type OnchainState = {
 	entities: { [id: string]: Entity };
+	epoch: number;
 };
 
 export type OnChainLayer = Readable<OnchainState>;

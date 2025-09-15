@@ -27,7 +27,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 
 			function onEntityAdded(id: string, entity: ViewEntity): Container {
 				const displayObject = new Container();
-				if (entity.type == 'player') {
+				if (entity.type == 'avatar') {
 					const sprite = new LoadingSprite(Blockie.getURI(entity.id));
 					// const graphics = new Graphics().rect(0, 0, 10, 10).fill(0xff0000);
 					// displayObject.addChild(graphics);
@@ -82,13 +82,9 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				displayObject.x = 10 * entity.position.x;
 				displayObject.y = 10 * entity.position.y;
 
-				if (entity.type === 'player') {
+				if (entity.type === 'avatar') {
 					displayObject.zIndex = 0;
-					if (entity.epoch > epoch) {
-						displayObject.alpha = 0.2;
-					} else {
-						displayObject.alpha = 1;
-					}
+
 					if (entity.life == 0) {
 						displayObject.children[3].visible = true;
 					} else {
@@ -117,13 +113,13 @@ export function createRenderer(viewState: Readable<ViewState>) {
 							}
 						}
 
-						if (entity.epoch > time.now() - 0.9) {
-							displayObject.children[1].visible = false;
-							displayObject.children[2].visible = true;
-						} else {
-							displayObject.children[1].visible = true;
-							displayObject.children[2].visible = false;
-						}
+						// if (entity.epoch > time.now() - 0.9) {
+						// 	displayObject.children[1].visible = false;
+						// 	displayObject.children[2].visible = true;
+						// } else {
+						displayObject.children[1].visible = true;
+						displayObject.children[2].visible = false;
+						// }
 					}
 				}
 			}

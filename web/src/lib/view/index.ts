@@ -1,5 +1,5 @@
 import { createDirectReadStore } from '$lib/onchain/direct-read';
-import type { PlayerEntity } from '$lib/onchain/types';
+import type { AvatarEntity } from '$lib/onchain/types';
 import { camera } from '$lib/render/camera';
 import { derived, get, writable } from 'svelte/store';
 import { localState } from '../private/localState';
@@ -7,10 +7,10 @@ import { epochInfo, time } from '$lib/time';
 
 export type Position = { x: number; y: number };
 
-export type PlayerViewEntity = PlayerEntity & {
+export type AvatarViewEntity = AvatarEntity & {
 	path?: Position[];
 };
-export type ViewEntity = PlayerViewEntity;
+export type ViewEntity = AvatarViewEntity;
 export type ViewState = {
 	avatarID?: string;
 	entities: { [id: string]: ViewEntity };
@@ -25,14 +25,14 @@ export const viewState = derived(
 		let avatarID: string | undefined;
 		if ($localState.signer && $localState.avatar) {
 			avatarID = $localState.avatar.avatarID;
-			let avatarEntity = $onchainState.entities[avatarID] as PlayerEntity | undefined;
+			let avatarEntity = $onchainState.entities[avatarID] as AvatarEntity | undefined;
 			if ($localState.avatar.actions[0]?.type === 'enter') {
 				avatarEntity = {
-					type: 'player',
-					epoch: $localState.avatar.epoch,
+					type: 'avatar',
 					id: avatarID,
 					life: 1,
-					position: $localState.avatar.actions[0]
+					position: $localState.avatar.actions[0],
+					path: []
 				};
 			}
 

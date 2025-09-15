@@ -27,13 +27,13 @@ interface IGameGetters is UsingGameTypes {
         uint64 zone,
         uint64 fromIndex,
         uint64 limit
-    ) external view returns (AvatarResolved[] memory avatars, bool more);
+    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);
 
     function getAvatarsInMultipleZones(
         uint64[] calldata zones,
         uint64 fromIndex,
         uint64 limit
-    ) external view returns (AvatarResolved[] memory avatars, bool more);
+    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);
 
     function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory avatar);
 

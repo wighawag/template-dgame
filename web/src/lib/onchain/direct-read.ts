@@ -1,9 +1,13 @@
 import { get, writable, type Readable } from 'svelte/store';
-import type { OnchainState } from './types';
+import type { AvatarEntity, OnchainState } from './types';
 import { epochInfo } from '$lib/time';
-import { bigIntIDToXY, calculateVisibleZones } from 'dgame-contracts';
+import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contracts';
 import { publicClient } from '$lib/connection';
 import contracts from '$lib/contracts';
+import type { Abi, ExtractAbiEvent, ExtractAbiEventNames } from 'abitype';
+import { encodeEventTopics, parseEventLogs } from 'viem';
+
+const Game = contracts.contracts.Game;
 
 type Camera = {
 	x: number;
@@ -14,13 +18,15 @@ type Camera = {
 
 function defaultState() {
 	return {
-		entities: {}
+		entities: {},
+		epoch: 0
 	};
 }
 
 export function createDirectReadStore(camera: Readable<Camera>) {
 	let $state: OnchainState = defaultState();
-	let $camera: Camera = get(camera);
+	let lastCamera: Camera = get(camera);
+	let lastEpoch = get(epochInfo).currentEpoch;
 	let lastZones: bigint[] | undefined;
 
 	const _store = writable<OnchainState>($state, start);
@@ -66,38 +72,68 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 		if (fromCameraUpdate && !hasZonesChanged(lastZones, zones)) {
 			return;
 		}
-		const $epochInfo = epochInfo.now();
 
 		const result = await publicClient.readContract({
-			abi: contracts.contracts.Game.abi,
-			address: contracts.contracts.Game.address,
+			...Game,
 			functionName: 'getAvatarsInMultipleZones',
 			args: [zones, 0n, 100n] // TODO use pagination
 		});
 		if (fromCameraUpdate) {
-			const newZones = calculateVisibleZones($camera);
+			const newZones = calculateVisibleZones(lastCamera);
 			if (hasZonesChanged(zones, newZones)) {
 				// if changed while fetching, we stop right here
 				return;
 			}
 		}
 
+		const epoch = result[2];
+
+		if (Number(epoch) < lastEpoch) {
+			// we consider for refetch
+			lastEpoch = Number(epoch);
+		}
+
+		const events = await publicClient.getContractEvents({
+			...Game,
+			eventName: 'CommitmentRevealed',
+			args: {
+				epoch: epoch - 1n,
+				zone: zones
+			},
+			strict: true
+			// fromBlock: // TODO calculate block number range
+		});
+
+		const avatarEvents: Map<bigint, (typeof events)[0]> = new Map();
+		for (const event of events) {
+			avatarEvents.set(event.args.avatarID, event);
+		}
+
 		const state: OnchainState = defaultState();
+
+		state.epoch = Number(epoch);
 
 		for (const entityFetched of result[0]) {
 			const id = entityFetched.avatarID.toString();
 
+			let path: Position[] = [];
+
+			const event = avatarEvents.get(entityFetched.avatarID);
+			if (event) {
+				path = event.args.actions.filter((v) => v.actionType == 1).map((v) => bigIntIDToXY(v.data));
+			}
+
 			const { x, y } = bigIntIDToXY(entityFetched.position);
-			const entity = {
+			const entity: AvatarEntity = {
 				id,
-				type: 'player',
+				type: 'avatar',
 				position: {
 					x: Number(x),
 					y: Number(y)
 				},
-				life: 1,
-				epoch: 1 // TODO
-			} as const;
+				life: 1, // TODO ?
+				path
+			};
 			state.entities[id] = entity;
 		}
 
@@ -114,7 +150,7 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 
 		let retryIn = 15000;
 		try {
-			await fetchState($camera, fromCameraUpdate || false);
+			await fetchState(lastCamera, fromCameraUpdate || false);
 		} catch (err) {
 			console.error(`failed to fetch state`, err);
 			retryIn = 1000;
@@ -126,13 +162,21 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 	}
 
 	let unsubscribeFromCamera: (() => void) | undefined;
+	let unsubscribeFromEpochInfo: (() => void) | undefined;
 
 	function start() {
-		unsubscribeFromCamera = camera.subscribe(async (camera) => {
-			const cameraChanged = hasCameraChanged($camera, camera);
+		unsubscribeFromCamera = camera.subscribe((camera) => {
+			const cameraChanged = hasCameraChanged(lastCamera, camera);
 			if (cameraChanged) {
-				$camera = { ...camera };
+				lastCamera = { ...camera };
 				fetchContinuously(true);
+			}
+		});
+
+		unsubscribeFromEpochInfo = epochInfo.subscribe((epochInfo) => {
+			if (epochInfo.currentEpoch != lastEpoch || $state.epoch != epochInfo.currentEpoch) {
+				lastEpoch = epochInfo.currentEpoch;
+				fetchContinuously(false);
 			}
 		});
 
@@ -148,14 +192,19 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 
 	function stop() {
 		if (unsubscribeFromCamera) {
-			// TODO set as IDle ?
-			set(defaultState());
 			unsubscribeFromCamera();
 			unsubscribeFromCamera = undefined;
+		}
+
+		if (unsubscribeFromEpochInfo) {
+			unsubscribeFromEpochInfo();
+			unsubscribeFromEpochInfo = undefined;
 		}
 		if (timeout) {
 			clearTimeout(timeout);
 		}
+		// TODO set as IDle ?
+		set(defaultState());
 	}
 
 	return {

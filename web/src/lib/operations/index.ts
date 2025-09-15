@@ -12,16 +12,16 @@ function addMove(dx: number, dy: number) {
 
 	const $localState = get(localState);
 	const $viewState = get(viewState);
-	const playerEntity =
+	const avatarEntity =
 		$localState.signer && $localState.avatar?.avatarID
 			? $viewState.entities[$localState.avatar.avatarID]
 			: undefined;
-	if ($localState.signer && $localState.avatar && playerEntity) {
+	if ($localState.signer && $localState.avatar && avatarEntity) {
 		let currentPosition: Position;
 		if ($localState.avatar.epoch === epoch && $localState.avatar.actions.length > 0) {
 			currentPosition = $localState.avatar.actions[$localState.avatar.actions.length - 1];
 		} else {
-			currentPosition = playerEntity.position;
+			currentPosition = avatarEntity.position;
 		}
 
 		localState.addAction(epoch, {

@@ -11,7 +11,7 @@ contract GameGetters is IGameGetters, UsingGameInternal {
         uint64 zone,
         uint64 fromIndex,
         uint64 limit
-    ) external view returns (AvatarResolved[] memory avatars, bool more) {
+    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
         return _getAvatarsInZone(zone, fromIndex, limit);
     }
 
@@ -19,7 +19,7 @@ contract GameGetters is IGameGetters, UsingGameInternal {
         uint64[] calldata zones,
         uint64 fromIndex,
         uint64 limit
-    ) external view returns (AvatarResolved[] memory avatars, bool more) {
+    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
         return _getAvatarsInMultipleZones(zones, fromIndex, limit);
     }
 

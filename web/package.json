@@ -7,6 +7,7 @@
 		"@etherplay/connect": "^0.0.29",
 		"@lucide/svelte": "^0.544.0",
 		"@pixi/devtools": "^2.0.1",
+		"abitype": "^1.1.0",
 		"bits-ui": "^2.9.8",
 		"clsx": "^2.1.1",
 		"dgame-contracts": "workspace:*",

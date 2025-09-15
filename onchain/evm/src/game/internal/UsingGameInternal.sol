@@ -252,7 +252,8 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64 zone,
         uint64 fromIndex,
         uint64 limit
-    ) internal view returns (AvatarResolved[] memory avatars, bool more) {
+    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
+        (epoch, ) = _epoch();
         uint256 numAvatarsInZone = _zones[zone].avatars.length;
         if (fromIndex < numAvatarsInZone) {
             if (fromIndex + limit > numAvatarsInZone) {
@@ -272,7 +273,8 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64[] calldata zones,
         uint64 fromIndex,
         uint64 limit
-    ) internal view returns (AvatarResolved[] memory avatars, bool more) {
+    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
+        (epoch, ) = _epoch();
         // Create a struct to hold our working variables
         AvatarFetchState memory state = _initAvatarFetchState(zones, fromIndex);
 
@@ -296,7 +298,7 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             more = false;
         }
 
-        return (avatars, more);
+        return (avatars, more, epoch);
     }
 
     // Helper struct to reduce stack variables
