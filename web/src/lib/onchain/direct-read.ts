@@ -93,13 +93,6 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
-		// const allEvents = await publicClient.getContractEvents({
-		// 	...Game,
-		// 	eventName: 'CommitmentRevealed',
-		// 	fromBlock: 0n,
-		// 	toBlock: 'latest'
-		// });
-
 		const events = await publicClient.getContractEvents({
 			...Game,
 			eventName: 'CommitmentRevealed',

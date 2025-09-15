@@ -20,6 +20,7 @@ export type LocalState =
 						secret: `0x${string}`;
 						epoch: number;
 						txHash: string;
+						actions: LocalAction[];
 					};
 					reveal?: {
 						epoch: number;
@@ -99,8 +100,15 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			if (epoch != $state.avatar.epoch) {
-				$state.avatar.actions = [];
-				$state.avatar.epoch = epoch;
+				$state.avatar = {
+					avatarID: $state.avatar.avatarID,
+					actions: [],
+					epoch
+				};
+			}
+
+			if ($state.avatar.submission) {
+				throw new Error(`submission in progress`);
 			}
 
 			if ($state.avatar.actions[0]?.type === 'enter') {
@@ -212,6 +220,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			console.log(`commiting for epoch ${epoch}...`);
 
 			try {
+				const actions = [...$state.avatar.actions];
 				commiting = true;
 				const account = privateKeyToAccount($state.signer.privateKey);
 				const secretSig = await account.signMessage({
@@ -221,14 +230,15 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				const { transactionID, wait } = await writes.commit_actions(
 					BigInt($state.avatar.avatarID),
 					secret,
-					$state.avatar.actions
+					actions
 				);
 				commiting = false;
 				$state.avatar.submission = {
 					commit: {
 						epoch,
 						secret,
-						txHash: transactionID
+						txHash: transactionID,
+						actions
 					}
 				};
 				set($state);
@@ -298,7 +308,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				const { transactionID, wait } = await writes.reveal_actions(
 					BigInt($state.avatar.avatarID),
 					commitment.secret,
-					$state.avatar.actions
+					commitment.actions
 				);
 				revealing = false;
 
