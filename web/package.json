@@ -15,7 +15,7 @@
 		"pixi.js": "^8.13.2",
 		"tseep": "^1.3.1",
 		"tw-animate-css": "^1.3.8",
-		"viem": "^2.37.5"
+		"viem": "^2.37.6"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.9",

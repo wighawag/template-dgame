@@ -1,4 +1,4 @@
-import {Abi_IGame} from '#generated/types/IGame.js';
+import {Abi_IGame} from '#generated/abis/IGame.js';
 import hre from 'hardhat';
 import {loadEnvironmentFromHardhat} from '#rocketh';
 import {zeroAddress} from 'viem';
