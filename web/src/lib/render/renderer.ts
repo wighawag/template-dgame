@@ -4,6 +4,7 @@ import { Container, Graphics } from 'pixi.js';
 import type { Readable } from 'svelte/store';
 import { LoadingSprite } from './LoadingSprite';
 import { epochInfo, time } from '$lib/time';
+import gsap from 'gsap';
 
 export function createRenderer(viewState: Readable<ViewState>) {
 	let displayObjects: { [id: string]: Container } = {};
@@ -78,10 +79,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 			}
 
 			function updateEntity(id: string, displayObject: Container, entity: ViewEntity) {
-				// TODO we could tween
-				displayObject.x = 10 * entity.position.x;
-				displayObject.y = 10 * entity.position.y;
-
 				if (entity.type === 'avatar') {
 					displayObject.zIndex = 0;
 
@@ -120,6 +117,24 @@ export function createRenderer(viewState: Readable<ViewState>) {
 						displayObject.children[1].visible = true;
 						displayObject.children[2].visible = false;
 						// }
+
+						displayObject.x = 10 * entity.position.x;
+						displayObject.y = 10 * entity.position.y;
+					} else {
+						const destination = {
+							x: 10 * entity.position.x,
+							y: 10 * entity.position.y
+						};
+						if (entity.path.length > 0) {
+							console.log(entity.path);
+							// if (10 * entity.position.x != displayObject.)
+							//old way (without plugin):
+							gsap.to(displayObject.position, { x: destination.x, y: destination.y, duration: 1 });
+							// gsap.to(displayObject.position, { x: (30 * Math.PI) / 180, duration: 1 });
+						} else {
+							displayObject.x = destination.x;
+							displayObject.y = destination.y;
+						}
 					}
 				}
 			}

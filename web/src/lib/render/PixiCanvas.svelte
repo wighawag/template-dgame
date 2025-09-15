@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Viewport } from 'pixi-viewport';
-	import { Application, FederatedPointerEvent, Graphics } from 'pixi.js';
+	import { Application, Container, FederatedPointerEvent, Graphics, Sprite } from 'pixi.js';
 	import { initDevtools } from '@pixi/devtools';
 	import { onMount } from 'svelte';
 	import { type Writable } from 'svelte/store';
@@ -9,6 +9,18 @@
 	import { createKeyboardController } from '$lib/ui/keyboard-controller';
 	import type { EventEnitter } from './eventEmitter';
 	import { startListening, stopListening } from '$lib/operations';
+
+	// import { gsap } from 'gsap';
+	// import { PixiPlugin } from 'gsap/PixiPlugin';
+	// // register the plugin
+	// gsap.registerPlugin(PixiPlugin);
+	// // give the plugin a reference to the PIXI object
+	// PixiPlugin.registerPIXI({
+	// 	Container,
+	// 	Sprite
+	// 	// BlurFilter,
+	// 	// ColorMatrixFilter
+	// });
 
 	interface Props {
 		camera: Writable<Camera>;

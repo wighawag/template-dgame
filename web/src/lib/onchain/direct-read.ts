@@ -93,6 +93,13 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
+		// const allEvents = await publicClient.getContractEvents({
+		// 	...Game,
+		// 	eventName: 'CommitmentRevealed',
+		// 	fromBlock: 0n,
+		// 	toBlock: 'latest'
+		// });
+
 		const events = await publicClient.getContractEvents({
 			...Game,
 			eventName: 'CommitmentRevealed',
@@ -100,9 +107,12 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 				epoch: epoch - 1n,
 				zone: zones
 			},
-			strict: true
-			// fromBlock: // TODO calculate block number range
+			strict: true,
+			fromBlock: 0n, // TODO calculate block number range
+			toBlock: 'latest'
 		});
+
+		console.log(`events for ${epoch}`, events);
 
 		const avatarEvents: Map<bigint, (typeof events)[0]> = new Map();
 		for (const event of events) {
