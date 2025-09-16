@@ -31,6 +31,9 @@ export const config = {
 			megatestnet: {
 				price: parseEther('0.00000001'),
 			},
+			somniatestnet: {
+				price: parseEther('0.00000001'),
+			},
 			default: {
 				price: parseEther('0.01'),
 			},
