@@ -87,6 +87,12 @@ export class Writes {
 
 	async purchaseViaPaymentConnection() {
 		const $connection = await connection.ensureConnected();
+		paymentConnection.connect(
+			{
+				type: 'wallet'
+			},
+			{ doNotStoreLocally: true }
+		);
 		const $paymentConnection = await paymentConnection.ensureConnected(
 			'WalletConnected',
 			{
