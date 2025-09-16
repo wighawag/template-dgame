@@ -118,7 +118,7 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			toBlock: currentBlockNumber
 		});
 
-		console.log(`events for ${epoch}`, events);
+		// console.log(`events for ${epoch}`, events);
 
 		const avatarEvents: Map<
 			bigint,
