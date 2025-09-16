@@ -8,6 +8,10 @@ export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasP
 	6342: {
 		blockTime: 1,
 		expectedWorstGasPrice: parseEther('0.003', 'gwei')
+	},
+	50312: {
+		blockTime: 1,
+		expectedWorstGasPrice: parseEther('0.003', 'gwei')
 	}
 };
 
