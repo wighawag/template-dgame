@@ -26,7 +26,16 @@ export const config = {
 			default: 1,
 		},
 	},
-	data: {},
+	data: {
+		sale: {
+			megatestnet: {
+				price: parseEther('0.00000001'),
+			},
+			default: {
+				price: parseEther('0.01'),
+			},
+		},
+	},
 } as const satisfies UserConfig;
 
 // ------------------------------------------------------------------------------------------------
@@ -57,6 +66,7 @@ const {deployScript, loadAndExecuteDeployments} = setup<typeof extensions, typeo
 // ------------------------------------------------------------------------------------------------
 // we do the same for hardhat-deploy
 import {setupHardhatDeploy} from 'hardhat-deploy/helpers';
+import {parseEther} from 'viem';
 const {loadEnvironmentFromHardhat} = setupHardhatDeploy(extensions);
 // ------------------------------------------------------------------------------------------------
 // finally we export them

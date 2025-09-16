@@ -2,11 +2,11 @@ import {deployScript, artifacts} from '#rocketh';
 import {parseEther} from 'viem';
 
 export default deployScript(
-	async ({get, deployViaProxy, namedAccounts}) => {
+	async ({get, deployViaProxy, namedAccounts, data}) => {
 		const {deployer, admin} = namedAccounts;
 
 		const config = {
-			paymentAmount: parseEther('0.01'),
+			paymentAmount: data.sale.price,
 			recipient: admin,
 			freeMapAdmin: admin,
 		};
