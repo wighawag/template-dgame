@@ -243,7 +243,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				};
 				set($state);
 
-				await wait();
+				return await wait();
 			} catch (err) {
 				console.error(err);
 				commiting = false;

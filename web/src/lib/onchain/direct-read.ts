@@ -1,11 +1,11 @@
 import { get, writable, type Readable } from 'svelte/store';
 import type { AvatarEntity, OnchainState } from './types';
-import { epochInfo } from '$lib/time';
+import { epochInfo, time } from '$lib/time';
 import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contracts';
 import { publicClient } from '$lib/connection';
 import contracts from '$lib/contracts';
-import type { Abi, ExtractAbiEvent, ExtractAbiEventNames } from 'abitype';
-import { encodeEventTopics, parseEventLogs } from 'viem';
+import { type GetContractEventsReturnType } from 'viem';
+import { getChainParameters } from '$lib/connection/chains';
 
 const Game = contracts.contracts.Game;
 
@@ -98,6 +98,14 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
+		const blockTime = BigInt(getChainParameters(contracts.chainId).blockTime);
+		const currentBlockNumber = await publicClient.getBlockNumber();
+		const fromBlock =
+			(currentBlockNumber -
+				(BigInt(contracts.contracts.Game.linkedData.commitPhaseDuration) +
+					BigInt(contracts.contracts.Game.linkedData.revealPhaseDuration))) /
+			blockTime;
+
 		const events = await publicClient.getContractEvents({
 			...Game,
 			eventName: 'CommitmentRevealed',
@@ -106,13 +114,16 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 				zone: zones
 			},
 			strict: true,
-			fromBlock: 0n, // TODO calculate block number range
-			toBlock: 'latest'
+			fromBlock,
+			toBlock: currentBlockNumber
 		});
 
 		console.log(`events for ${epoch}`, events);
 
-		const avatarEvents: Map<bigint, (typeof events)[0]> = new Map();
+		const avatarEvents: Map<
+			bigint,
+			GetContractEventsReturnType<typeof Game.abi, 'CommitmentRevealed', true>[0]
+		> = new Map();
 		for (const event of events) {
 			avatarEvents.set(event.args.avatarID, event);
 		}
