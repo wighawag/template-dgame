@@ -1,5 +1,12 @@
 import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
-import { connection, publicClient, walletClient } from '$lib/connection';
+import {
+	connection,
+	paymentConnection,
+	paymentPublicClient,
+	paymentWalletClient,
+	publicClient,
+	walletClient
+} from '$lib/connection';
 import contracts from '$lib/contracts';
 import { localState, type LocalAction } from '$lib/private/localState';
 import { epochInfo } from '$lib/time';
@@ -75,6 +82,50 @@ export class Writes {
 			avatarID,
 			transactionID: hash,
 			wait: () => publicClient.waitForTransactionReceipt({ hash })
+		};
+	}
+
+	async purchaseViaPaymentConnection() {
+		const $connection = await connection.ensureConnected();
+		const $paymentConnection = await paymentConnection.ensureConnected(
+			'WalletConnected',
+			{
+				type: 'wallet'
+			},
+			{ doNotStoreLocally: true }
+		);
+		const data = encodeAbiParameters(
+			[{ type: 'address' }, { type: 'address' }],
+			[$connection.account.address, $connection.account.signer.address]
+		);
+		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
+		const stippend = parseEther('0.01'); // parseEther('0.0003');
+		const totalValue = value + stippend;
+		const subID = generateRandom96BitBigInt();
+		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
+
+		console.log({
+			address: $paymentConnection.mechanism.address,
+			addresses: await paymentWalletClient.getAddresses()
+		});
+		const hash = await paymentWalletClient.writeContract({
+			account: $paymentConnection.mechanism.address,
+			...contracts.contracts.AvatarsSale,
+			functionName: 'purchase',
+			args: [
+				contracts.contracts.Game.address,
+				subID,
+				data,
+				$connection.account.signer.address,
+				stippend,
+				zeroAddress
+			],
+			value: totalValue
+		});
+		return {
+			avatarID,
+			transactionID: hash,
+			wait: () => paymentPublicClient.waitForTransactionReceipt({ hash })
 		};
 	}
 

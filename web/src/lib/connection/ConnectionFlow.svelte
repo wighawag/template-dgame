@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { chainId, connection, switchChainInfo } from './index';
-
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
 	import Button from '$lib/ui/generic/Button.svelte';
 	import Address from '$lib/ui/ethereum/Address.svelte';
+	import type { ConnectionStore, UnderlyingEthereumProvider } from '@etherplay/connect';
 
-	let email: string = '';
-	let emailInput: HTMLInputElement;
+	interface Props {
+		connection: ConnectionStore<UnderlyingEthereumProvider>;
+	}
+
+	let { connection }: Props = $props();
+
+	let email: string = $state('');
+	let emailInput: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <Modal
@@ -149,14 +154,16 @@
 <!-- TODO not a Modal -->
 <BasicModal
 	openWhen={($connection.step === 'SignedIn' && $connection.wallet?.invalidChainId) || false}
-	title={`Require Connection to ${switchChainInfo.chainName}`}
+	title={`Require Connection to ${connection.chainInfo.name || `network with chainId: ${connection.chainId}`}`}
 	cancel={true}
 	confirm={{
 		label: 'Switch',
-		onclick: () => connection.switchWalletChain(chainId, switchChainInfo),
+		onclick: () => connection.switchWalletChain(),
 		disabled: !!$connection.wallet?.switchingChain
 	}}
 	onCancel={() => connection.cancel()}
 >
-	<p>Switch to {switchChainInfo.chainName} to continue.</p>
+	<p>
+		Switch to {connection.chainInfo.name || `network with chainId: ${connection.chainId}`} to continue.
+	</p>
 </BasicModal>

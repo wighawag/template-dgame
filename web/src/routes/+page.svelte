@@ -8,6 +8,8 @@
 	import EnterFlow from '$lib/ui/flows/enter/EnterFlow.svelte';
 	import PurchaseFlow from '$lib/ui/flows/purchase/PurchaseFlow.svelte';
 	import GameClock from '$lib/time/GameClock.svelte';
+	import { paymentConnection, connection } from '$lib/connection';
+	import WalletOnlyConnectionFlow from '$lib/connection/WalletOnlyConnectionFlow.svelte';
 </script>
 
 <main>
@@ -21,7 +23,8 @@
 
 <PurchaseFlow />
 
-<ConnectionFlow />
+<ConnectionFlow {connection} />
+<WalletOnlyConnectionFlow connection={paymentConnection} />
 
 <div class="canvas">
 	<PixiCanvas {camera} {renderer} {eventEmitter} />

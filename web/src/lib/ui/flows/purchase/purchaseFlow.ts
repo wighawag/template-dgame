@@ -1,4 +1,3 @@
-import { resolve } from '$app/paths';
 import { avatars } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
 import { extractedPromise } from '$lib/utils/promise';
@@ -62,7 +61,20 @@ function createPurchaseFlow() {
 		try {
 			console.log(`purchasing...`);
 			set({ step: 'ConfirmTransaction' });
-			const { wait, avatarID, transactionID } = await writes.purchaseViaFaucet();
+			let wait: () => Promise<unknown>;
+			let avatarID: bigint;
+			let transactionID: `0x${string}`;
+			// if (PUBLIC_FAUCET_PRIVATE_KEY) {
+			// 	const transaction = await writes.purchaseViaFaucet();
+			// 	wait = transaction.wait;
+			// 	avatarID = transaction.avatarID;
+			// 	transactionID = transaction.transactionID;
+			// } else {
+			const transaction = await writes.purchaseViaPaymentConnection();
+			wait = transaction.wait;
+			avatarID = transaction.avatarID;
+			transactionID = transaction.transactionID;
+			// }
 			set({ step: 'PendingTransaction', pendingTransaction: transactionID });
 			await wait();
 			let $avatars = await avatars.update();

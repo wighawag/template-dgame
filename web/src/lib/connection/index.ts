@@ -1,23 +1,36 @@
 import { PUBLIC_WALLET_HOST } from '$env/static/public';
 import { createConnection } from '@etherplay/connect';
 import contracts from '$lib/contracts';
-import { viemChainInfoToSwitchChainInfo } from '$lib/utils/ethereum/chains';
 import { createPublicClient, createWalletClient, custom } from 'viem';
 import { derived } from 'svelte/store';
 
-export const chainId = contracts.chainId;
-export const chainInfo = contracts.chainInfo;
-export const switchChainInfo = viemChainInfoToSwitchChainInfo(chainInfo);
+const chainInfo = contracts.chainInfo;
 export const connection = createConnection({
 	walletHost: PUBLIC_WALLET_HOST,
-	node: {
-		chainId,
-		url: chainInfo.rpcUrls.default.http[0],
-		prioritizeWalletProvider: false
-	},
+	chainInfo: contracts.chainInfo,
+	prioritizeWalletProvider: false,
 	// alwaysUseCurrentAccount: true,
 	autoConnect: true,
 	requestSignatureAutomaticallyIfPossible: true
+});
+
+export const paymentConnection = createConnection({
+	walletHost: PUBLIC_WALLET_HOST,
+	chainInfo: contracts.chainInfo,
+	prioritizeWalletProvider: true,
+	alwaysUseCurrentAccount: true,
+	autoConnect: false,
+	requestSignatureAutomaticallyIfPossible: false
+});
+
+export const paymentWalletClient = createWalletClient({
+	chain: chainInfo,
+	transport: custom(paymentConnection.provider)
+});
+
+export const paymentPublicClient = createPublicClient({
+	chain: chainInfo,
+	transport: custom(paymentConnection.provider)
 });
 
 export const walletClient = createWalletClient({
@@ -52,6 +65,10 @@ export const account = derived<typeof connection, Account>(connection, ($connect
 			? ($connection.account as any)?.address || undefined
 			: undefined;
 });
+
+(globalThis as any).paymentConnection = paymentConnection;
+(globalThis as any).paymentWalletClient = paymentWalletClient;
+(globalThis as any).paymentPublicClient = paymentPublicClient;
 
 (globalThis as any).connection = connection;
 (globalThis as any).walletClient = walletClient;

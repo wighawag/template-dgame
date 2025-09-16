@@ -1,7 +1,7 @@
 import { connection } from '$lib/connection';
 import { avatars, type AvatarCollection } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
-import type { Connection } from '@etherplay/connect';
+import type { Connection, UnderlyingEthereumProvider } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
 import { onchainState } from '$lib/view';
@@ -40,8 +40,7 @@ function createEnterFlow() {
 		store.set($data);
 	}
 
-	// TODO any fix @etherplay/connect
-	function onConnectionChanged($connection: Connection<any>) {
+	function onConnectionChanged($connection: Connection<UnderlyingEthereumProvider>) {
 		if ($data.step === 'RequireSignIn') {
 			if ($connection.step === 'SignedIn') {
 				setTimeout(() => start(), 1);

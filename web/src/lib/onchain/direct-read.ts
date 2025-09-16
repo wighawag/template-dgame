@@ -100,11 +100,14 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 
 		const blockTime = BigInt(getChainParameters(contracts.chainId).blockTime);
 		const currentBlockNumber = await publicClient.getBlockNumber();
-		const fromBlock =
+		let fromBlock =
 			(currentBlockNumber -
 				(BigInt(contracts.contracts.Game.linkedData.commitPhaseDuration) +
 					BigInt(contracts.contracts.Game.linkedData.revealPhaseDuration))) /
 			blockTime;
+		if (fromBlock < 0n) {
+			fromBlock = 0n;
+		}
 
 		const events = await publicClient.getContractEvents({
 			...Game,
