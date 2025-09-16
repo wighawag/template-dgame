@@ -1,9 +1,13 @@
-export const chains: { [chainID: string]: { blockTime: number } } = {
+import { parseEther } from 'viem';
+
+export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasPrice: bigint } } = {
 	31337: {
-		blockTime: 1 // TODO use env from hardhat
+		blockTime: 1, // TODO use same value from hardhat config
+		expectedWorstGasPrice: 100n // TODO use same value from hardhat config
 	},
 	6342: {
-		blockTime: 1
+		blockTime: 1,
+		expectedWorstGasPrice: parseEther('0.003', 'gwei')
 	}
 };
 
@@ -15,6 +19,7 @@ export function getChainParameters(chainID: number | string) {
 
 	// Default
 	return {
-		blockTime: 1
+		blockTime: 12,
+		expectedWorstGasPrice: parseEther('100', 'gwei')
 	};
 }

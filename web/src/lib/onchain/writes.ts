@@ -7,12 +7,12 @@ import {
 	publicClient,
 	walletClient
 } from '$lib/connection';
+import { getChainParameters } from '$lib/connection/chains';
 import contracts from '$lib/contracts';
-import { localState, type LocalAction } from '$lib/private/localState';
-import { epochInfo } from '$lib/time';
+import type { LocalAction } from '$lib/private/localState';
 import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { xyToBigIntID } from 'dgame-contracts';
-import { encodeAbiParameters, keccak256, parseEther, zeroAddress } from 'viem';
+import { encodeAbiParameters, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
 
@@ -36,6 +36,10 @@ function fromLocalActionToContractValue(action: LocalAction) {
 	};
 }
 
+const maxActionCost = getChainParameters(connection.chainId).expectedWorstGasPrice * 10_000_000n;
+const stippend = maxActionCost * 100n;
+const price = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
+
 export class Writes {
 	async requestFundFromFaucet() {
 		const $connection = await connection.ensureConnected();
@@ -43,7 +47,7 @@ export class Writes {
 		const hash = await walletClient.sendTransaction({
 			account: faucetAccount,
 			to: $connection.account.signer.address,
-			value: parseEther('0.001')
+			value: price + stippend
 		});
 		return {
 			transactionID: hash,
@@ -59,9 +63,8 @@ export class Writes {
 			[{ type: 'address' }, { type: 'address' }],
 			[$connection.account.address, $connection.account.signer.address]
 		);
-		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
-		const stippend = parseEther('0.01'); // parseEther('0.0003');
-		const totalValue = value + stippend;
+
+		const totalValue = price + stippend;
 		const subID = generateRandom96BitBigInt();
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
 		const hash = await walletClient.writeContract({
@@ -104,9 +107,7 @@ export class Writes {
 			[{ type: 'address' }, { type: 'address' }],
 			[$connection.account.address, $connection.account.signer.address]
 		);
-		const value = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
-		const stippend = parseEther('0.01'); // parseEther('0.0003');
-		const totalValue = value + stippend;
+		const value = price + stippend;
 		const subID = generateRandom96BitBigInt();
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
 
@@ -126,7 +127,7 @@ export class Writes {
 				stippend,
 				zeroAddress
 			],
-			value: totalValue
+			value
 		});
 		return {
 			avatarID,
@@ -143,7 +144,7 @@ export class Writes {
 		if (!nativeTokenBalanceResponse.success) {
 			throw new Error(`cannot get native token balance`);
 		}
-		if (BigInt(nativeTokenBalanceResponse.value) < parseEther('0.0001')) {
+		if (BigInt(nativeTokenBalanceResponse.value) < maxActionCost * 2n) {
 			throw new Error(`cannot commit with too low balance`);
 		}
 		const signerAccount = privateKeyToAccount($connection.account.signer.privateKey);
