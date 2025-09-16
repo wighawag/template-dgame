@@ -2,7 +2,7 @@
   "name": "missiv-service",
   "private": true,
   "devDependencies": {
-    "ldenv": "^0.3.10",
+    "ldenv": "^0.3.13",
     "missiv-server": "^0.3.2",
     "missiv-server-cf-worker": "^0.3.2",
     "set-defaults": "^0.0.5",
