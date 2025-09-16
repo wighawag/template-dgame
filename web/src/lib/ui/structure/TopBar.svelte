@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { creditsDivider, maxActionCost } from '$lib/config';
 	import { connection } from '$lib/connection';
 	import { avatars } from '$lib/onchain/avatars';
+	import { balance } from '$lib/onchain/balance';
 	import { epochInfo } from '$lib/time';
 	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
 	import Button from '../generic/Button.svelte';
@@ -34,6 +36,11 @@
 				Loading...{/if}</span
 		> -->
 		<span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span>
+		<span
+			>{$balance.step == 'Loaded'
+				? `${Math.floor($balance.credits * 100) / 100} Credits`
+				: ''}</span
+		>
 	</div>
 
 	<div class="relative flex h-full items-center space-x-4">

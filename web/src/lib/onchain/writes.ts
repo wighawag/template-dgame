@@ -1,4 +1,5 @@
 import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
+import { maxActionCost, price, stippend } from '$lib/config';
 import {
 	connection,
 	paymentConnection,
@@ -35,10 +36,6 @@ function fromLocalActionToContractValue(action: LocalAction) {
 		data: xyToBigIntID(action.x, action.y)
 	};
 }
-
-const maxActionCost = getChainParameters(connection.chainId).expectedWorstGasPrice * 1_000_000n; // 1_000_000 per action is our limit
-const stippend = maxActionCost * 100n; // 100 turn, we need to show
-const price = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
 
 export class Writes {
 	async requestFundFromFaucet() {

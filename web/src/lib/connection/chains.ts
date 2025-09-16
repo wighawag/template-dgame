@@ -3,7 +3,7 @@ import { parseEther } from 'viem';
 export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasPrice: bigint } } = {
 	31337: {
 		blockTime: 1, // TODO use same value from hardhat config
-		expectedWorstGasPrice: 100n // TODO use same value from hardhat config
+		expectedWorstGasPrice: parseEther('1', 'gwei') // TODO use same value from hardhat config
 	},
 	6342: {
 		blockTime: 1,
