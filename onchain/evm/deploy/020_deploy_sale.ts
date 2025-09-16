@@ -3,7 +3,6 @@ import {deployScript, artifacts} from '#rocketh';
 export default deployScript(
 	async ({get, deployViaProxy, namedAccounts, data}) => {
 		const {deployer, admin} = namedAccounts;
-
 		const config = {
 			paymentAmount: data.sale.price,
 			recipient: admin,

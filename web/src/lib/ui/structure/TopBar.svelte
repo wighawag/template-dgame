@@ -26,13 +26,13 @@
 	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
 		<span class="text-lg font-bold">DGame</span>
-		<span
+		<!-- <span
 			>{#if $avatars.step == 'Loaded'}
 				{$avatars.avatarsInWallet.length} / {$avatars.avatarsOnBench.length} / {$avatars
 					.avatarsInGame.length}
 			{:else if $avatars.step === 'Loading'}
 				Loading...{/if}</span
-		>
+		> -->
 		<span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span>
 	</div>
 

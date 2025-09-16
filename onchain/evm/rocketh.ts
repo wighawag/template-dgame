@@ -23,7 +23,7 @@ export const config = {
 			default: 0,
 		},
 		admin: {
-			default: 1,
+			default: 0, // TODO
 		},
 	},
 	data: {
