@@ -3,7 +3,7 @@ import contracts from '$lib/contracts';
 import { derived, writable, type Readable } from 'svelte/store';
 
 export type SyncedTime = {
-	lastSync?: number;
+	lastSync?: { timestampMS: number; blockNumber: number };
 	value: number;
 };
 
@@ -26,42 +26,50 @@ export function createTime() {
 			set({ value: last_time + timePassed / 1000, lastSync: $time.lastSync });
 		}, 1000);
 
-		attemptToUpdateTimeUntilSynced();
+		sync();
 
 		return () => clearInterval(interval);
 	}
 
-	async function attemptToUpdateTimeUntilSynced() {
+	async function sync() {
 		const synced = await updateTimeFromProvider();
 		if (!synced) {
-			setTimeout(attemptToUpdateTimeUntilSynced, 1000);
+			setTimeout(sync, 1000);
 		}
-	}
-
-	function updateTimeFromFetchedTime(newTime: number, fetchTime: number) {
-		last_time = newTime;
-		last_fetch_time = fetchTime;
-		const now = performance.now();
-		const timePassed = now - last_fetch_time;
-		set({ value: last_time + timePassed / 1000, lastSync: now });
 	}
 
 	async function updateTimeFromProvider() {
 		const before_fetch = performance.now();
-		const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
-			'latest',
-			false as true // TODO fix eip-1193 Methods
-		]);
+		try {
+			const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
+				'latest',
+				false as true // TODO fix eip-1193 Methods
+			]);
 
-		if (blockResponse.success && blockResponse.value) {
-			const lastBlockTime = Number(blockResponse.value.timestamp);
-			const after_fetch = performance.now();
-			const predicted_fetch_time = (before_fetch + after_fetch) / 2;
-			console.log(`syncing from last block: ${lastBlockTime}`);
-			updateTimeFromFetchedTime(lastBlockTime, predicted_fetch_time);
-			return true;
+			if (blockResponse.success && blockResponse.value) {
+				const lastBlockTime = Number(blockResponse.value.timestamp);
+				const after_fetch = performance.now();
+				const predicted_fetch_time = (before_fetch + after_fetch) / 2;
+
+				last_time = lastBlockTime;
+				last_fetch_time = predicted_fetch_time;
+
+				const now = performance.now();
+				const timePassed = now - last_fetch_time;
+				set({
+					value: lastBlockTime + timePassed / 1000,
+					lastSync: {
+						timestampMS: last_fetch_time,
+						blockNumber: Number(blockResponse.value.number)
+					}
+				});
+				return true;
+			}
+			return !!$time.lastSync;
+		} catch (err) {
+			console.error(`failed to fetch from block time`, err);
+			return false;
 		}
-		return !!$time.lastSync;
 	}
 
 	function now() {
@@ -72,7 +80,6 @@ export function createTime() {
 
 	return {
 		now,
-		updateTimeFromFetchedTime,
 		updateTimeFromProvider,
 		subscribe: time.subscribe
 	};

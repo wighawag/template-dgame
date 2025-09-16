@@ -73,6 +73,11 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			return;
 		}
 
+		// TODO has epcoh changed ?
+		// if (!fromCameraUpdate && ) {
+		// 	return;
+		// }
+
 		const result = await publicClient.readContract({
 			...Game,
 			functionName: 'getAvatarsInMultipleZones',
