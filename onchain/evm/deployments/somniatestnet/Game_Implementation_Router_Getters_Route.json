@@ -1,0 +1,1135 @@
+{
+  "address": "0xcc0925082bfb1122534d1a7a33bd1dc990113a39",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "startTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitPhaseDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "revealPhaseDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract ITime",
+              "name": "time",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IERC721",
+              "name": "avatars",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.Config",
+          "name": "config",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarAlreadyInGame",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarIsDead",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarNotAvailable",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarNotInGame",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarNotReady",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarStillInGame",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CanStillReveal",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CommitmentHashNotMatching",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "GameNotStarted",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ImpossibleConfiguration",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InCommitmentPhase",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InRevealPhase",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidData",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidEpoch",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoCommitmentToCancel",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "NotAuthorizedController",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "NotAuthorizedOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NothingToReveal",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyAvatarsAreAccepted",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PreviousCommitmentNotRevealed",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "position",
+          "type": "uint64"
+        }
+      ],
+      "name": "UnableToExitFromThisPosition",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        }
+      ],
+      "name": "AvatarDeposited",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "AvatarWithdrawn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        }
+      ],
+      "name": "CommitmentCancelled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes24",
+          "name": "commitmentHash",
+          "type": "bytes24"
+        }
+      ],
+      "name": "CommitmentMade",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "zone",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes24",
+          "name": "commitmentHash",
+          "type": "bytes24"
+        },
+        {
+          "components": [
+            {
+              "internalType": "enum UsingGameTypes.ActionType",
+              "name": "actionType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint128",
+              "name": "data",
+              "type": "uint128"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct UsingGameTypes.Action[]",
+          "name": "actions",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "CommitmentRevealed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        }
+      ],
+      "name": "CommitmentVoid",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "zone",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "newPosition",
+          "type": "uint64"
+        }
+      ],
+      "name": "EnteredTheGame",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint64",
+          "name": "zoneWhenLeaving",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "positionWhenLeaving",
+          "type": "uint64"
+        }
+      ],
+      "name": "LeftTheGame",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAvatar",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint64",
+              "name": "position",
+              "type": "uint64"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.AvatarResolved",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64[]",
+          "name": "zones",
+          "type": "uint64[]"
+        },
+        {
+          "internalType": "uint64",
+          "name": "fromIndex",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "limit",
+          "type": "uint64"
+        }
+      ],
+      "name": "getAvatarsInMultipleZones",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint64",
+              "name": "position",
+              "type": "uint64"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.AvatarResolved[]",
+          "name": "avatars",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "bool",
+          "name": "more",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "zone",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "fromIndex",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "limit",
+          "type": "uint64"
+        }
+      ],
+      "name": "getAvatarsInZone",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "avatarID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint64",
+              "name": "position",
+              "type": "uint64"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.AvatarResolved[]",
+          "name": "avatars",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "bool",
+          "name": "more",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCommitment",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes24",
+              "name": "hash",
+              "type": "bytes24"
+            },
+            {
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.Commitment",
+          "name": "commitment",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getConfig",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "startTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitPhaseDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "revealPhaseDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "contract ITime",
+              "name": "time",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IERC721",
+              "name": "avatars",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct UsingGameTypes.Config",
+          "name": "config",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "contractName": "GameGetters",
+  "sourceName": "src/game/routes/GameGetters.sol",
+  "bytecode": "0x610120604052348015610010575f5ffd5b506040516112a23803806112a283398101604081905261002f91610082565b60608101516001600160a01b039081166080908152825160a052602083015160c052604083015160e052909101511661010052610106565b80516001600160a01b038116811461007d575f5ffd5b919050565b5f60a0828403128015610093575f5ffd5b5060405160a081016001600160401b03811182821017156100c257634e487b7160e01b5f52604160045260245ffd5b6040908152835182526020808501519083015283810151908201526100e960608401610067565b60608201526100fa60808401610067565b60808201529392505050565b60805160a05160c05160e0516101005161112e6101745f395f6103d001525f818161036e015261074901525f81816103480152818161076a015261083b01525f81816103220152818161079d01526107fb01525f818161039401528181610cde0152610d1e015261112e5ff3fe608060405234801561000f575f5ffd5b5060043610610064575f3560e01c8063c3176e7c1161004d578063c3176e7c1461016d578063c3f909d41461018f578063df7d391f14610204575f5ffd5b80631328ec9b1461006857806369bcdb7d14610091575b5f5ffd5b61007b610076366004610dae565b610217565b6040516100889190610dc5565b60405180910390f35b61012661009f366004610dae565b604080518082019091525f8082526020820152505f908152600460209081526040918290208251808401845290547fffffffffffffffffffffffffffffffffffffffffffffffff00000000000000009381901b939093168152780100000000000000000000000000000000000000000000000090920467ffffffffffffffff169082015290565b6040805182517fffffffffffffffffffffffffffffffffffffffffffffffff000000000000000016815260209283015167ffffffffffffffff169281019290925201610088565b61018061017b366004610e02565b61029e565b60405161008893929190610e42565b6101976102bc565b60405161008891905f60a08201905082518252602083015160208301526040830151604083015273ffffffffffffffffffffffffffffffffffffffff606084015116606083015273ffffffffffffffffffffffffffffffffffffffff608084015116608083015292915050565b610180610212366004610ebe565b61040d565b6040805180820182525f808252602080830182905283518085018552828152810182905284825260018152908390208351606081018552905460ff81161515825267ffffffffffffffff6101008204811683850190815269010000000000000000009092048116928601929092528451808601909552858552511690830152905b92915050565b60605f5f6102ad86868661042d565b92509250925093509350939050565b6103156040518060a001604052805f81526020015f81526020015f81526020015f73ffffffffffffffffffffffffffffffffffffffff1681526020015f73ffffffffffffffffffffffffffffffffffffffff1681525090565b6040518060a001604052807f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1681526020017f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16815250905090565b60605f5f61041d87878787610604565b9250925092509450945094915050565b60605f5f610439610741565b5067ffffffffffffffff8088165f9081526005602052604090205491925086168111156105fa578061046b8688610f7b565b67ffffffffffffffff1611156104995761048f67ffffffffffffffff871682610f9b565b94505f925061049e565b600192505b8467ffffffffffffffff1667ffffffffffffffff8111156104c1576104c1610fae565b60405190808252806020026020018201604052801561050557816020015b604080518082019091525f80825260208201528152602001906001900390816104df5790505b5093505f5b8567ffffffffffffffff168110156105f85767ffffffffffffffff8089165f9081526005602052604090206105d3916105469084908b16610fdb565b8154811061055657610556610fee565b5f918252602080832090910154604080518082018252848152830184905281845260018352928390208351606081018552905460ff81161515825267ffffffffffffffff61010082048116838601908152690100000000000000000090920481169286019290925284518086019095529184529051169082015290565b8582815181106105e5576105e5610fee565b602090810291909101015260010161050a565b505b5093509350939050565b60605f5f610610610741565b5090505f61061f88888861088e565b805190915067ffffffffffffffff871610156106f45780516106418688610f7b565b67ffffffffffffffff1611156106725780516106689067ffffffffffffffff881690610f9b565b94505f9250610677565b600192505b8467ffffffffffffffff1667ffffffffffffffff81111561069a5761069a610fae565b6040519080825280602002602001820160405280156106de57816020015b604080518082019091525f80825260208201528152602001906001900390816106b85790505b5093506106ef888888888589610a4a565b610736565b604080515f808252602082019092529061072f565b604080518082019091525f80825260208201528152602001906001900390816107095790505b5093505f92505b509450945094915050565b5f808061078e7f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610fdb565b90505f610799610cdb565b90507f00000000000000000000000000000000000000000000000000000000000000008110156107f5576040517f3a5f7b5700000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f6108207f000000000000000000000000000000000000000000000000000000000000000083610f9b565b905061082c838261101b565b610837906002610fdb565b94507f000000000000000000000000000000000000000000000000000000000000000083610866600288611053565b67ffffffffffffffff1661087a9190611073565b6108849083610f9b565b1093505050509091565b6108c060405180608001604052805f8152602001606081526020015f81526020015f67ffffffffffffffff1681525090565b8267ffffffffffffffff8111156108d9576108d9610fae565b604051908082528060200260200182016040528015610902578160200160208202803683370190505b5060208201525f805b84811015610a40575f60055f88888581811061092957610929610fee565b905060200201602081019061093e919061108a565b67ffffffffffffffff16815260208101919091526040015f205490506109648184610fdb565b9250828460200151838151811061097d5761097d610fee565b67ffffffffffffffff92831660209182029290920101528516831180156109e757508115806109e7575060208401516109b7600184610f9b565b815181106109c7576109c7610fee565b602002602001015167ffffffffffffffff168567ffffffffffffffff1610155b15610a375760408401829052816109fe575f610a27565b6020840151610a0e600184610f9b565b81518110610a1e57610a1e610fee565b60200260200101515b67ffffffffffffffff1660608501525b5060010161090b565b5081529392505050565b604082015160608301515f9186915b8667ffffffffffffffff168467ffffffffffffffff16108015610a7b57508882105b15610ccf575f610a8b8285611053565b90505f60055f8d8d87818110610aa357610aa3610fee565b9050602002016020810190610ab8919061108a565b67ffffffffffffffff16815260208101919091526040015f908120549150610ae0878b611053565b905067ffffffffffffffff8216610af78285610f7b565b67ffffffffffffffff161115610b1457610b118383611053565b90505b5f5b8167ffffffffffffffff168167ffffffffffffffff161015610c52575f8e8e88818110610b4557610b45610fee565b9050602002016020810190610b5a919061108a565b67ffffffffffffffff81165f90815260056020526040812091925090610b808488610f7b565b67ffffffffffffffff1681548110610b9a57610b9a610fee565b5f918252602080832090910154604080518082018252848152830184905281845260018352928390208351606081018552905460ff81161515825267ffffffffffffffff610100820481168386019081526901000000000000000000909204811692860192909252845180860190955282855251169183019190915291508b610c23858d610f7b565b67ffffffffffffffff1681518110610c3d57610c3d610fee565b60209081029190910101525050600101610b16565b50610c5d8188610f7b565b9650610c698187610f7b565b95508967ffffffffffffffff168767ffffffffffffffff161015610cc75784610c91816110aa565b9550508b851015610cc7576020890151610cac600187610f9b565b81518110610cbc57610cbc610fee565b602002602001015193505b505050610a59565b50505050505050505050565b5f7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16610d1c57504290565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663b80777ea6040518163ffffffff1660e01b8152600401602060405180830381865afa158015610d85573d5f5f3e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610da991906110e1565b905090565b5f60208284031215610dbe575f5ffd5b5035919050565b8151815260208083015167ffffffffffffffff169082015260408101610298565b803567ffffffffffffffff81168114610dfd575f5ffd5b919050565b5f5f5f60608486031215610e14575f5ffd5b610e1d84610de6565b9250610e2b60208501610de6565b9150610e3960408501610de6565b90509250925092565b606080825284519082018190525f9060208601906080840190835b81811015610e9a57610e848385518051825260209081015167ffffffffffffffff16910152565b6020939093019260409290920191600101610e5d565b50509415156020840152505067ffffffffffffffff91909116604090910152919050565b5f5f5f5f60608587031215610ed1575f5ffd5b843567ffffffffffffffff811115610ee7575f5ffd5b8501601f81018713610ef7575f5ffd5b803567ffffffffffffffff811115610f0d575f5ffd5b8760208260051b8401011115610f21575f5ffd5b602091820195509350610f35908601610de6565b9150610f4360408601610de6565b905092959194509250565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b67ffffffffffffffff818116838216019081111561029857610298610f4e565b8181038181111561029857610298610f4e565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b8082018082111561029857610298610f4e565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52603260045260245ffd5b5f8261104e577f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b500490565b67ffffffffffffffff828116828216039081111561029857610298610f4e565b808202811582820484141761029857610298610f4e565b5f6020828403121561109a575f5ffd5b6110a382610de6565b9392505050565b5f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82036110da576110da610f4e565b5060010190565b5f602082840312156110f1575f5ffd5b505191905056fea2646970667358221220b98fae610ee51fe5c4e916ed107831f6492f219d8a75292df2374dad1095a01964736f6c634300081c0033",
+  "deployedBytecode": "0x608060405234801561000f575f5ffd5b5060043610610064575f3560e01c8063c3176e7c1161004d578063c3176e7c1461016d578063c3f909d41461018f578063df7d391f14610204575f5ffd5b80631328ec9b1461006857806369bcdb7d14610091575b5f5ffd5b61007b610076366004610dae565b610217565b6040516100889190610dc5565b60405180910390f35b61012661009f366004610dae565b604080518082019091525f8082526020820152505f908152600460209081526040918290208251808401845290547fffffffffffffffffffffffffffffffffffffffffffffffff00000000000000009381901b939093168152780100000000000000000000000000000000000000000000000090920467ffffffffffffffff169082015290565b6040805182517fffffffffffffffffffffffffffffffffffffffffffffffff000000000000000016815260209283015167ffffffffffffffff169281019290925201610088565b61018061017b366004610e02565b61029e565b60405161008893929190610e42565b6101976102bc565b60405161008891905f60a08201905082518252602083015160208301526040830151604083015273ffffffffffffffffffffffffffffffffffffffff606084015116606083015273ffffffffffffffffffffffffffffffffffffffff608084015116608083015292915050565b610180610212366004610ebe565b61040d565b6040805180820182525f808252602080830182905283518085018552828152810182905284825260018152908390208351606081018552905460ff81161515825267ffffffffffffffff6101008204811683850190815269010000000000000000009092048116928601929092528451808601909552858552511690830152905b92915050565b60605f5f6102ad86868661042d565b92509250925093509350939050565b6103156040518060a001604052805f81526020015f81526020015f81526020015f73ffffffffffffffffffffffffffffffffffffffff1681526020015f73ffffffffffffffffffffffffffffffffffffffff1681525090565b6040518060a001604052807f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000081526020017f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1681526020017f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16815250905090565b60605f5f61041d87878787610604565b9250925092509450945094915050565b60605f5f610439610741565b5067ffffffffffffffff8088165f9081526005602052604090205491925086168111156105fa578061046b8688610f7b565b67ffffffffffffffff1611156104995761048f67ffffffffffffffff871682610f9b565b94505f925061049e565b600192505b8467ffffffffffffffff1667ffffffffffffffff8111156104c1576104c1610fae565b60405190808252806020026020018201604052801561050557816020015b604080518082019091525f80825260208201528152602001906001900390816104df5790505b5093505f5b8567ffffffffffffffff168110156105f85767ffffffffffffffff8089165f9081526005602052604090206105d3916105469084908b16610fdb565b8154811061055657610556610fee565b5f918252602080832090910154604080518082018252848152830184905281845260018352928390208351606081018552905460ff81161515825267ffffffffffffffff61010082048116838601908152690100000000000000000090920481169286019290925284518086019095529184529051169082015290565b8582815181106105e5576105e5610fee565b602090810291909101015260010161050a565b505b5093509350939050565b60605f5f610610610741565b5090505f61061f88888861088e565b805190915067ffffffffffffffff871610156106f45780516106418688610f7b565b67ffffffffffffffff1611156106725780516106689067ffffffffffffffff881690610f9b565b94505f9250610677565b600192505b8467ffffffffffffffff1667ffffffffffffffff81111561069a5761069a610fae565b6040519080825280602002602001820160405280156106de57816020015b604080518082019091525f80825260208201528152602001906001900390816106b85790505b5093506106ef888888888589610a4a565b610736565b604080515f808252602082019092529061072f565b604080518082019091525f80825260208201528152602001906001900390816107095790505b5093505f92505b509450945094915050565b5f808061078e7f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610fdb565b90505f610799610cdb565b90507f00000000000000000000000000000000000000000000000000000000000000008110156107f5576040517f3a5f7b5700000000000000000000000000000000000000000000000000000000815260040160405180910390fd5b5f6108207f000000000000000000000000000000000000000000000000000000000000000083610f9b565b905061082c838261101b565b610837906002610fdb565b94507f000000000000000000000000000000000000000000000000000000000000000083610866600288611053565b67ffffffffffffffff1661087a9190611073565b6108849083610f9b565b1093505050509091565b6108c060405180608001604052805f8152602001606081526020015f81526020015f67ffffffffffffffff1681525090565b8267ffffffffffffffff8111156108d9576108d9610fae565b604051908082528060200260200182016040528015610902578160200160208202803683370190505b5060208201525f805b84811015610a40575f60055f88888581811061092957610929610fee565b905060200201602081019061093e919061108a565b67ffffffffffffffff16815260208101919091526040015f205490506109648184610fdb565b9250828460200151838151811061097d5761097d610fee565b67ffffffffffffffff92831660209182029290920101528516831180156109e757508115806109e7575060208401516109b7600184610f9b565b815181106109c7576109c7610fee565b602002602001015167ffffffffffffffff168567ffffffffffffffff1610155b15610a375760408401829052816109fe575f610a27565b6020840151610a0e600184610f9b565b81518110610a1e57610a1e610fee565b60200260200101515b67ffffffffffffffff1660608501525b5060010161090b565b5081529392505050565b604082015160608301515f9186915b8667ffffffffffffffff168467ffffffffffffffff16108015610a7b57508882105b15610ccf575f610a8b8285611053565b90505f60055f8d8d87818110610aa357610aa3610fee565b9050602002016020810190610ab8919061108a565b67ffffffffffffffff16815260208101919091526040015f908120549150610ae0878b611053565b905067ffffffffffffffff8216610af78285610f7b565b67ffffffffffffffff161115610b1457610b118383611053565b90505b5f5b8167ffffffffffffffff168167ffffffffffffffff161015610c52575f8e8e88818110610b4557610b45610fee565b9050602002016020810190610b5a919061108a565b67ffffffffffffffff81165f90815260056020526040812091925090610b808488610f7b565b67ffffffffffffffff1681548110610b9a57610b9a610fee565b5f918252602080832090910154604080518082018252848152830184905281845260018352928390208351606081018552905460ff81161515825267ffffffffffffffff610100820481168386019081526901000000000000000000909204811692860192909252845180860190955282855251169183019190915291508b610c23858d610f7b565b67ffffffffffffffff1681518110610c3d57610c3d610fee565b60209081029190910101525050600101610b16565b50610c5d8188610f7b565b9650610c698187610f7b565b95508967ffffffffffffffff168767ffffffffffffffff161015610cc75784610c91816110aa565b9550508b851015610cc7576020890151610cac600187610f9b565b81518110610cbc57610cbc610fee565b602002602001015193505b505050610a59565b50505050505050505050565b5f7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff16610d1c57504290565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663b80777ea6040518163ffffffff1660e01b8152600401602060405180830381865afa158015610d85573d5f5f3e3d5ffd5b505050506040513d601f19601f82011682018060405250810190610da991906110e1565b905090565b5f60208284031215610dbe575f5ffd5b5035919050565b8151815260208083015167ffffffffffffffff169082015260408101610298565b803567ffffffffffffffff81168114610dfd575f5ffd5b919050565b5f5f5f60608486031215610e14575f5ffd5b610e1d84610de6565b9250610e2b60208501610de6565b9150610e3960408501610de6565b90509250925092565b606080825284519082018190525f9060208601906080840190835b81811015610e9a57610e848385518051825260209081015167ffffffffffffffff16910152565b6020939093019260409290920191600101610e5d565b50509415156020840152505067ffffffffffffffff91909116604090910152919050565b5f5f5f5f60608587031215610ed1575f5ffd5b843567ffffffffffffffff811115610ee7575f5ffd5b8501601f81018713610ef7575f5ffd5b803567ffffffffffffffff811115610f0d575f5ffd5b8760208260051b8401011115610f21575f5ffd5b602091820195509350610f35908601610de6565b9150610f4360408601610de6565b905092959194509250565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b67ffffffffffffffff818116838216019081111561029857610298610f4e565b8181038181111561029857610298610f4e565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b8082018082111561029857610298610f4e565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52603260045260245ffd5b5f8261104e577f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b500490565b67ffffffffffffffff828116828216039081111561029857610298610f4e565b808202811582820484141761029857610298610f4e565b5f6020828403121561109a575f5ffd5b6110a382610de6565b9392505050565b5f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82036110da576110da610f4e565b5060010190565b5f602082840312156110f1575f5ffd5b505191905056fea2646970667358221220b98fae610ee51fe5c4e916ed107831f6492f219d8a75292df2374dad1095a01964736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {
+    "10174": [
+      {
+        "length": 32,
+        "start": 802
+      },
+      {
+        "length": 32,
+        "start": 1949
+      },
+      {
+        "length": 32,
+        "start": 2043
+      }
+    ],
+    "10177": [
+      {
+        "length": 32,
+        "start": 840
+      },
+      {
+        "length": 32,
+        "start": 1898
+      },
+      {
+        "length": 32,
+        "start": 2107
+      }
+    ],
+    "10180": [
+      {
+        "length": 32,
+        "start": 878
+      },
+      {
+        "length": 32,
+        "start": 1865
+      }
+    ],
+    "10184": [
+      {
+        "length": 32,
+        "start": 976
+      }
+    ],
+    "10256": [
+      {
+        "length": 32,
+        "start": 916
+      },
+      {
+        "length": 32,
+        "start": 3294
+      },
+      {
+        "length": 32,
+        "start": 3358
+      }
+    ]
+  },
+  "inputSourceName": "project/src/game/routes/GameGetters.sol",
+  "devdoc": {
+    "errors": {
+      "AvatarIsDead(uint256)": [
+        {
+          "params": {
+            "avatarID": "the id of the dead avatar The avatar is dead, no action possible"
+          }
+        }
+      ]
+    },
+    "events": {
+      "AvatarDeposited(uint256,address,address)": {
+        "params": {
+          "avatarID": "the id of the NFT being deposited",
+          "controller": "the account authorized to control the avatar in-game",
+          "owner": "the account authorized to get the avatar back"
+        }
+      },
+      "AvatarWithdrawn(uint256)": {
+        "params": {
+          "avatarID": "the id of the NFT being transfered out"
+        }
+      },
+      "CommitmentCancelled(uint256,uint64)": {
+        "params": {
+          "avatarID": "avatar whose commitment is cancelled",
+          "epoch": "epoch number on which this commit belongs to"
+        }
+      },
+      "CommitmentMade(uint256,uint64,bytes24)": {
+        "params": {
+          "avatarID": "avatar whose commitment is made",
+          "commitmentHash": "the hash of moves",
+          "epoch": "epoch number on which this commit belongs to"
+        }
+      },
+      "CommitmentRevealed(uint256,uint64,uint64,bytes24,(uint8,uint128)[])": {
+        "params": {
+          "actions": "the actions",
+          "avatarID": "avatar id whose action is commited",
+          "commitmentHash": "the hash of the moves",
+          "epoch": "epoch number on which this commit belongs to"
+        }
+      },
+      "CommitmentVoid(uint256,uint64)": {
+        "params": {
+          "avatarID": "the account that made the commitment",
+          "epoch": "epoch number on which this commit belongs to"
+        }
+      },
+      "EnteredTheGame(uint256,uint64,uint64,uint64)": {
+        "params": {
+          "avatarID": "the id of the NFT being added",
+          "epoch": "the epoch at which it happened",
+          "newPosition": "the resulting avatar's position",
+          "zone": "the resulting avatar's zone"
+        }
+      },
+      "LeftTheGame(uint256,uint64,uint64,uint64)": {
+        "params": {
+          "avatarID": "the id of the NFT being removed",
+          "epoch": "the epoch at which it happened",
+          "positionWhenLeaving": "the avatar's position when leaving",
+          "zoneWhenLeaving": "the avatar's zone when leaving"
+        }
+      }
+    },
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "evm": {
+    "gasEstimates": {
+      "creation": {
+        "codeDepositCost": "879600",
+        "executionCost": "infinite",
+        "totalCost": "infinite"
+      },
+      "external": {
+        "getAvatar(uint256)": "infinite",
+        "getAvatarsInMultipleZones(uint64[],uint64,uint64)": "infinite",
+        "getAvatarsInZone(uint64,uint64,uint64)": "infinite",
+        "getCommitment(uint256)": "2677",
+        "getConfig()": "infinite"
+      }
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.8.28+commit.7893614a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitPhaseDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"revealPhaseDuration\",\"type\":\"uint256\"},{\"internalType\":\"contract ITime\",\"name\":\"time\",\"type\":\"address\"},{\"internalType\":\"contract IERC721\",\"name\":\"avatars\",\"type\":\"address\"}],\"internalType\":\"struct UsingGameTypes.Config\",\"name\":\"config\",\"type\":\"tuple\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarAlreadyInGame\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarIsDead\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarNotAvailable\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarNotInGame\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarNotReady\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarStillInGame\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CanStillReveal\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"CommitmentHashNotMatching\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"GameNotStarted\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ImpossibleConfiguration\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InCommitmentPhase\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InRevealPhase\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidData\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidEpoch\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NoCommitmentToCancel\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"NotAuthorizedController\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"NotAuthorizedOwner\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NothingToReveal\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"OnlyAvatarsAreAccepted\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"PreviousCommitmentNotRevealed\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"position\",\"type\":\"uint64\"}],\"name\":\"UnableToExitFromThisPosition\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\"}],\"name\":\"AvatarDeposited\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"AvatarWithdrawn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"}],\"name\":\"CommitmentCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes24\",\"name\":\"commitmentHash\",\"type\":\"bytes24\"}],\"name\":\"CommitmentMade\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"zone\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes24\",\"name\":\"commitmentHash\",\"type\":\"bytes24\"},{\"components\":[{\"internalType\":\"enum UsingGameTypes.ActionType\",\"name\":\"actionType\",\"type\":\"uint8\"},{\"internalType\":\"uint128\",\"name\":\"data\",\"type\":\"uint128\"}],\"indexed\":false,\"internalType\":\"struct UsingGameTypes.Action[]\",\"name\":\"actions\",\"type\":\"tuple[]\"}],\"name\":\"CommitmentRevealed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"}],\"name\":\"CommitmentVoid\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"zone\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"newPosition\",\"type\":\"uint64\"}],\"name\":\"EnteredTheGame\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"zoneWhenLeaving\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"positionWhenLeaving\",\"type\":\"uint64\"}],\"name\":\"LeftTheGame\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"getAvatar\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"position\",\"type\":\"uint64\"}],\"internalType\":\"struct UsingGameTypes.AvatarResolved\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64[]\",\"name\":\"zones\",\"type\":\"uint64[]\"},{\"internalType\":\"uint64\",\"name\":\"fromIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"limit\",\"type\":\"uint64\"}],\"name\":\"getAvatarsInMultipleZones\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"position\",\"type\":\"uint64\"}],\"internalType\":\"struct UsingGameTypes.AvatarResolved[]\",\"name\":\"avatars\",\"type\":\"tuple[]\"},{\"internalType\":\"bool\",\"name\":\"more\",\"type\":\"bool\"},{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"zone\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"fromIndex\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"limit\",\"type\":\"uint64\"}],\"name\":\"getAvatarsInZone\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"position\",\"type\":\"uint64\"}],\"internalType\":\"struct UsingGameTypes.AvatarResolved[]\",\"name\":\"avatars\",\"type\":\"tuple[]\"},{\"internalType\":\"bool\",\"name\":\"more\",\"type\":\"bool\"},{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"avatarID\",\"type\":\"uint256\"}],\"name\":\"getCommitment\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes24\",\"name\":\"hash\",\"type\":\"bytes24\"},{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"}],\"internalType\":\"struct UsingGameTypes.Commitment\",\"name\":\"commitment\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getConfig\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"commitPhaseDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"revealPhaseDuration\",\"type\":\"uint256\"},{\"internalType\":\"contract ITime\",\"name\":\"time\",\"type\":\"address\"},{\"internalType\":\"contract IERC721\",\"name\":\"avatars\",\"type\":\"address\"}],\"internalType\":\"struct UsingGameTypes.Config\",\"name\":\"config\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"errors\":{\"AvatarIsDead(uint256)\":[{\"params\":{\"avatarID\":\"the id of the dead avatar The avatar is dead, no action possible\"}}]},\"events\":{\"AvatarDeposited(uint256,address,address)\":{\"params\":{\"avatarID\":\"the id of the NFT being deposited\",\"controller\":\"the account authorized to control the avatar in-game\",\"owner\":\"the account authorized to get the avatar back\"}},\"AvatarWithdrawn(uint256)\":{\"params\":{\"avatarID\":\"the id of the NFT being transfered out\"}},\"CommitmentCancelled(uint256,uint64)\":{\"params\":{\"avatarID\":\"avatar whose commitment is cancelled\",\"epoch\":\"epoch number on which this commit belongs to\"}},\"CommitmentMade(uint256,uint64,bytes24)\":{\"params\":{\"avatarID\":\"avatar whose commitment is made\",\"commitmentHash\":\"the hash of moves\",\"epoch\":\"epoch number on which this commit belongs to\"}},\"CommitmentRevealed(uint256,uint64,uint64,bytes24,(uint8,uint128)[])\":{\"params\":{\"actions\":\"the actions\",\"avatarID\":\"avatar id whose action is commited\",\"commitmentHash\":\"the hash of the moves\",\"epoch\":\"epoch number on which this commit belongs to\"}},\"CommitmentVoid(uint256,uint64)\":{\"params\":{\"avatarID\":\"the account that made the commitment\",\"epoch\":\"epoch number on which this commit belongs to\"}},\"EnteredTheGame(uint256,uint64,uint64,uint64)\":{\"params\":{\"avatarID\":\"the id of the NFT being added\",\"epoch\":\"the epoch at which it happened\",\"newPosition\":\"the resulting avatar's position\",\"zone\":\"the resulting avatar's zone\"}},\"LeftTheGame(uint256,uint64,uint64,uint64)\":{\"params\":{\"avatarID\":\"the id of the NFT being removed\",\"epoch\":\"the epoch at which it happened\",\"positionWhenLeaving\":\"the avatar's position when leaving\",\"zoneWhenLeaving\":\"the avatar's zone when leaving\"}}},\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"errors\":{\"AvatarAlreadyInGame(uint256)\":[{\"notice\":\"happen when attempting to enter an avatar already in the game\"}],\"AvatarIsDead(uint256)\":[{\"notice\":\"Player have to reveal if they can\"}],\"AvatarNotAvailable(uint256)\":[{\"notice\":\"happen when attempting to move an avatar not in the game\"}],\"AvatarNotInGame(uint256)\":[{\"notice\":\"happen when attempting to move an avatar not in the game\"}],\"AvatarNotReady(uint256)\":[{\"notice\":\"happen when attempting to move an avatar that just entered the game. \\\\  It needs to wait the next epoch\"}],\"AvatarStillInGame(uint256)\":[{\"notice\":\"happen when attempting to extract an avatar still in the game\"}],\"CanStillReveal()\":[{\"notice\":\"Player have to reveal if they can prevent player from acknowledging missed reveal if there is still time to reveal.\"}],\"CommitmentHashNotMatching()\":[{\"notice\":\"Player have to reveal their commitment using the exact same move values  If they provide different value, the commitment hash will differ and Game will reject their reveal.\"}],\"GameNotStarted()\":[{\"notice\":\"Game has not started yet, can't perform any action\"}],\"ImpossibleConfiguration()\":[{\"notice\":\"The cell configuration is invalid This can happen win debug mode where admin can setup cell bypassing moves rules For example when setting up neighborood configuration that would require a cell to have negative life\"}],\"InCommitmentPhase()\":[{\"notice\":\"When in Commit phase, player can make new commitment but they cannot reveal their move yet.\"}],\"InRevealPhase()\":[{\"notice\":\"When in Reveal phase, it is not possible to commit new moves or cancel previous commitment  During Reveal phase, players have to reveal their commitment, if not already done.\"}],\"InvalidData()\":[{\"notice\":\"happen when transfering an avatar with invalid data\"}],\"InvalidEpoch()\":[{\"notice\":\"Player can only reveal their move in the same epoch they commited.abi  If a player reveal later it can only do to minimize the reserve burn cost by calling : `acknowledgeMissedReveal`\"}],\"NoCommitmentToCancel()\":[{\"notice\":\"There is no commitment registered, cannot cancel.\"}],\"NotAuthorizedController(address)\":[{\"notice\":\"happen when an unauthorized account attempt to control an avatar\"}],\"NotAuthorizedOwner(address)\":[{\"notice\":\"happen when an unauthorized account attempt to withdraw an avatar\"}],\"NothingToReveal()\":[{\"notice\":\"Player can only reveal moves they commited.\"}],\"PreviousCommitmentNotRevealed()\":[{\"notice\":\"Previous commitment need to be revealed before making a new one. Even if the corresponding reveal phase has passed.\\\\  It is also not possible to withdraw any amount from reserve until the commitment is revealed.\\\\If player lost the information to reveal, it can acknowledge failure which will burn all its reserve.\\\\\"}],\"UnableToExitFromThisPosition(uint64)\":[{\"notice\":\"happen when attempting to leave the game from a non-exit position\"}]},\"events\":{\"AvatarDeposited(uint256,address,address)\":{\"notice\":\"An avatar has been deposited, ready to enter\"},\"AvatarWithdrawn(uint256)\":{\"notice\":\"A avatar has been withdrawn\"},\"CommitmentCancelled(uint256,uint64)\":{\"notice\":\"A player has cancelled its current commitment (before it reached the reveal phase)\"},\"CommitmentMade(uint256,uint64,bytes24)\":{\"notice\":\"A player has commited to make a move and reveal it on the reveal phase\"},\"CommitmentRevealed(uint256,uint64,uint64,bytes24,(uint8,uint128)[])\":{\"notice\":\"Player has revealed its previous commitment\"},\"CommitmentVoid(uint256,uint64)\":{\"notice\":\"A player has acknowledged its failure to reveal its previous commitment\"},\"EnteredTheGame(uint256,uint64,uint64,uint64)\":{\"notice\":\"A avatar has entered the game\"},\"LeftTheGame(uint256,uint64,uint64,uint64)\":{\"notice\":\"An avatar has left the game\"}},\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project/src/game/routes/GameGetters.sol\":\"GameGetters\"},\"evmVersion\":\"prague\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":999999},\"remappings\":[\"project/:hardhat/=npm/hardhat@3.0.6/\",\"project/:solidity-kit/=npm/solidity-kit@0.5.7/\"]},\"sources\":{\"npm/hardhat@3.0.6/console.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.4.22 <0.9.0;\\n\\nlibrary console {\\n    address constant CONSOLE_ADDRESS =\\n        0x000000000000000000636F6e736F6c652e6c6f67;\\n\\n    function _sendLogPayloadImplementation(bytes memory payload) internal view {\\n        address consoleAddress = CONSOLE_ADDRESS;\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            pop(\\n                staticcall(\\n                    gas(),\\n                    consoleAddress,\\n                    add(payload, 32),\\n                    mload(payload),\\n                    0,\\n                    0\\n                )\\n            )\\n        }\\n    }\\n\\n    function _castToPure(\\n      function(bytes memory) internal view fnIn\\n    ) internal pure returns (function(bytes memory) pure fnOut) {\\n        assembly {\\n            fnOut := fnIn\\n        }\\n    }\\n\\n    function _sendLogPayload(bytes memory payload) internal pure {\\n        _castToPure(_sendLogPayloadImplementation)(payload);\\n    }\\n\\n    function log() internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log()\\\"));\\n    }\\n    function logInt(int256 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(int256)\\\", p0));\\n    }\\n\\n    function logUint(uint256 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256)\\\", p0));\\n    }\\n\\n    function logString(string memory p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string)\\\", p0));\\n    }\\n\\n    function logBool(bool p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool)\\\", p0));\\n    }\\n\\n    function logAddress(address p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address)\\\", p0));\\n    }\\n\\n    function logBytes(bytes memory p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes)\\\", p0));\\n    }\\n\\n    function logBytes1(bytes1 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes1)\\\", p0));\\n    }\\n\\n    function logBytes2(bytes2 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes2)\\\", p0));\\n    }\\n\\n    function logBytes3(bytes3 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes3)\\\", p0));\\n    }\\n\\n    function logBytes4(bytes4 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes4)\\\", p0));\\n    }\\n\\n    function logBytes5(bytes5 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes5)\\\", p0));\\n    }\\n\\n    function logBytes6(bytes6 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes6)\\\", p0));\\n    }\\n\\n    function logBytes7(bytes7 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes7)\\\", p0));\\n    }\\n\\n    function logBytes8(bytes8 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes8)\\\", p0));\\n    }\\n\\n    function logBytes9(bytes9 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes9)\\\", p0));\\n    }\\n\\n    function logBytes10(bytes10 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes10)\\\", p0));\\n    }\\n\\n    function logBytes11(bytes11 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes11)\\\", p0));\\n    }\\n\\n    function logBytes12(bytes12 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes12)\\\", p0));\\n    }\\n\\n    function logBytes13(bytes13 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes13)\\\", p0));\\n    }\\n\\n    function logBytes14(bytes14 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes14)\\\", p0));\\n    }\\n\\n    function logBytes15(bytes15 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes15)\\\", p0));\\n    }\\n\\n    function logBytes16(bytes16 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes16)\\\", p0));\\n    }\\n\\n    function logBytes17(bytes17 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes17)\\\", p0));\\n    }\\n\\n    function logBytes18(bytes18 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes18)\\\", p0));\\n    }\\n\\n    function logBytes19(bytes19 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes19)\\\", p0));\\n    }\\n\\n    function logBytes20(bytes20 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes20)\\\", p0));\\n    }\\n\\n    function logBytes21(bytes21 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes21)\\\", p0));\\n    }\\n\\n    function logBytes22(bytes22 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes22)\\\", p0));\\n    }\\n\\n    function logBytes23(bytes23 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes23)\\\", p0));\\n    }\\n\\n    function logBytes24(bytes24 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes24)\\\", p0));\\n    }\\n\\n    function logBytes25(bytes25 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes25)\\\", p0));\\n    }\\n\\n    function logBytes26(bytes26 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes26)\\\", p0));\\n    }\\n\\n    function logBytes27(bytes27 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes27)\\\", p0));\\n    }\\n\\n    function logBytes28(bytes28 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes28)\\\", p0));\\n    }\\n\\n    function logBytes29(bytes29 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes29)\\\", p0));\\n    }\\n\\n    function logBytes30(bytes30 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes30)\\\", p0));\\n    }\\n\\n    function logBytes31(bytes31 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes31)\\\", p0));\\n    }\\n\\n    function logBytes32(bytes32 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bytes32)\\\", p0));\\n    }\\n\\n    function log(uint256 p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256)\\\", p0));\\n    }\\n\\n    function log(string memory p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string)\\\", p0));\\n    }\\n\\n    function log(bool p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool)\\\", p0));\\n    }\\n\\n    function log(address p0) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address)\\\", p0));\\n    }\\n\\n    function log(uint256 p0, uint256 p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256)\\\", p0, p1));\\n    }\\n\\n    function log(uint256 p0, string memory p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string)\\\", p0, p1));\\n    }\\n\\n    function log(uint256 p0, bool p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool)\\\", p0, p1));\\n    }\\n\\n    function log(uint256 p0, address p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address)\\\", p0, p1));\\n    }\\n\\n    function log(string memory p0, uint256 p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256)\\\", p0, p1));\\n    }\\n\\n    function log(string memory p0, string memory p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string)\\\", p0, p1));\\n    }\\n\\n    function log(string memory p0, bool p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool)\\\", p0, p1));\\n    }\\n\\n    function log(string memory p0, address p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address)\\\", p0, p1));\\n    }\\n\\n    function log(bool p0, uint256 p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256)\\\", p0, p1));\\n    }\\n\\n    function log(bool p0, string memory p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string)\\\", p0, p1));\\n    }\\n\\n    function log(bool p0, bool p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool)\\\", p0, p1));\\n    }\\n\\n    function log(bool p0, address p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address)\\\", p0, p1));\\n    }\\n\\n    function log(address p0, uint256 p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256)\\\", p0, p1));\\n    }\\n\\n    function log(address p0, string memory p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string)\\\", p0, p1));\\n    }\\n\\n    function log(address p0, bool p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool)\\\", p0, p1));\\n    }\\n\\n    function log(address p0, address p1) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address)\\\", p0, p1));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, string memory p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, string memory p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, string memory p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, string memory p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, bool p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, bool p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, bool p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, bool p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, address p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, address p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, address p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, address p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, uint256 p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, uint256 p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, uint256 p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, uint256 p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, string memory p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, string memory p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, string memory p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, string memory p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, bool p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, bool p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, bool p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, bool p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, address p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, address p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, address p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(string memory p0, address p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, uint256 p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, uint256 p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, uint256 p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, uint256 p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, string memory p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, string memory p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, string memory p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, string memory p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, bool p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, bool p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, bool p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, bool p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, address p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, address p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, address p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(bool p0, address p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, uint256 p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, uint256 p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, uint256 p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, uint256 p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, string memory p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, string memory p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, string memory p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, string memory p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, bool p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, bool p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, bool p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, bool p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, address p1, uint256 p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint256)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, address p1, string memory p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, address p1, bool p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool)\\\", p0, p1, p2));\\n    }\\n\\n    function log(address p0, address p1, address p2) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address)\\\", p0, p1, p2));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, uint256 p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,uint256,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, string memory p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,string,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, bool p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,bool,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(uint256 p0, address p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(uint256,address,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, uint256 p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,uint256,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, string memory p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,string,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, bool p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,bool,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(string memory p0, address p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(string,address,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, uint256 p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,uint256,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, string memory p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,string,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, bool p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,bool,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(bool p0, address p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(bool,address,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, uint256 p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,uint256,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, string memory p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,string,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, bool p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,bool,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, uint256 p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint256,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, uint256 p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint256,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, uint256 p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint256,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, uint256 p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,uint256,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, string memory p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, string memory p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, string memory p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, string memory p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,string,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, bool p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, bool p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, bool p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, bool p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,bool,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, address p2, uint256 p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,uint256)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, address p2, string memory p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,string)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, address p2, bool p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,bool)\\\", p0, p1, p2, p3));\\n    }\\n\\n    function log(address p0, address p1, address p2, address p3) internal pure {\\n        _sendLogPayload(abi.encodeWithSignature(\\\"log(address,address,address,address)\\\", p0, p1, p2, p3));\\n    }\\n\\n}\\n\",\"keccak256\":\"0x7434453e6d3b7d0e5d0eb7846ffdbc27f0ccf3b163591263739b628074dc103a\",\"license\":\"MIT\"},\"npm/solidity-kit@0.5.7/solc_0_8/ERC165/interfaces/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface IERC165 {\\n    /// @notice Query if a contract implements an interface\\n    /// @param interfaceID The interface identifier, as specified in ERC-165\\n    /// @dev Interface identification is specified in ERC-165. This function\\n    ///  uses less than 30,000 gas.\\n    /// @return `true` if the contract implements `interfaceID` and\\n    ///  `interfaceID` is not 0xffffffff, `false` otherwise\\n    function supportsInterface(bytes4 interfaceID) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x0bbdb7cf3d2c6acf95398c0ef54cb0e6ae8a3e6ce6f18fafeb0aa55cb74fb8fd\",\"license\":\"MIT\"},\"npm/solidity-kit@0.5.7/solc_0_8/ERC721/interfaces/IERC721.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"../../ERC165/interfaces/IERC165.sol\\\";\\nimport \\\"./UsingERC721Events.sol\\\";\\n\\ninterface IERC721Supply {\\n    /// @notice return the total number of token in existence\\n    function totalSupply() external view returns (uint256);\\n}\\n\\ninterface IERC721 is IERC165, UsingERC721Events {\\n    /// @notice Get the number of tokens owned by an address.\\n    /// @param owner The address to look for.\\n    /// @return balance The number of tokens owned by the address.\\n    function balanceOf(address owner) external view returns (uint256 balance);\\n\\n    /// @notice Get the owner of a token.\\n    /// @param tokenID The id of the token.\\n    /// @return owner The address of the token owner.\\n    function ownerOf(uint256 tokenID) external view returns (address owner);\\n\\n    /// @notice Transfer a token between 2 addresses letting the receiver knows of the transfer.\\n    /// @param from The sender of the token.\\n    /// @param to The recipient of the token.\\n    /// @param tokenID The id of the token.\\n    /// @param data Additional data.\\n    function safeTransferFrom(address from, address to, uint256 tokenID, bytes calldata data) external;\\n\\n    /// @notice Transfer a token between 2 addresses letting the receiver know of the transfer.\\n    /// @param from The send of the token.\\n    /// @param to The recipient of the token.\\n    /// @param tokenID The id of the token.\\n    function safeTransferFrom(address from, address to, uint256 tokenID) external;\\n\\n    /// @notice Transfer a token between 2 addresses.\\n    /// @param from The sender of the token.\\n    /// @param to The recipient of the token.\\n    /// @param tokenID The id of the token.\\n    function transferFrom(address from, address to, uint256 tokenID) external;\\n\\n    /// @notice Approve an operator to transfer a specific token on the senders behalf.\\n    /// @param operator The address receiving the approval.\\n    /// @param tokenID The id of the token.\\n    function approve(address operator, uint256 tokenID) external;\\n\\n    /// @notice Set the approval for an operator to manage all the tokens of the sender.\\n    /// @param operator The address receiving the approval.\\n    /// @param approved The determination of the approval.\\n    function setApprovalForAll(address operator, bool approved) external;\\n\\n    /// @notice Get the approved operator for a specific token.\\n    /// @param tokenID The id of the token.\\n    /// @return operator The address of the operator.\\n    function getApproved(uint256 tokenID) external view returns (address operator);\\n\\n    /// @notice Check if the sender approved the operator to transfer any of its tokens.\\n    /// @param owner The address of the owner.\\n    /// @param operator The address of the operator.\\n    /// @return isOperator The status of the approval.\\n    function isApprovedForAll(address owner, address operator) external view returns (bool);\\n}\\n\",\"keccak256\":\"0xa2a5afc2f4e761179de9c718ee807e2d682ed4ae39884906ac333c20282a95d1\",\"license\":\"MIT\"},\"npm/solidity-kit@0.5.7/solc_0_8/ERC721/interfaces/UsingERC721Events.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface UsingERC721Events {\\n    /// @notice Triggered when a token is transferred\\n    /// @param from the account the token is sent from\\n    /// @param to the account the token is sent to\\n    /// @param tokenID id of the token being sent\\n    event Transfer(address indexed from, address indexed to, uint256 indexed tokenID);\\n\\n    /// @notice Triggered when a token is approved to be sent by another account\\n    ///  Note tat the approval get reset when a Transfer event for that same token is emitted.\\n    /// @param owner current owner of the token\\n    /// @param approved account who can know transfer on the owner's behalf\\n    /// @param tokenID id of the token being approved\\n    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenID);\\n\\n    /// @notice Triggered when an account approve or disaprove another to transfer on its behalf\\n    /// @param owner the account granting rights over all of its token\\n    /// @param operator account who can know transfer on the owner's behalf\\n    /// @param approved whether it is approved or not\\n    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);\\n}\\n\",\"keccak256\":\"0x1b0d4ae18443a686be830d3a6ce203d563fe2f42ac9cc3fdf722b702d18152a2\",\"license\":\"MIT\"},\"npm/solidity-kit@0.5.7/solc_0_8/debug/time/interfaces/ITime.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\nimport \\\"./UsingTimeEvents.sol\\\";\\n\\ninterface ITime is UsingTimeEvents {\\n    function timestamp() external view returns (uint256);\\n}\\n\\ninterface ITimeSetter is UsingTimeEvents {\\n    function increaseTime(uint256 delta) external;\\n}\\n\",\"keccak256\":\"0xa81ea4359b841652e020f83fded0488b2df8409ebaaf2c39362f2ef4bdb454e9\",\"license\":\"MIT\"},\"npm/solidity-kit@0.5.7/solc_0_8/debug/time/interfaces/UsingTimeEvents.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface UsingTimeEvents {\\n    event TimeIncreased(uint256 newTime, uint256 delta);\\n}\\n\",\"keccak256\":\"0x73ca9f6cce68bd84d1d487bb3e7bbe4224ab413bc4007ff4a22e0abb04897de4\",\"license\":\"MIT\"},\"project/src/game/interfaces/IGame.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nimport \\\"./UsingGameTypes.sol\\\";\\nimport \\\"./UsingGameEvents.sol\\\";\\nimport \\\"./UsingGameErrors.sol\\\";\\n\\ninterface IGameCommit is UsingGameTypes {\\n    function commit(uint256 avatarID, bytes24 commitmentHash, address payable payee) external payable;\\n\\n    function cancelCommit(uint256 avatarID) external;\\n}\\n\\ninterface IGameReveal is UsingGameTypes {\\n    function reveal(\\n        uint256 avatarID,\\n        Action[] calldata actions,\\n        bytes32 secret,\\n        address payable payee\\n    ) external payable;\\n\\n    function acknowledgeMissedReveal(uint256 avatarID) external;\\n}\\n\\ninterface IGameGetters is UsingGameTypes {\\n    function getAvatarsInZone(\\n        uint64 zone,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);\\n\\n    function getAvatarsInMultipleZones(\\n        uint64[] calldata zones,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);\\n\\n    function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory avatar);\\n\\n    function getCommitment(uint256 avatarID) external view returns (Commitment memory commitment);\\n\\n    function getConfig() external view returns (Config memory config);\\n}\\n\\ninterface IGameDeposit is UsingGameTypes {\\n    function deposit(uint256 avatarID, address controller, address payable payee) external payable;\\n    function withdraw(uint256 avatarID, address to) external;\\n    function avatarsPerOwner(\\n        address owner,\\n        uint256 startIndex,\\n        uint256 limit\\n    ) external view returns (AvatarStatus[] memory avatarIDs, bool more);\\n}\\n\\ninterface IGame is UsingGameEvents, UsingGameErrors, IGameCommit, IGameReveal, IGameGetters, IGameDeposit {}\\n\",\"keccak256\":\"0x9d86847b9b654ee146b053627a15de73645f213dfbee4b51331cd551d16c5e7a\",\"license\":\"AGPL-3.0\"},\"project/src/game/interfaces/UsingGameErrors.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nimport \\\"./UsingGameTypes.sol\\\";\\n\\ninterface UsingGameErrors is UsingGameTypes {\\n    /// @notice Game has not started yet, can't perform any action\\n    error GameNotStarted();\\n\\n    /// @notice happen when an unauthorized account attempt to control an avatar\\n    error NotAuthorizedController(address account);\\n\\n    /// @notice happen when an unauthorized account attempt to withdraw an avatar\\n    error NotAuthorizedOwner(address account);\\n\\n    /// @notice happen when transfering an avatar with invalid data\\n    error InvalidData();\\n\\n    /// @notice happen when attempting to leave the game from a non-exit position\\n    error UnableToExitFromThisPosition(uint64 position);\\n\\n    /// @notice happen when attempting to move an avatar not in the game\\n    error AvatarNotAvailable(uint256 avatarID);\\n\\n    /// @notice happen when attempting to move an avatar not in the game\\n    error AvatarNotInGame(uint256 avatarID);\\n\\n    /// @notice happen when attempting to enter an avatar already in the game\\n    error AvatarAlreadyInGame(uint256 avatarID);\\n\\n    /// @notice happen when attempting to extract an avatar still in the game\\n    error AvatarStillInGame(uint256 avatarID);\\n\\n    /// @notice happen when attempting to move an avatar that just entered the game. \\\\\\n    ///  It needs to wait the next epoch\\n    error AvatarNotReady(uint256 avatarID);\\n\\n    /// @notice When in Reveal phase, it is not possible to commit new moves or cancel previous commitment\\n    ///  During Reveal phase, players have to reveal their commitment, if not already done.\\n    error InRevealPhase();\\n\\n    /// @notice When in Commit phase, player can make new commitment but they cannot reveal their move yet.\\n    error InCommitmentPhase();\\n\\n    /// @notice Previous commitment need to be revealed before making a new one. Even if the corresponding reveal phase has passed.\\\\\\n    ///  It is also not possible to withdraw any amount from reserve until the commitment is revealed.\\\\\\n    /// @notice If player lost the information to reveal, it can acknowledge failure which will burn all its reserve.\\\\\\n    error PreviousCommitmentNotRevealed();\\n\\n    /// @notice There is no commitment registered, cannot cancel.\\n    error NoCommitmentToCancel();\\n\\n    /// @notice Player have to reveal their commitment using the exact same move values\\n    ///  If they provide different value, the commitment hash will differ and Game will reject their reveal.\\n    error CommitmentHashNotMatching();\\n\\n    /// @notice Player can only reveal moves they commited.\\n    error NothingToReveal();\\n\\n    /// @notice Player can only reveal their move in the same epoch they commited.abi\\n    ///  If a player reveal later it can only do to minimize the reserve burn cost by calling : `acknowledgeMissedReveal`\\n    error InvalidEpoch();\\n\\n    /// @notice Player have to reveal if they can\\n    /// prevent player from acknowledging missed reveal if there is still time to reveal.\\n    error CanStillReveal();\\n\\n    /// @notice Player have to reveal if they can\\n    /// @param avatarID the id of the dead avatar\\n    /// The avatar is dead, no action possible\\n    error AvatarIsDead(uint256 avatarID);\\n\\n    /// @notice The cell configuration is invalid\\n    /// This can happen win debug mode where admin can setup cell bypassing moves rules\\n    /// For example when setting up neighborood configuration that would require a cell to have negative life\\n    error ImpossibleConfiguration();\\n\\n    error OnlyAvatarsAreAccepted();\\n}\\n\",\"keccak256\":\"0x8f45cda7871386d64f6a6ce5979995b708b1826aa53cc5b1ab2cabc57a931e81\",\"license\":\"AGPL-3.0\"},\"project/src/game/interfaces/UsingGameEvents.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nimport \\\"./UsingGameTypes.sol\\\";\\n\\ninterface UsingGameEvents is UsingGameTypes {\\n    /// @notice An avatar has been deposited, ready to enter\\n    /// @param avatarID the id of the NFT being deposited\\n    /// @param owner the account authorized to get the avatar back\\n    /// @param controller the account authorized to control the avatar in-game\\n    event AvatarDeposited(uint256 indexed avatarID, address indexed owner, address controller);\\n\\n    /// @notice A avatar has been withdrawn\\n    /// @param avatarID the id of the NFT being transfered out\\n    event AvatarWithdrawn(uint256 indexed avatarID);\\n\\n    /// @notice A avatar has entered the game\\n    /// @param avatarID the id of the NFT being added\\n    /// @param epoch the epoch at which it happened\\n    /// @param zone the resulting avatar's zone\\n    /// @param newPosition the resulting avatar's position\\n    event EnteredTheGame(uint256 indexed avatarID, uint64 indexed epoch, uint64 indexed zone, uint64 newPosition);\\n\\n    /// @notice An avatar has left the game\\n    /// @param avatarID the id of the NFT being removed\\n    /// @param epoch the epoch at which it happened\\n    /// @param zoneWhenLeaving the avatar's zone when leaving\\n    /// @param positionWhenLeaving the avatar's position when leaving\\n    event LeftTheGame(\\n        uint256 indexed avatarID,\\n        uint64 indexed epoch,\\n        uint64 indexed zoneWhenLeaving,\\n        uint64 positionWhenLeaving\\n    );\\n\\n    /// @notice A player has commited to make a move and reveal it on the reveal phase\\n    /// @param avatarID avatar whose commitment is made\\n    /// @param epoch epoch number on which this commit belongs to\\n    /// @param commitmentHash the hash of moves\\n    event CommitmentMade(uint256 indexed avatarID, uint64 indexed epoch, bytes24 commitmentHash);\\n\\n    /// @notice A player has cancelled its current commitment (before it reached the reveal phase)\\n    /// @param avatarID avatar whose commitment is cancelled\\n    /// @param epoch epoch number on which this commit belongs to\\n    event CommitmentCancelled(uint256 indexed avatarID, uint64 indexed epoch);\\n\\n    /// @notice A player has acknowledged its failure to reveal its previous commitment\\n    /// @param avatarID the account that made the commitment\\n    /// @param epoch epoch number on which this commit belongs to\\n    event CommitmentVoid(uint256 indexed avatarID, uint64 indexed epoch);\\n\\n    /// @notice Player has revealed its previous commitment\\n    /// @param avatarID avatar id whose action is commited\\n    /// @param epoch epoch number on which this commit belongs to\\n    /// @param commitmentHash the hash of the moves\\n    /// @param actions the actions\\n    event CommitmentRevealed(\\n        uint256 indexed avatarID,\\n        uint64 indexed epoch,\\n        uint64 indexed zone,\\n        bytes24 commitmentHash,\\n        Action[] actions\\n    );\\n}\\n\",\"keccak256\":\"0x8f264d82f1a4687f409af4a8dd831bc249492da25fa7f266eab234a67b9820ad\",\"license\":\"AGPL-3.0\"},\"project/src/game/interfaces/UsingGameTypes.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"solidity-kit/solc_0_8/debug/time/interfaces/ITime.sol\\\";\\nimport \\\"solidity-kit/solc_0_8/ERC721/interfaces/IERC721.sol\\\";\\n\\ninterface UsingGameTypes {\\n    // ------------------------------------------------------------------------\\n    // EXTERNAL TYPES\\n    // ------------------------------------------------------------------------\\n\\n    /// @notice The set of possible action\\n    enum ActionType {\\n        Enter,\\n        Move,\\n        Exit\\n    }\\n\\n    /// @notice Move struct that define the action, type and position\\n    struct Action {\\n        ActionType actionType;\\n        uint128 data;\\n    }\\n\\n    struct AvatarResolved {\\n        uint256 avatarID;\\n        uint64 position;\\n    }\\n\\n    /// @notice Config struct to configure the game instance\\n    struct Config {\\n        uint256 startTime;\\n        uint256 commitPhaseDuration;\\n        uint256 revealPhaseDuration;\\n        ITime time;\\n        IERC721 avatars;\\n    }\\n\\n    struct AvatarStatus {\\n        uint256 avatarID;\\n        bool inGame;\\n        uint64 position;\\n    }\\n    // ------------------------------------------------------------------------\\n\\n    // ------------------------------------------------------------------------\\n    // STORAGE TYPES\\n    // ------------------------------------------------------------------------\\n\\n    struct Player {\\n        address owner;\\n        address controller;\\n    }\\n\\n    struct Avatar {\\n        bool inGame;\\n        uint64 position;\\n        uint64 zoneIndex;\\n    }\\n\\n    struct Zone {\\n        uint256[] avatars;\\n    }\\n\\n    struct Commitment {\\n        bytes24 hash;\\n        uint64 epoch;\\n    }\\n    // ------------------------------------------------------------------------\\n}\\n\",\"keccak256\":\"0x756e349bca74dbab6c7444eb4cd47d94b54faa0fc221a3543c2efdd4e3d17eac\",\"license\":\"MIT\"},\"project/src/game/internal/UsingGameInternal.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nimport \\\"./UsingGameStore.sol\\\";\\nimport \\\"../interfaces/UsingGameEvents.sol\\\";\\nimport \\\"../interfaces/UsingGameErrors.sol\\\";\\nimport \\\"../../utils/PositionUtils.sol\\\";\\nimport \\\"hardhat/console.sol\\\";\\n\\nabstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {\\n    constructor(Config memory config) UsingGameStore(config) {}\\n\\n    //-------------------------------------------------------------------------\\n    // ENTRY POINTS\\n    //-------------------------------------------------------------------------\\n    function _deposit(uint256 avatarID, address owner, address controller) internal {\\n        _players[avatarID] = Player({owner: owner, controller: controller});\\n\\n        uint256 length = _ownedAvatars[owner].length;\\n        _ownedAvatars[owner].push(avatarID);\\n        _ownedAvatarsIndex[avatarID] = length;\\n\\n        emit AvatarDeposited(avatarID, owner, controller);\\n    }\\n\\n    function _withdraw(address owner, uint256 avatarID, address to) internal {\\n        if (_players[avatarID].owner != owner) {\\n            revert UsingGameErrors.NotAuthorizedOwner(owner);\\n        }\\n\\n        if (_avatars[avatarID].inGame) {\\n            revert UsingGameErrors.AvatarStillInGame(avatarID);\\n        }\\n\\n        // --------------------------------------------------------------------\\n        // REMOVING FROM LIST\\n        // --------------------------------------------------------------------\\n        uint256[] storage _ownedAvatarsByOwner = _ownedAvatars[owner];\\n        uint256 lastAvatarIndex = _ownedAvatarsByOwner.length - 1;\\n        uint256 avatarIndex = _ownedAvatarsIndex[avatarID];\\n        if (avatarIndex != lastAvatarIndex) {\\n            uint256 lastAvatarId = _ownedAvatarsByOwner[lastAvatarIndex];\\n\\n            _ownedAvatarsByOwner[avatarIndex] = lastAvatarId;\\n            _ownedAvatarsIndex[lastAvatarId] = avatarIndex;\\n        }\\n        delete _ownedAvatarsIndex[avatarID];\\n        _ownedAvatarsByOwner.pop();\\n        // --------------------------------------------------------------------\\n\\n        AVATARS.safeTransferFrom(address(this), to, avatarID);\\n    }\\n\\n    function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {\\n        if (_players[avatarID].controller != controller) {\\n            revert UsingGameErrors.NotAuthorizedController(controller);\\n        }\\n\\n        (uint64 epoch, bool commiting) = _epoch();\\n\\n        if (!commiting) {\\n            revert InRevealPhase();\\n            // we could allow commiting in reveal phase but this act as if commiting next epoch\\n            //  TODO would need to make it explicit on external function\\n            //  by passing an argument for it\\n            // epoch += 1;\\n        }\\n\\n        Commitment storage commitment = _commitments[avatarID];\\n\\n        // TODO reenable\\n        // if (commitment.epoch != 0 && commitment.epoch != epoch) {\\n        //     revert PreviousCommitmentNotRevealed();\\n        // }\\n\\n        commitment.hash = commitmentHash;\\n        commitment.epoch = epoch;\\n\\n        emit CommitmentMade(avatarID, epoch, commitmentHash);\\n    }\\n\\n    function _cancelCommitment(address controller, uint256 avatarID) internal {\\n        if (_players[avatarID].controller != controller) {\\n            revert UsingGameErrors.NotAuthorizedController(controller);\\n        }\\n\\n        (uint64 epoch, bool commiting) = _epoch();\\n        if (!commiting) {\\n            revert InRevealPhase();\\n        }\\n\\n        Commitment storage commitment = _commitments[avatarID];\\n        if (commitment.epoch == 0) {\\n            revert NoCommitmentToCancel();\\n        }\\n\\n        if (commitment.epoch != epoch) {\\n            revert PreviousCommitmentNotRevealed();\\n        }\\n\\n        // Note that we do not reset the hash\\n        // This ensure the slot do not get reset and keep the gas cost consistent across execution\\n        commitment.epoch = 0;\\n\\n        emit CommitmentCancelled(avatarID, epoch);\\n    }\\n\\n    function _reveal(uint256 avatarID, Action[] calldata actions, bytes32 secret) internal {\\n        (uint64 epoch, bool commiting) = _epoch();\\n\\n        console.log(\\\"checking phase...\\\");\\n        if (commiting) {\\n            revert InCommitmentPhase();\\n        }\\n        Commitment storage commitment = _commitments[avatarID];\\n\\n        console.log(\\\"checking commitment...\\\");\\n        if (commitment.epoch == 0) {\\n            revert NothingToReveal();\\n        }\\n\\n        console.log(\\\"checking epoch...\\\");\\n        if (commitment.epoch != epoch) {\\n            revert InvalidEpoch();\\n        }\\n\\n        console.log(\\\"checking hash...\\\");\\n        bytes24 hashRevealed = commitment.hash;\\n        _checkHash(hashRevealed, actions, secret);\\n\\n        console.log(\\\"resolving actions...\\\");\\n\\n        uint64 newPosition = _resolveActions(avatarID, epoch, actions);\\n\\n        console.log(\\\"...done\\\");\\n\\n        emit CommitmentRevealed(avatarID, epoch, PositionUtils.getZone(newPosition), hashRevealed, actions);\\n\\n        commitment.epoch = 0; // used\\n    }\\n\\n    function _acknowledgeMissedReveal(uint256 avatarID) internal {\\n        // TODO burn / stake ....\\n        Commitment storage commitment = _commitments[avatarID];\\n\\n        if (commitment.epoch == 0) {\\n            revert NothingToReveal();\\n        }\\n\\n        (uint64 epoch, ) = _epoch();\\n\\n        if (commitment.epoch == epoch) {\\n            revert CanStillReveal();\\n        }\\n\\n        commitment.epoch = 0;\\n\\n        // TODO block nft control\\n\\n        // here we cannot know whether there were further move or even any moves\\n        // we just burn all tokens in reserve\\n        emit CommitmentVoid(avatarID, epoch);\\n    }\\n\\n    //-------------------------------------------------------------------------\\n\\n    //-------------------------------------------------------------------------\\n    // INTERNALS\\n    //-------------------------------------------------------------------------\\n\\n    function _resolveActions(\\n        uint256 avatarID,\\n        uint64 epoch,\\n        Action[] memory actions\\n    ) internal returns (uint64 newPosition) {\\n        Avatar memory avatar = _avatars[avatarID];\\n        uint64 initialPosition = avatar.position;\\n        (int32 x, int32 y) = PositionUtils.toXY(initialPosition);\\n        uint64 initialZone = PositionUtils.getZone(x, y);\\n        bool left = false;\\n        bool entering = false;\\n        for (uint256 i = 0; i < actions.length; i++) {\\n            Action memory action = actions[i];\\n\\n            // NWSE (North, West, South, East)\\n            if (action.actionType == ActionType.Enter) {\\n                uint64 entryPosition = uint64(action.data);\\n                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(entryPosition);\\n                // TODO check valid entry\\n                x = moveToX;\\n                y = moveToY;\\n                entering = true;\\n                break; // we ignore any more action\\n            } else if (action.actionType == ActionType.Move) {\\n                uint64 movePosition = uint64(action.data);\\n                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(movePosition);\\n                // TODO check valid move\\n                x = moveToX;\\n                y = moveToY;\\n            } else if (action.actionType == ActionType.Exit) {\\n                // TODO use cell action\\n                // for now consider it an Exit\\n                left = true;\\n                break; // We ignore any further actions\\n            }\\n        }\\n\\n        newPosition = PositionUtils.fromXY(x, y);\\n        if (left) {\\n            // Note if we can die, does exiting should still be conditional to not dying\\n            //  extra data needed ?\\n            _avatars[avatarID].inGame = false;\\n            _avatars[avatarID].position = 0;\\n            _removeFromZone(initialZone, avatarID);\\n            emit LeftTheGame(avatarID, epoch, PositionUtils.getZone(x, y), newPosition);\\n        } else if (entering) {\\n            // Note if we can die, enterring should not die upon entering\\n            //  extra data needed\\n            _avatars[avatarID].inGame = true;\\n            _avatars[avatarID].position = newPosition;\\n            uint64 zone = PositionUtils.getZone(newPosition);\\n            _addToZone(zone, avatarID);\\n            emit EnteredTheGame(avatarID, epoch, zone, newPosition);\\n        } else {\\n            uint64 newZone = PositionUtils.getZone(x, y);\\n            if (initialZone != newZone) {\\n                _removeFromZone(initialZone, avatarID);\\n                _addToZone(newZone, avatarID);\\n            }\\n            _avatars[avatarID].position = newPosition;\\n        }\\n    }\\n\\n    function _epoch() internal view virtual returns (uint64 epoch, bool commiting) {\\n        uint256 epochDuration = COMMIT_PHASE_DURATION + REVEAL_PHASE_DURATION;\\n        uint256 time = _timestamp();\\n        if (time < START_TIME) {\\n            revert GameNotStarted();\\n        }\\n        uint256 timePassed = time - START_TIME;\\n        epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1\\n        commiting = timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;\\n    }\\n\\n    function _getResolvedAvatar(uint256 avatarID) internal view returns (AvatarResolved memory) {\\n        Avatar memory avatar = _avatars[avatarID];\\n\\n        return AvatarResolved({position: avatar.position, avatarID: avatarID});\\n    }\\n\\n    function _getAvatarsInZone(\\n        uint64 zone,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {\\n        (epoch, ) = _epoch();\\n        uint256 numAvatarsInZone = _zones[zone].avatars.length;\\n        if (fromIndex < numAvatarsInZone) {\\n            if (fromIndex + limit > numAvatarsInZone) {\\n                limit = uint64(numAvatarsInZone - fromIndex);\\n                more = false;\\n            } else {\\n                more = true;\\n            }\\n            avatars = new AvatarResolved[](limit);\\n            for (uint256 i = 0; i < limit; i++) {\\n                avatars[i] = _getResolvedAvatar(_zones[zone].avatars[fromIndex + i]);\\n            }\\n        }\\n    }\\n\\n    function _getAvatarsInMultipleZones(\\n        uint64[] calldata zones,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {\\n        (epoch, ) = _epoch();\\n        // Create a struct to hold our working variables\\n        AvatarFetchState memory state = _initAvatarFetchState(zones, fromIndex);\\n\\n        // If we have avatars to return\\n        if (fromIndex < state.totalAvatars) {\\n            // Adjust limit if needed\\n            if (fromIndex + limit > state.totalAvatars) {\\n                limit = uint64(state.totalAvatars - fromIndex);\\n                more = false;\\n            } else {\\n                more = true;\\n            }\\n\\n            avatars = new AvatarResolved[](limit);\\n\\n            // Fill the result array by traversing zones\\n            _fillAvatarResults(zones, fromIndex, limit, state, avatars);\\n        } else {\\n            // No avatars to return\\n            avatars = new AvatarResolved[](0);\\n            more = false;\\n        }\\n\\n        return (avatars, more, epoch);\\n    }\\n\\n    // Helper struct to reduce stack variables\\n    struct AvatarFetchState {\\n        uint256 totalAvatars;\\n        uint64[] zoneEndIndices;\\n        uint256 currentZone;\\n        uint64 zoneOffset;\\n    }\\n\\n    function _initAvatarFetchState(\\n        uint64[] calldata zones,\\n        uint64 fromIndex\\n    ) private view returns (AvatarFetchState memory state) {\\n        state.zoneEndIndices = new uint64[](zones.length);\\n        uint256 runningTotal = 0;\\n\\n        // Calculate total avatars and track zone boundaries\\n        for (uint256 i = 0; i < zones.length; i++) {\\n            uint256 numAvatars = _zones[zones[i]].avatars.length;\\n            runningTotal += numAvatars;\\n            state.zoneEndIndices[i] = uint64(runningTotal);\\n\\n            // Determine which zone contains our fromIndex\\n            if (fromIndex < runningTotal && (i == 0 || fromIndex >= state.zoneEndIndices[i - 1])) {\\n                state.currentZone = i;\\n                state.zoneOffset = i > 0 ? state.zoneEndIndices[i - 1] : 0;\\n            }\\n        }\\n\\n        state.totalAvatars = runningTotal;\\n        return state;\\n    }\\n\\n    function _fillAvatarResults(\\n        uint64[] calldata zones,\\n        uint64 fromIndex,\\n        uint64 limit,\\n        AvatarFetchState memory state,\\n        AvatarResolved[] memory avatars\\n    ) private view {\\n        uint64 avatarsReturned = 0;\\n        uint64 currentFromIndex = fromIndex;\\n        uint256 currentZone = state.currentZone;\\n        uint64 zoneOffset = state.zoneOffset;\\n\\n        while (avatarsReturned < limit && currentZone < zones.length) {\\n            uint64 inZoneIndex = currentFromIndex - zoneOffset;\\n            uint64 zonesAvatarCount = uint64(_zones[zones[currentZone]].avatars.length);\\n\\n            // Calculate how many avatars we can take from current zone\\n            uint64 toTake = limit - avatarsReturned;\\n            if (inZoneIndex + toTake > zonesAvatarCount) {\\n                toTake = zonesAvatarCount - inZoneIndex;\\n            }\\n\\n            // Add avatars from current zone\\n            for (uint64 i = 0; i < toTake; i++) {\\n                uint64 zoneId = zones[currentZone];\\n                uint256 avatarId = _zones[zoneId].avatars[inZoneIndex + i];\\n                avatars[avatarsReturned + i] = _getResolvedAvatar(avatarId);\\n            }\\n\\n            avatarsReturned += toTake;\\n            currentFromIndex += toTake;\\n\\n            // Move to next zone\\n            if (avatarsReturned < limit) {\\n                currentZone++;\\n                if (currentZone < zones.length) {\\n                    zoneOffset = state.zoneEndIndices[currentZone - 1];\\n                }\\n            }\\n        }\\n    }\\n\\n    function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {\\n        // TODO remove\\n        if (commitmentHash == bytes24(0)) {\\n            return;\\n        }\\n        bytes24 computedHash = bytes24(keccak256(abi.encode(secret, actions)));\\n        if (commitmentHash != computedHash) {\\n            revert CommitmentHashNotMatching();\\n        }\\n    }\\n\\n    function _removeFromZone(uint64 zone, uint256 avatarID) internal {\\n        uint256 numAvatarsInZone = _zones[zone].avatars.length;\\n        if (numAvatarsInZone == 1) {\\n            _zones[zone].avatars.pop();\\n        } else {\\n            uint64 index = _avatars[avatarID].zoneIndex;\\n            if (index == numAvatarsInZone - 1) {\\n                _zones[zone].avatars.pop();\\n            } else {\\n                uint256 lastAvatarID = _zones[zone].avatars[numAvatarsInZone - 1];\\n                _avatars[lastAvatarID].zoneIndex = index;\\n                _zones[zone].avatars[index] = lastAvatarID;\\n                _zones[zone].avatars.pop();\\n            }\\n        }\\n    }\\n\\n    function _addToZone(uint64 zone, uint256 avatarID) internal {\\n        _avatars[avatarID].zoneIndex = uint64(_zones[zone].avatars.length);\\n        _zones[zone].avatars.push(avatarID);\\n    }\\n\\n    function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {\\n        (int32 x1, int32 y1) = PositionUtils.toXY(from);\\n        (int32 x2, int32 y2) = PositionUtils.toXY(to);\\n\\n        if (x1 == x2 && y1 == y2 + 1) {\\n            return true;\\n        }\\n        if (x1 == x2 && y1 == y2 - 1) {\\n            return true;\\n        }\\n        if (x1 == x2 + 1 && y1 == y2) {\\n            return true;\\n        }\\n        if (x1 == x2 - 1 && y1 == y2) {\\n            return true;\\n        }\\n        return false;\\n    }\\n    //-------------------------------------------------------------------------\\n}\\n\",\"keccak256\":\"0x2da3874fb67e9513015260e42567adedafb69ff4796313f170c54d91e72dc2e2\",\"license\":\"AGPL-3.0\"},\"project/src/game/internal/UsingGameStore.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"../interfaces/UsingGameTypes.sol\\\";\\nimport \\\"./UsingVirtualTime.sol\\\";\\n\\nabstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {\\n    /// @notice the timestamp (in seconds) at which the game start, it start in the commit phase\\n    uint256 internal immutable START_TIME;\\n    /// @notice the duration of the commit phase in seconds\\n    uint256 internal immutable COMMIT_PHASE_DURATION;\\n    /// @notice the duration of the reveal phase in seconds\\n    uint256 internal immutable REVEAL_PHASE_DURATION;\\n    /// @notice the avatars NFT collection\\n    IERC721 internal immutable AVATARS;\\n\\n    /// @notice the number of moves a hash represent, after that players make use of furtherMoves\\n    uint8 internal constant MAX_NUM_MOVES_PER_HASH = 32;\\n\\n    mapping(uint256 => Player) internal _players;\\n    mapping(uint256 => Avatar) internal _avatars;\\n\\n    // allow to get all avatars per owner in the game\\n    mapping(address owner => uint256[]) internal _ownedAvatars;\\n    mapping(uint256 avatarID => uint256) internal _ownedAvatarsIndex;\\n\\n    mapping(uint256 => Commitment) internal _commitments;\\n    mapping(uint64 => Zone) internal _zones;\\n\\n    /// @notice Create an instance of a game\\n    /// @param config configuration options for the game\\n    constructor(Config memory config) UsingVirtualTime(config.time) {\\n        START_TIME = config.startTime;\\n        COMMIT_PHASE_DURATION = config.commitPhaseDuration;\\n        REVEAL_PHASE_DURATION = config.revealPhaseDuration;\\n        AVATARS = config.avatars;\\n    }\\n}\\n\",\"keccak256\":\"0x435679ebd57048f53b119f6ebf2468220ff9c1325106cab4fb2bf253164ce935\",\"license\":\"MIT\"},\"project/src/game/internal/UsingVirtualTime.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nimport \\\"solidity-kit/solc_0_8/debug/time/interfaces/ITime.sol\\\";\\n\\nabstract contract UsingVirtualTime {\\n    ITime immutable TIME;\\n\\n    constructor(ITime time) {\\n        TIME = time;\\n    }\\n\\n    function _timestamp() internal view returns (uint256) {\\n        if (address(TIME) == address(0)) {\\n            return block.timestamp;\\n        }\\n        return TIME.timestamp();\\n    }\\n}\\n\",\"keccak256\":\"0x816c9ba8c92cc56e3a0fc99a59c458407e18da8942e59a761b10e89b50378c8b\",\"license\":\"AGPL-3.0\"},\"project/src/game/routes/GameGetters.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"../internal/UsingGameInternal.sol\\\";\\nimport \\\"../interfaces/IGame.sol\\\";\\n\\ncontract GameGetters is IGameGetters, UsingGameInternal {\\n    constructor(Config memory config) UsingGameInternal(config) {}\\n\\n    function getAvatarsInZone(\\n        uint64 zone,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {\\n        return _getAvatarsInZone(zone, fromIndex, limit);\\n    }\\n\\n    function getAvatarsInMultipleZones(\\n        uint64[] calldata zones,\\n        uint64 fromIndex,\\n        uint64 limit\\n    ) external view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {\\n        return _getAvatarsInMultipleZones(zones, fromIndex, limit);\\n    }\\n\\n    function getAvatar(uint256 avatarID) external view returns (AvatarResolved memory) {\\n        return _getResolvedAvatar(avatarID);\\n    }\\n\\n    function getCommitment(uint256 avatarID) external view returns (Commitment memory commitment) {\\n        return _commitments[avatarID];\\n    }\\n\\n    function getConfig() external view returns (Config memory config) {\\n        return\\n            Config({\\n                startTime: START_TIME,\\n                commitPhaseDuration: COMMIT_PHASE_DURATION,\\n                revealPhaseDuration: REVEAL_PHASE_DURATION,\\n                avatars: AVATARS,\\n                time: TIME\\n            });\\n    }\\n}\\n\",\"keccak256\":\"0x26e91e410684fe7c63a025680995984d8a2f56df69d6e3bf32b5883e7a7f6838\",\"license\":\"MIT\"},\"project/src/utils/PositionUtils.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity ^0.8.0;\\n\\nlibrary PositionUtils {\\n    function toXY(uint64 position) internal pure returns (int32 x, int32 y) {\\n        x = int32(uint32(position) & 0xFFFFFFFF);\\n        y = int32(uint32(position >> 32));\\n    }\\n\\n    function fromXY(int32 x, int32 y) internal pure returns (uint64 position) {\\n        position = (uint64(uint32(y)) << 32) + uint64(uint32(x));\\n    }\\n\\n    function offset(uint64 position, int32 x, int32 y) internal pure returns (uint64 newPosition) {\\n        x = int32(uint32(position) & 0xFFFFFFFF) + x;\\n        y = int32(uint32(position >> 32)) + y;\\n        newPosition = (uint64(uint32(y)) << 32) + uint64(uint32(x));\\n    }\\n\\n    int32 constant ZONE_SIZE = 16;\\n    int32 constant ZONE_OFFSET = 8;\\n\\n    function zoneCoord(int32 a) internal pure returns (int32 b) {\\n        if (a >= 0) {\\n            b = (a + ZONE_OFFSET) / ZONE_SIZE;\\n        } else {\\n            b = -((-a + ZONE_OFFSET) / ZONE_SIZE);\\n        }\\n    }\\n\\n    function zoneCoords(int32 x, int32 y) internal pure returns (int32 zoneX, int32 zoneY) {\\n        zoneX = zoneCoord(x);\\n        zoneY = zoneCoord(y);\\n    }\\n\\n    function getZone(uint64 position) internal pure returns (uint64 zone) {\\n        (int32 x, int32 y) = toXY(position);\\n        (int32 zoneX, int32 zoneY) = zoneCoords(x, y);\\n        zone = (uint64(uint32(zoneY)) << 32) + uint64(uint32(zoneX));\\n    }\\n\\n    function getZone(int32 x, int32 y) internal pure returns (uint64 zone) {\\n        (int32 zoneX, int32 zoneY) = zoneCoords(x, y);\\n        zone = (uint64(uint32(zoneY)) << 32) + uint64(uint32(zoneX));\\n    }\\n}\\n\",\"keccak256\":\"0x28c8e710ca62c3de9db1998872f619188ddc3767002ec3fbea9c226ec3f49099\",\"license\":\"AGPL-3.0\"}},\"version\":1}",
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 10193,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_players",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_uint256,t_struct(Player)8614_storage)"
+      },
+      {
+        "astId": 10198,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_avatars",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_uint256,t_struct(Avatar)8621_storage)"
+      },
+      {
+        "astId": 10203,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_ownedAvatars",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)"
+      },
+      {
+        "astId": 10207,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_ownedAvatarsIndex",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 10212,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_commitments",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_uint256,t_struct(Commitment)8630_storage)"
+      },
+      {
+        "astId": 10217,
+        "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+        "label": "_zones",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_uint64,t_struct(Zone)8625_storage)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_uint256)dyn_storage": {
+        "base": "t_uint256",
+        "encoding": "dynamic_array",
+        "label": "uint256[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes24": {
+        "encoding": "inplace",
+        "label": "bytes24",
+        "numberOfBytes": "24"
+      },
+      "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256[])",
+        "numberOfBytes": "32",
+        "value": "t_array(t_uint256)dyn_storage"
+      },
+      "t_mapping(t_uint256,t_struct(Avatar)8621_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct UsingGameTypes.Avatar)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Avatar)8621_storage"
+      },
+      "t_mapping(t_uint256,t_struct(Commitment)8630_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct UsingGameTypes.Commitment)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Commitment)8630_storage"
+      },
+      "t_mapping(t_uint256,t_struct(Player)8614_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct UsingGameTypes.Player)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Player)8614_storage"
+      },
+      "t_mapping(t_uint256,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint64,t_struct(Zone)8625_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint64",
+        "label": "mapping(uint64 => struct UsingGameTypes.Zone)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Zone)8625_storage"
+      },
+      "t_struct(Avatar)8621_storage": {
+        "encoding": "inplace",
+        "label": "struct UsingGameTypes.Avatar",
+        "members": [
+          {
+            "astId": 8616,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "inGame",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool"
+          },
+          {
+            "astId": 8618,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "position",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_uint64"
+          },
+          {
+            "astId": 8620,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "zoneIndex",
+            "offset": 9,
+            "slot": "0",
+            "type": "t_uint64"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_struct(Commitment)8630_storage": {
+        "encoding": "inplace",
+        "label": "struct UsingGameTypes.Commitment",
+        "members": [
+          {
+            "astId": 8627,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "hash",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bytes24"
+          },
+          {
+            "astId": 8629,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "epoch",
+            "offset": 24,
+            "slot": "0",
+            "type": "t_uint64"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_struct(Player)8614_storage": {
+        "encoding": "inplace",
+        "label": "struct UsingGameTypes.Player",
+        "members": [
+          {
+            "astId": 8611,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "owner",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 8613,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "controller",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(Zone)8625_storage": {
+        "encoding": "inplace",
+        "label": "struct UsingGameTypes.Zone",
+        "members": [
+          {
+            "astId": 8624,
+            "contract": "project/src/game/routes/GameGetters.sol:GameGetters",
+            "label": "avatars",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_uint256)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint64": {
+        "encoding": "inplace",
+        "label": "uint64",
+        "numberOfBytes": "8"
+      }
+    }
+  },
+  "userdoc": {
+    "errors": {
+      "AvatarAlreadyInGame(uint256)": [
+        {
+          "notice": "happen when attempting to enter an avatar already in the game"
+        }
+      ],
+      "AvatarIsDead(uint256)": [
+        {
+          "notice": "Player have to reveal if they can"
+        }
+      ],
+      "AvatarNotAvailable(uint256)": [
+        {
+          "notice": "happen when attempting to move an avatar not in the game"
+        }
+      ],
+      "AvatarNotInGame(uint256)": [
+        {
+          "notice": "happen when attempting to move an avatar not in the game"
+        }
+      ],
+      "AvatarNotReady(uint256)": [
+        {
+          "notice": "happen when attempting to move an avatar that just entered the game. \\  It needs to wait the next epoch"
+        }
+      ],
+      "AvatarStillInGame(uint256)": [
+        {
+          "notice": "happen when attempting to extract an avatar still in the game"
+        }
+      ],
+      "CanStillReveal()": [
+        {
+          "notice": "Player have to reveal if they can prevent player from acknowledging missed reveal if there is still time to reveal."
+        }
+      ],
+      "CommitmentHashNotMatching()": [
+        {
+          "notice": "Player have to reveal their commitment using the exact same move values  If they provide different value, the commitment hash will differ and Game will reject their reveal."
+        }
+      ],
+      "GameNotStarted()": [
+        {
+          "notice": "Game has not started yet, can't perform any action"
+        }
+      ],
+      "ImpossibleConfiguration()": [
+        {
+          "notice": "The cell configuration is invalid This can happen win debug mode where admin can setup cell bypassing moves rules For example when setting up neighborood configuration that would require a cell to have negative life"
+        }
+      ],
+      "InCommitmentPhase()": [
+        {
+          "notice": "When in Commit phase, player can make new commitment but they cannot reveal their move yet."
+        }
+      ],
+      "InRevealPhase()": [
+        {
+          "notice": "When in Reveal phase, it is not possible to commit new moves or cancel previous commitment  During Reveal phase, players have to reveal their commitment, if not already done."
+        }
+      ],
+      "InvalidData()": [
+        {
+          "notice": "happen when transfering an avatar with invalid data"
+        }
+      ],
+      "InvalidEpoch()": [
+        {
+          "notice": "Player can only reveal their move in the same epoch they commited.abi  If a player reveal later it can only do to minimize the reserve burn cost by calling : `acknowledgeMissedReveal`"
+        }
+      ],
+      "NoCommitmentToCancel()": [
+        {
+          "notice": "There is no commitment registered, cannot cancel."
+        }
+      ],
+      "NotAuthorizedController(address)": [
+        {
+          "notice": "happen when an unauthorized account attempt to control an avatar"
+        }
+      ],
+      "NotAuthorizedOwner(address)": [
+        {
+          "notice": "happen when an unauthorized account attempt to withdraw an avatar"
+        }
+      ],
+      "NothingToReveal()": [
+        {
+          "notice": "Player can only reveal moves they commited."
+        }
+      ],
+      "PreviousCommitmentNotRevealed()": [
+        {
+          "notice": "Previous commitment need to be revealed before making a new one. Even if the corresponding reveal phase has passed.\\  It is also not possible to withdraw any amount from reserve until the commitment is revealed.\\If player lost the information to reveal, it can acknowledge failure which will burn all its reserve.\\"
+        }
+      ],
+      "UnableToExitFromThisPosition(uint64)": [
+        {
+          "notice": "happen when attempting to leave the game from a non-exit position"
+        }
+      ]
+    },
+    "events": {
+      "AvatarDeposited(uint256,address,address)": {
+        "notice": "An avatar has been deposited, ready to enter"
+      },
+      "AvatarWithdrawn(uint256)": {
+        "notice": "A avatar has been withdrawn"
+      },
+      "CommitmentCancelled(uint256,uint64)": {
+        "notice": "A player has cancelled its current commitment (before it reached the reveal phase)"
+      },
+      "CommitmentMade(uint256,uint64,bytes24)": {
+        "notice": "A player has commited to make a move and reveal it on the reveal phase"
+      },
+      "CommitmentRevealed(uint256,uint64,uint64,bytes24,(uint8,uint128)[])": {
+        "notice": "Player has revealed its previous commitment"
+      },
+      "CommitmentVoid(uint256,uint64)": {
+        "notice": "A player has acknowledged its failure to reveal its previous commitment"
+      },
+      "EnteredTheGame(uint256,uint64,uint64,uint64)": {
+        "notice": "A avatar has entered the game"
+      },
+      "LeftTheGame(uint256,uint64,uint64,uint64)": {
+        "notice": "An avatar has left the game"
+      }
+    },
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "argsData": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ad994dedaab665ce5aad2a333253e30708087149",
+  "transaction": {
+    "hash": "0x7a8b0ae682655af1b4e8192ba64d6838f245067a3b5c16e92c458347c6c11149",
+    "origin": "0x61c461ecc993aadeb7e4b47e96d1b8cc37314b20"
+  },
+  "receipt": {
+    "blockHash": "0xb38f45b22e9b78f85778d9b5d435574758e5a81eef59a650cf5e5c471fc24579",
+    "blockNumber": "0xa9c028d",
+    "transactionIndex": "0x0"
+  }
+}
