@@ -1,5 +1,4 @@
 import {deployScript, artifacts} from '#rocketh';
-import {parseEther} from 'viem';
 
 export default deployScript(
 	async ({get, deployViaProxy, namedAccounts, data}) => {
