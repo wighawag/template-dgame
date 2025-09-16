@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.4.0",
-    "ldenv": "^0.3.13",
+    "ldenv": "^0.3.14",
     "set-defaults": "^0.0.5",
     "tsx": "^4.20.5",
     "wait-on": "^8.0.5"

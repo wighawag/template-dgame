@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       ldenv:
-        specifier: ^0.3.13
-        version: 0.3.13
+        specifier: ^0.3.14
+        version: 0.3.14
       set-defaults:
         specifier: ^0.0.5
         version: 0.0.5
@@ -85,8 +85,8 @@ importers:
         specifier: ^2.0.0-next.45
         version: 2.0.0-next.45(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.14.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5))
       ldenv:
-        specifier: ^0.3.13
-        version: 0.3.13
+        specifier: ^0.3.14
+        version: 0.3.14
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -137,8 +137,8 @@ importers:
         specifier: ^24.4.0
         version: 24.4.0
       ldenv:
-        specifier: ^0.3.13
-        version: 0.3.13
+        specifier: ^0.3.14
+        version: 0.3.14
       set-defaults:
         specifier: ^0.0.5
         version: 0.0.5
@@ -152,8 +152,8 @@ importers:
   services/missiv:
     devDependencies:
       ldenv:
-        specifier: ^0.3.13
-        version: 0.3.13
+        specifier: ^0.3.14
+        version: 0.3.14
       missiv-server:
         specifier: ^0.3.2
         version: 0.3.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)
@@ -173,8 +173,8 @@ importers:
   services/push-notification:
     devDependencies:
       ldenv:
-        specifier: ^0.3.13
-        version: 0.3.13
+        specifier: ^0.3.14
+        version: 0.3.14
       push-notification-service-server:
         specifier: ^0.0.3
         version: 0.0.3(typia@7.6.4(@samchon/openapi@2.5.3)(@types/node@24.5.0)(typescript@5.9.2))
@@ -2868,8 +2868,8 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  ldenv@0.3.13:
-    resolution: {integrity: sha512-LQ08yeyTxoNcpyHWHvbqI+VQTa/ycVjFA5pqI+afpyjc0+nRcY7ItXcCVO/BIb/Uu1vpfQ/UG0bVY11PewR3sg==}
+  ldenv@0.3.14:
+    resolution: {integrity: sha512-o/Rjhpy/AZm6Noeoup4rMZRznHFcP0+qRaP+GWeZiiy2kA7U7JHYwrJh1pu8r6W+oPDSL0RopDeQPZawJ3NzLA==}
     hasBin: true
 
   lightningcss-darwin-arm64@1.30.1:
@@ -5071,7 +5071,7 @@ snapshots:
       chalk: 5.6.2
       commander: 13.1.0
       fs-extra: 11.3.2
-      ldenv: 0.3.13
+      ldenv: 0.3.14
       neoqs: 6.13.0
       rocketh: 0.14.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.5)
 
@@ -5798,7 +5798,7 @@ snapshots:
   as-soon@0.0.11:
     dependencies:
       '@parcel/watcher': 2.5.1
-      ldenv: 0.3.13
+      ldenv: 0.3.14
       lodash: 4.17.21
       lodash-es: 4.17.21
 
@@ -6593,7 +6593,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  ldenv@0.3.13:
+  ldenv@0.3.14:
     dependencies:
       dotenv: 16.6.1
       dotenv-expand: 10.0.0
@@ -7221,7 +7221,7 @@ snapshots:
       eip-1193-jsonrpc-provider: 0.4.3
       ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       figlet: 1.9.2
-      ldenv: 0.3.13
+      ldenv: 0.3.14
       named-logs: 0.3.2
       named-logs-console: 0.3.1
       prompts: 2.4.2
