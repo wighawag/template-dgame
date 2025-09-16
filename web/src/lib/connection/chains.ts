@@ -6,12 +6,20 @@ export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasP
 		expectedWorstGasPrice: parseEther('1', 'gwei') // TODO use same value from hardhat config
 	},
 	6342: {
+		// mega-eth testnet
 		blockTime: 1,
 		expectedWorstGasPrice: parseEther('0.003', 'gwei')
 	},
 	50312: {
+		// somnia testnet
 		blockTime: 1,
 		expectedWorstGasPrice: parseEther('10', 'gwei')
+	},
+	11142220: {
+		// celo sepolia testnet
+		blockTime: 1,
+		// expectedWorstGasPrice: parseEther('25', 'gwei')
+		expectedWorstGasPrice: parseEther('1', 'gwei') // show zero fee on many tx on etherscan
 	}
 };
 

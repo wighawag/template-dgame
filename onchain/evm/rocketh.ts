@@ -34,6 +34,9 @@ export const config = {
 			somniatestnet: {
 				price: parseEther('0.00000001'),
 			},
+			celosepolia: {
+				price: parseEther('0.00000001'),
+			},
 			default: {
 				price: parseEther('0.01'),
 			},
