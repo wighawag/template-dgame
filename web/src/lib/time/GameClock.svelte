@@ -90,4 +90,10 @@
 			var(--background, yellow) calc(var(--percentage, 33) * 1%) 100%
 		);
 	}
+	progress::-moz-progress-bar {
+		background: conic-gradient(
+			var(--color, red) 0% calc(var(--percentage, 33) * 1%),
+			var(--background, yellow) calc(var(--percentage, 33) * 1%) 100%
+		);
+	}
 </style>

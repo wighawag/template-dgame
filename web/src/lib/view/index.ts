@@ -14,6 +14,7 @@ export type ViewEntity = AvatarViewEntity;
 export type ViewState = {
 	avatarID?: string;
 	entities: { [id: string]: ViewEntity };
+	epoch: number;
 };
 
 export const onchainState = createDirectReadStore(camera);
@@ -59,7 +60,8 @@ export const viewState = derived(
 
 		return {
 			avatarID,
-			entities
+			entities,
+			epoch: $onchainState.epoch
 		};
 	}
 );
