@@ -18,11 +18,8 @@ export function createAutoSubmitter() {
 
 			const $epochInfo = epochInfo.fromTime($time.value);
 			if ($epochInfo.isCommitPhase) {
-				if ($epochInfo.timeLeftForCommitEnd < timeConfig.COMMIT_TIME_ALLOWANCE) {
-					if (
-						!localData.avatar.submission ||
-						localData.avatar.submission.commit.epoch < $epochInfo.currentEpoch
-					) {
+				if ($epochInfo.timeLeftForCommitEnd < timeConfig.COMMIT_TIME_ALLOWANCE + 0.1) {
+					if (!localData.avatar.submission && localData.avatar.epoch == $epochInfo.currentEpoch) {
 						localState.commit();
 					} else {
 						// already submitted

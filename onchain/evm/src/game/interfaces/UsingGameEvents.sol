@@ -61,4 +61,7 @@ interface UsingGameEvents is UsingGameTypes {
         bytes24 commitmentHash,
         Action[] actions
     );
+
+    // DEBUG
+    event PreviousCommitmentNotRevealedEvent(uint256 indexed avatarID, uint64 epoch, bytes24 commitmentHash);
 }

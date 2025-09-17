@@ -45,6 +45,10 @@ function defaultState() {
 }
 const $state: LocalState = defaultState();
 
+function LOCAL_STORAGE_STATE_KEY(signerAddress: `0x${string}`) {
+	return `__private__${contracts.chainId}_${contracts.contracts.Game.address}_${signerAddress}`;
+}
+
 export function createLocalState(signer: Readable<OptionalSigner>) {
 	const _localState = writable<LocalState>($state, start);
 
@@ -58,7 +62,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 		if ($state.signer) {
 			try {
-				localStorage.setItem(`__private__${$state.signer.owner}`, JSON.stringify($state));
+				localStorage.setItem(LOCAL_STORAGE_STATE_KEY($state.signer.owner), JSON.stringify($state));
 			} catch (err) {
 				console.error(`failed to write to local storage`, err);
 			}
@@ -72,7 +76,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			if ($signer?.owner !== $state.signer?.owner) {
 				if ($signer) {
 					try {
-						const fromStorageStr = localStorage.getItem(`__private__${$signer.owner}`);
+						const fromStorageStr = localStorage.getItem(LOCAL_STORAGE_STATE_KEY($signer.owner));
 						if (fromStorageStr) {
 							const fromStorage = JSON.parse(fromStorageStr);
 							set(fromStorage);
@@ -89,6 +93,24 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 		});
 		return unsubscribeFromOptionalSigner;
 	}
+
+	function updateLocalState(epoch: number) {
+		if (!$state.signer) {
+			return;
+		}
+		if (!$state.avatar) {
+			return;
+		}
+		if (epoch != $state.avatar.epoch) {
+			$state.avatar = {
+				avatarID: $state.avatar.avatarID,
+				actions: [],
+				epoch,
+				submission: undefined
+			};
+		}
+	}
+
 	let commiting = false;
 	let revealing = false;
 	return {
@@ -97,20 +119,14 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 		},
 		subscribe: _localState.subscribe,
 		addAction(epoch: number, action: LocalAction) {
+			updateLocalState(epoch);
+
 			if (!$state.signer) {
 				throw new Error(`no signer`);
 			}
 
 			if (!$state.avatar) {
 				throw new Error(`no avatar`);
-			}
-
-			if (epoch != $state.avatar.epoch) {
-				$state.avatar = {
-					avatarID: $state.avatar.avatarID,
-					actions: [],
-					epoch
-				};
 			}
 
 			if ($state.avatar.submission) {
@@ -125,17 +141,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			set($state);
 		},
 		enter(avatarID: bigint, epoch: number, position: Position) {
+			updateLocalState(epoch);
 			if (!$state.signer) {
 				throw new Error(`no signer`);
 			}
 
-			if ($state.avatar) {
-				// TODO
-				// if ($state.avatar.actions[0].type === 'enter') {
-				// 	$state.avatar = undefined;
-				// } else {
+			if ($state.avatar && $state.avatar.avatarID != avatarID.toString()) {
 				throw new Error(`got an avatar already`);
-				// }
 			}
 
 			const actions: LocalAction[] = [{ type: 'enter', x: position.x, y: position.y }];
@@ -148,61 +160,6 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			set($state);
 		},
-
-		// async enter(avatarID: bigint, entrance: Position) {
-		// 	if (!$state.signer) {
-		// 		throw new Error(`no signer`);
-		// 	}
-
-		// 	const $epochInfo = epochInfo.now();
-		// 	const { currentEpoch: epoch } = $epochInfo;
-
-		// 	if ($state.avatar) {
-		// 		throw new Error(`you got already one avatar in`);
-		// 	}
-
-		// 	console.log(`enterring for epoch ${epoch}...`);
-
-		// 	let transactonHash: `0x${string}` | undefined;
-		// 	try {
-		// 		commiting = true;
-		// 		const account = privateKeyToAccount($state.signer.privateKey);
-		// 		const secretSig = await account.signMessage({
-		// 			message: `Commit:${contracts.chainId}:${contracts.contracts.Game.address}:${epoch}`
-		// 		});
-		// 		const secret = keccak256(secretSig);
-		// 		const actions: LocalAction[] = [
-		// 			{
-		// 				type: 'enter',
-		// 				x: entrance.x,
-		// 				y: entrance.y
-		// 			}
-		// 		];
-		// 		const { transactionID, wait } = await writes.commit_actions(avatarID, secret, actions);
-		// 		transactonHash = transactionID;
-		// 		commiting = false;
-		// 		$state.avatar = {
-		// 			actions,
-		// 			avatarID: avatarID.toString(),
-		// 			epoch,
-		// 			submission: {
-		// 				commit: {
-		// 					epoch,
-		// 					secret,
-		// 					txHash: transactionID
-		// 				}
-		// 			}
-		// 		};
-		// 		set($state);
-
-		// 		await wait();
-		// 	} catch (err) {
-		// 		console.error(err);
-		// 		commiting = false;
-		// 	}
-
-		// 	return transactonHash;
-		// },
 
 		async commit() {
 			if (commiting) {
@@ -221,24 +178,16 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
 
-			if (epoch != $state.avatar.epoch) {
-				$state.avatar.actions = [];
-				$state.avatar.epoch = epoch;
-				set($state);
-				throw new Error(`too late`);
+			updateLocalState(epoch);
+
+			if ($state.avatar.actions.length == 0) {
+				return;
 			}
 
 			console.log(`commiting for epoch ${epoch}...`);
 
 			try {
 				commiting = true;
-
-				// const block = await time.fetchBlockTime();
-				// const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
-
-				// if (!epochAccordingToBlockTime.isCommitPhase) {
-				// 	throw new Error(`time is not valid`);
-				// }
 
 				const actions = [...$state.avatar.actions];
 
@@ -288,10 +237,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`no avatar`);
 			}
 
-			if (epoch != $state.avatar.epoch) {
-				$state.avatar.actions = [];
-				$state.avatar.epoch = epoch;
-			}
+			updateLocalState(epoch);
 
 			if ($state.avatar.actions.length > 0) {
 				if ($state.avatar.actions[$state.avatar.actions.length - 1].type !== 'enter') {
@@ -318,16 +264,15 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
 
-			if (epoch != $state.avatar.epoch) {
-				$state.avatar.actions = [];
-				$state.avatar.epoch = epoch;
-				set($state);
-				throw new Error(`too late`);
+			updateLocalState(epoch);
+
+			if (!$state.avatar.submission) {
+				return;
 			}
 
 			console.log(`revealing for epoch ${epoch}...`);
 
-			const commitment = $state.avatar.submission?.commit;
+			const commitment = $state.avatar.submission.commit;
 			if (!commitment) {
 				throw new Error(`cannot reveal without commitment info`);
 			}

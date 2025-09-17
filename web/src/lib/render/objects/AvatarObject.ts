@@ -97,8 +97,12 @@ export class AvatarObject extends GameObject {
 				y: 10 * entity.position.y
 			};
 
-			if (entity.path.length > 0 && (!this.epochAnim || this.epochAnim.epoch !== epoch)) {
-				const duration = 0.2;
+			if (
+				entity.path.length > 0 &&
+				!(this.position.x == destination.x && this.position.y == destination.y) &&
+				(!this.epochAnim || this.epochAnim.epoch !== epoch)
+			) {
+				const duration = entity.path.length > 10 ? 1.2 / entity.path.length : 0.1;
 				const tl = gsap.timeline();
 				for (const p of entity.path) {
 					tl.to(this.position, { x: 10 * p.x, y: 10 * p.y, duration });

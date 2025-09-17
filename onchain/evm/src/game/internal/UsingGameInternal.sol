@@ -60,18 +60,16 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         if (!commiting) {
             revert InRevealPhase();
-            // we could allow commiting in reveal phase but this act as if commiting next epoch
-            //  TODO would need to make it explicit on external function
-            //  by passing an argument for it
-            // epoch += 1;
         }
 
         Commitment storage commitment = _commitments[avatarID];
 
-        // TODO reenable
-        // if (commitment.epoch != 0 && commitment.epoch != epoch) {
-        //     revert PreviousCommitmentNotRevealed();
-        // }
+        if (commitment.epoch != 0 && commitment.epoch != epoch) {
+            // TODO reenable
+            // revert PreviousCommitmentNotRevealed();
+            // TODO delete
+            emit PreviousCommitmentNotRevealedEvent(avatarID, commitment.epoch, commitmentHash);
+        }
 
         commitment.hash = commitmentHash;
         commitment.epoch = epoch;
