@@ -1045,8 +1045,8 @@
     "origin": "0x61c461ecc993aadeb7e4b47e96d1b8cc37314b20"
   },
   "receipt": {
-    "blockHash": "0x15bd8a6a0bbf1f585fb60a966c5437f9209b1232e2b65a88de2f3a80a6533563",
-    "blockNumber": "0x7d10ec",
+    "blockHash": "0x7c95ed6244b8ec3710e3c61200d9e497037652f6501d5fb8301b3a92af63e8b6",
+    "blockNumber": "0x7d112a",
     "transactionIndex": "0x1"
   },
   "immutableReferences": {
@@ -1186,8 +1186,8 @@
   "inputSourceName": "project/solc_0_8/router/Router10X60.sol",
   "linkedData": {
     "startTime": "0",
-    "commitPhaseDuration": "35",
-    "revealPhaseDuration": "10",
+    "commitPhaseDuration": "40",
+    "revealPhaseDuration": "15",
     "time": "0x0000000000000000000000000000000000000000",
     "avatars": "0xad994dedaab665ce5aad2a333253e30708087149"
   }
