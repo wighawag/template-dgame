@@ -38,6 +38,43 @@ export function createTime() {
 		}
 	}
 
+	async function fetchBlockTime(): Promise<{ blockNumber: number; blockTime: number }> {
+		const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
+			'latest',
+			false as true // TODO fix eip-1193 Methods
+		]);
+		if (blockResponse.success && blockResponse.value) {
+			const lastBlockTime = Number(blockResponse.value.timestamp);
+
+			const block = { blockNumber: Number(blockResponse.value.number), blockTime: lastBlockTime };
+			if (lastBlockTime < now()) {
+				updateTimeFromBlock(performance.now(), block);
+			}
+
+			return block;
+		} else {
+			throw new Error(`could not fetch latest block`);
+		}
+	}
+
+	function updateTimeFromBlock(
+		fetchTime: number,
+		block: { blockTime: number; blockNumber: number }
+	) {
+		last_time = block.blockTime;
+		last_fetch_time = fetchTime;
+
+		const now = performance.now();
+		const timePassed = now - last_fetch_time;
+		set({
+			value: last_time + timePassed / 1000,
+			lastSync: {
+				timestampMS: last_fetch_time,
+				blockNumber: block.blockNumber
+			}
+		});
+	}
+
 	async function updateTimeFromProvider() {
 		const before_fetch = performance.now();
 		try {
@@ -51,17 +88,9 @@ export function createTime() {
 				const after_fetch = performance.now();
 				const predicted_fetch_time = (before_fetch + after_fetch) / 2;
 
-				last_time = lastBlockTime;
-				last_fetch_time = predicted_fetch_time;
-
-				const now = performance.now();
-				const timePassed = now - last_fetch_time;
-				set({
-					value: lastBlockTime + timePassed / 1000,
-					lastSync: {
-						timestampMS: last_fetch_time,
-						blockNumber: Number(blockResponse.value.number)
-					}
+				updateTimeFromBlock(predicted_fetch_time, {
+					blockTime: lastBlockTime,
+					blockNumber: Number(blockResponse.value.number)
 				});
 				return true;
 			}
@@ -81,7 +110,8 @@ export function createTime() {
 	return {
 		now,
 		updateTimeFromProvider,
-		subscribe: time.subscribe
+		subscribe: time.subscribe,
+		fetchBlockTime
 	};
 }
 
@@ -161,7 +191,7 @@ export const timeConfig = {
 	COMMIT_TIME_ALLOWANCE: Number(contracts.contracts.Game.linkedData.revealPhaseDuration) + 0.1
 };
 
-const localComputer = createLocalComputer(timeConfig);
+export const localComputer = createLocalComputer(timeConfig);
 
 // export const epochInfo = derived(time, (t) => localComputer.calculateEpochInfo(t.value));
 

@@ -1,7 +1,13 @@
 import { get, writable, type Readable } from 'svelte/store';
 import { createAutoSubmitter } from '$lib/onchain/auto-submit';
-import { epochInfo } from '$lib/time';
-import { connection, signer, type OptionalSigner, type Signer } from '$lib/connection';
+import { epochInfo, localComputer, time } from '$lib/time';
+import {
+	connection,
+	publicClient,
+	signer,
+	type OptionalSigner,
+	type Signer
+} from '$lib/connection';
 import { writes } from '$lib/onchain/writes';
 import { keccak256 } from 'viem';
 import contracts from '$lib/contracts';
@@ -217,6 +223,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`too late`);
 			}
 
+			const block = await time.fetchBlockTime();
+			const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+
+			if (!epochAccordingToBlockTime.isCommitPhase) {
+				throw new Error(`time is not valid`);
+			}
+
 			console.log(`commiting for epoch ${epoch}...`);
 
 			try {
@@ -232,7 +245,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					secret,
 					actions
 				);
-				commiting = false;
+
 				$state.avatar.submission = {
 					commit: {
 						epoch,
@@ -243,9 +256,14 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				};
 				set($state);
 
-				return await wait();
+				const receipt = await wait();
+				if (receipt.status === 'reverted') {
+					$state.avatar.submission = undefined;
+					set($state);
+				}
 			} catch (err) {
 				console.error(err);
+			} finally {
 				commiting = false;
 			}
 		},
@@ -296,6 +314,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`too late`);
 			}
 
+			const block = await time.fetchBlockTime();
+			const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+
+			if (epochAccordingToBlockTime.isCommitPhase) {
+				throw new Error(`time is not valid`);
+			}
+
 			console.log(`revealing for epoch ${epoch}...`);
 
 			const commitment = $state.avatar.submission?.commit;
@@ -305,12 +330,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			try {
 				revealing = true;
+				const block = publicClient.getBlock({ blockTag: 'latest' });
+				time.up;
 				const { transactionID, wait } = await writes.reveal_actions(
 					BigInt($state.avatar.avatarID),
 					commitment.secret,
 					commitment.actions
 				);
-				revealing = false;
 
 				$state.avatar.submission = {
 					commit: commitment,
@@ -321,9 +347,14 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				};
 				set($state);
 
-				await wait();
+				const receipt = await wait();
+				if (receipt.status === 'reverted') {
+					$state.avatar.submission.reveal = undefined;
+					set($state);
+				}
 			} catch (err) {
 				console.error(err);
+			} finally {
 				revealing = false;
 			}
 		}
