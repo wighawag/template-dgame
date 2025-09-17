@@ -233,12 +233,12 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			try {
 				commiting = true;
 
-				const block = await time.fetchBlockTime();
-				const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+				// const block = await time.fetchBlockTime();
+				// const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
 
-				if (!epochAccordingToBlockTime.isCommitPhase) {
-					throw new Error(`time is not valid`);
-				}
+				// if (!epochAccordingToBlockTime.isCommitPhase) {
+				// 	throw new Error(`time is not valid`);
+				// }
 
 				const actions = [...$state.avatar.actions];
 
@@ -333,12 +333,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			try {
 				revealing = true;
 
-				const block = await time.fetchBlockTime();
-				const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+				// const block = await time.fetchBlockTime();
+				// const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
 
-				if (epochAccordingToBlockTime.isCommitPhase) {
-					throw new Error(`time is not valid`);
-				}
+				// if (epochAccordingToBlockTime.isCommitPhase) {
+				// 	throw new Error(`time is not valid`);
+				// }
+
 				const { transactionID, wait } = await writes.reveal_actions(
 					BigInt($state.avatar.avatarID),
 					commitment.secret,

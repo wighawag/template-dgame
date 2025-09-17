@@ -41,9 +41,11 @@ export function createBalanceStore(
 	}
 
 	async function fetchState($signer: Signer): Promise<boolean> {
-		set({
-			step: 'Loading'
-		});
+		if ($state.step !== 'Loaded') {
+			set({
+				step: 'Loading'
+			});
+		}
 
 		// TODO use pagination
 		let balance: bigint;
@@ -66,11 +68,7 @@ export function createBalanceStore(
 	}
 
 	async function fetchContinuously() {
-		if ($signer) {
-			set({
-				step: 'Loading'
-			});
-		} else {
+		if (!$signer) {
 			set({
 				step: 'Idle'
 			});

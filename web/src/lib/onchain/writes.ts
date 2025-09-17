@@ -13,8 +13,10 @@ import contracts from '$lib/contracts';
 import type { LocalAction } from '$lib/private/localState';
 import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { xyToBigIntID } from 'dgame-contracts';
-import { encodeAbiParameters, keccak256, zeroAddress } from 'viem';
+import { encodeAbiParameters, formatEther, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { balance } from './balance';
+import { get } from 'svelte/store';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
 
 function actionTypeNameToEnum(actionType: string): number {
@@ -169,13 +171,22 @@ export class Writes {
 			)
 		).slice(0, 50) as `0x${string}`;
 
-		const epochInfo = await publicClient.readContract({
+		const estimate = await publicClient.estimateContractGas({
 			account: signerAccount,
 			...contracts.contracts.Game,
-			functionName: 'getEpoch'
+			functionName: 'commit',
+			args: [avatarID, commitmentHash, zeroAddress]
 		});
 
-		console.log(epochInfo);
+		const currentBalance = get(balance);
+		if (currentBalance.step !== 'Loaded') {
+			throw new Error(`balance unknown`);
+		}
+		if (estimate > currentBalance.value) {
+			throw new Error(
+				`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
+			);
+		}
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
@@ -194,6 +205,23 @@ export class Writes {
 		const signerAccount = privateKeyToAccount($connection.account.signer.privateKey);
 
 		const actionsValue = actions.map(fromLocalActionToContractValue);
+
+		const estimate = await publicClient.estimateContractGas({
+			account: signerAccount,
+			...contracts.contracts.Game,
+			functionName: 'reveal',
+			args: [avatarID, actionsValue, secret, zeroAddress]
+		});
+
+		const currentBalance = get(balance);
+		if (currentBalance.step !== 'Loaded') {
+			throw new Error(`balance unknown`);
+		}
+		if (estimate > currentBalance.value) {
+			throw new Error(
+				`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
+			);
+		}
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
