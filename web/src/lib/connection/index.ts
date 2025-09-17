@@ -6,8 +6,8 @@ import { derived } from 'svelte/store';
 
 const chainInfo = contracts.chainInfo;
 export const connection = createConnection({
-	signingOrigin:
-		'https://template-dgame-web-git-deployme-80f928-ronans-projects-460ea44e.vercel.app',
+	// TODO signingOrigin
+	signingOrigin: 'https://testing.etherplay.io',
 	walletHost: PUBLIC_WALLET_HOST,
 	chainInfo: contracts.chainInfo,
 	prioritizeWalletProvider: false,

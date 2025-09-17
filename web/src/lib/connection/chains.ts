@@ -23,7 +23,7 @@ export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasP
 	216: {
 		// happychain testnet
 		blockTime: 2,
-		expectedWorstGasPrice: parseEther('1', 'gwei') // show zero fee on many tx on etherscan
+		expectedWorstGasPrice: parseEther('0.000001', 'gwei')
 	}
 };
 
