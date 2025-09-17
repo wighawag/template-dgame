@@ -37,6 +37,9 @@ export const config = {
 			celosepolia: {
 				price: parseEther('0.00000001'),
 			},
+			happychaintestnet: {
+				price: parseEther('0.00000001'),
+			},
 			default: {
 				price: parseEther('0.01'),
 			},
@@ -45,6 +48,10 @@ export const config = {
 			celosepolia: {
 				commitPhaseDuration: 35n,
 				revealPhaseDuration: 10n,
+			},
+			happychaintestnet: {
+				commitPhaseDuration: 30n,
+				revealPhaseDuration: 6n,
 			},
 			default: {
 				commitPhaseDuration: 30n,

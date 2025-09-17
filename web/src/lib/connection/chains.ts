@@ -18,7 +18,11 @@ export const chains: { [chainID: string]: { blockTime: number; expectedWorstGasP
 	11142220: {
 		// celo sepolia testnet
 		blockTime: 1,
-		// expectedWorstGasPrice: parseEther('25', 'gwei')
+		expectedWorstGasPrice: parseEther('25', 'gwei')
+	},
+	216: {
+		// happychain testnet
+		blockTime: 2,
 		expectedWorstGasPrice: parseEther('1', 'gwei') // show zero fee on many tx on etherscan
 	}
 };
