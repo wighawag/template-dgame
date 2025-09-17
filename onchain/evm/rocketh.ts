@@ -50,8 +50,8 @@ export const config = {
 				revealPhaseDuration: 10n,
 			},
 			happychaintestnet: {
-				commitPhaseDuration: 30n,
-				revealPhaseDuration: 6n,
+				commitPhaseDuration: 35n,
+				revealPhaseDuration: 10n,
 			},
 			default: {
 				commitPhaseDuration: 30n,

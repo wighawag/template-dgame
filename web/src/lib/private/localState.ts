@@ -271,6 +271,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					set($state);
 				}
 			} catch (err) {
+				$state.avatar.submission = undefined;
+				set($state);
 				console.error(err);
 			} finally {
 				commiting = false;
@@ -363,6 +365,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					set($state);
 				}
 			} catch (err) {
+				if ($state.avatar.submission) {
+					$state.avatar.submission.reveal = undefined;
+					set($state);
+				}
 				console.error(err);
 			} finally {
 				revealing = false;
