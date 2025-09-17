@@ -17,7 +17,10 @@ import { encodeAbiParameters, formatEther, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { balance } from './balance';
 import { get } from 'svelte/store';
+import { gasFee } from './gasFee';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
+
+const chainParameters = getChainParameters(contracts.chainId);
 
 function actionTypeNameToEnum(actionType: string): number {
 	switch (actionType) {
@@ -171,28 +174,37 @@ export class Writes {
 			)
 		).slice(0, 50) as `0x${string}`;
 
-		const estimate = await publicClient.estimateContractGas({
-			account: signerAccount,
-			...contracts.contracts.Game,
-			functionName: 'commit',
-			args: [avatarID, commitmentHash, zeroAddress]
-		});
+		// const estimate = await publicClient.estimateContractGas({
+		// 	account: signerAccount,
+		// 	...contracts.contracts.Game,
+		// 	functionName: 'commit',
+		// 	args: [avatarID, commitmentHash, zeroAddress],
+		// 	gas: 10_000_000n
+		// });
 
-		const currentBalance = get(balance);
-		if (currentBalance.step !== 'Loaded') {
-			throw new Error(`balance unknown`);
-		}
-		if (estimate > currentBalance.value) {
-			throw new Error(
-				`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
-			);
+		// const currentBalance = get(balance);
+		// if (currentBalance.step !== 'Loaded') {
+		// 	throw new Error(`balance unknown`);
+		// }
+		// if (estimate > currentBalance.value) {
+		// 	throw new Error(
+		// 		`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
+		// 	);
+		// }
+
+		const currentGasFee = gasFee.value;
+
+		if (!currentGasFee) {
+			throw new Error(`no gas fee avaiulable yet`);
 		}
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
 			...contracts.contracts.Game,
 			functionName: 'commit',
-			args: [avatarID, commitmentHash, zeroAddress]
+			args: [avatarID, commitmentHash, zeroAddress],
+			maxFeePerGas: currentGasFee.average.maxFeePerGas,
+			maxPriorityFeePerGas: currentGasFee.average.maxPriorityFeePerGas
 		});
 		return {
 			transactionID,
@@ -206,28 +218,36 @@ export class Writes {
 
 		const actionsValue = actions.map(fromLocalActionToContractValue);
 
-		const estimate = await publicClient.estimateContractGas({
-			account: signerAccount,
-			...contracts.contracts.Game,
-			functionName: 'reveal',
-			args: [avatarID, actionsValue, secret, zeroAddress]
-		});
+		// const estimate = await publicClient.estimateContractGas({
+		// 	account: signerAccount,
+		// 	...contracts.contracts.Game,
+		// 	functionName: 'reveal',
+		// 	args: [avatarID, actionsValue, secret, zeroAddress]
+		// });
 
-		const currentBalance = get(balance);
-		if (currentBalance.step !== 'Loaded') {
-			throw new Error(`balance unknown`);
-		}
-		if (estimate > currentBalance.value) {
-			throw new Error(
-				`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
-			);
+		// const currentBalance = get(balance);
+		// if (currentBalance.step !== 'Loaded') {
+		// 	throw new Error(`balance unknown`);
+		// }
+		// if (estimate > currentBalance.value) {
+		// 	throw new Error(
+		// 		`balance too low: ${formatEther(estimate)} > ${formatEther(currentBalance.value)}`
+		// 	);
+		// }
+
+		const currentGasFee = gasFee.value;
+
+		if (!currentGasFee) {
+			throw new Error(`no gas fee avaiulable yet`);
 		}
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
 			...contracts.contracts.Game,
 			functionName: 'reveal',
-			args: [avatarID, actionsValue, secret, zeroAddress]
+			args: [avatarID, actionsValue, secret, zeroAddress],
+			maxFeePerGas: currentGasFee.average.maxFeePerGas,
+			maxPriorityFeePerGas: currentGasFee.average.maxPriorityFeePerGas
 		});
 		return {
 			transactionID,

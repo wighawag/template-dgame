@@ -3,8 +3,10 @@
 	import { connection } from '$lib/connection';
 	import { avatars } from '$lib/onchain/avatars';
 	import { balance } from '$lib/onchain/balance';
+	import { gasFee } from '$lib/onchain/gasFee';
 	import { epochInfo } from '$lib/time';
 	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
+	import { formatEther } from 'viem';
 	import Button from '../generic/Button.svelte';
 	import Spinner from '../generic/Spinner.svelte';
 
@@ -35,6 +37,7 @@
 			{:else if $avatars.step === 'Loading'}
 				Loading...{/if}</span
 		> -->
+		<span>{$gasFee.step == 'Loaded' ? formatEther($gasFee.average.maxFeePerGas) : ''}</span>
 		<span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span>
 		<span
 			>{$balance.step == 'Loaded'

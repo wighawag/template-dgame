@@ -28,7 +28,7 @@ export function createBalanceStore(
 		fetchInterval?: number;
 	}
 ) {
-	const fetchInterval = options?.fetchInterval || 5 * 1000; // 30 minutes
+	const fetchInterval = options?.fetchInterval || 5 * 1000; // 5 seconds
 
 	let $state: Balance = defaultState();
 	let $signer = get(signer);
@@ -47,7 +47,6 @@ export function createBalanceStore(
 			});
 		}
 
-		// TODO use pagination
 		let balance: bigint;
 		try {
 			balance = await publicClient.getBalance({ address: $signer.address });
@@ -134,7 +133,10 @@ export function createBalanceStore(
 
 	return {
 		subscribe: _store.subscribe,
-		update
+		update,
+		get value() {
+			return $state.step == 'Loaded' ? $state : undefined;
+		}
 	};
 }
 
