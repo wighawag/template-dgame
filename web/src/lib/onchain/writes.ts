@@ -9,7 +9,7 @@ import {
 	walletClient
 } from '$lib/connection';
 import { getChainParameters } from '$lib/connection/chains';
-import contracts from '$lib/contracts';
+import deployments from '$lib/deployments';
 import type { LocalAction } from '$lib/private/localState';
 import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { xyToBigIntID } from 'dgame-contracts';
@@ -20,7 +20,7 @@ import { get } from 'svelte/store';
 import { gasFee } from './gasFee';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
 
-const chainParameters = getChainParameters(contracts.chainId);
+const chainParameters = getChainParameters(deployments.chainId);
 
 function actionTypeNameToEnum(actionType: string): number {
 	switch (actionType) {
@@ -71,10 +71,10 @@ export class Writes {
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
 		const hash = await walletClient.writeContract({
 			account: faucetAccount,
-			...contracts.contracts.AvatarsSale,
+			...deployments.contracts.AvatarsSale,
 			functionName: 'purchase',
 			args: [
-				contracts.contracts.Game.address,
+				deployments.contracts.Game.address,
 				subID,
 				data,
 				$connection.account.signer.address,
@@ -119,10 +119,10 @@ export class Writes {
 		});
 		const hash = await paymentWalletClient.writeContract({
 			account: $paymentConnection.mechanism.address,
-			...contracts.contracts.AvatarsSale,
+			...deployments.contracts.AvatarsSale,
 			functionName: 'purchase',
 			args: [
-				contracts.contracts.Game.address,
+				deployments.contracts.Game.address,
 				subID,
 				data,
 				$connection.account.signer.address,
@@ -200,7 +200,7 @@ export class Writes {
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
-			...contracts.contracts.Game,
+			...deployments.contracts.Game,
 			functionName: 'commit',
 			args: [avatarID, commitmentHash, zeroAddress],
 			maxFeePerGas: currentGasFee.average.maxFeePerGas,
@@ -243,7 +243,7 @@ export class Writes {
 
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
-			...contracts.contracts.Game,
+			...deployments.contracts.Game,
 			functionName: 'reveal',
 			args: [avatarID, actionsValue, secret, zeroAddress],
 			maxFeePerGas: currentGasFee.average.maxFeePerGas,

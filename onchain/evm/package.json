@@ -76,7 +76,7 @@
 		"export:ts": "ldenv rocketh-export -n @@MODE --ts @@",
 		"format:check": "prettier --check .",
 		"format": "prettier --write .",
-		"export-script-data": "ldenv rocketh-export -n @@MODE --ts ./scripts/data/contracts.ts @@",
+		"export-script-data": "ldenv rocketh-export -n @@MODE --ts ./scripts/data/deployments.ts @@",
 		"stop": "zellij kill-session $npm_package_name",
 		"start": "zellij-launcher a $npm_package_name || zellij -n zellij.kdl -s $npm_package_name"
 	},

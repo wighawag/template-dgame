@@ -28,7 +28,7 @@
     "web:build": "ldenv pnpm --filter ./web build",
     "---------------------- ONCHAIN ----------------------": "",
     "onchain:deploy": "ldenv pnpm run --filter ./onchain/evm deploy @@MODE @@",
-    "onchain:build": "ldenv pnpm --filter ./onchain/evm compile ~~ pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/contracts.ts ~~ @@",
+    "onchain:build": "ldenv pnpm --filter ./onchain/evm compile ~~ pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
     "---------------------- SERVICES ----------------------": "",
     "push-notification": "pnpm --filter ./services/push-notification dev",
     "missiv": "pnpm --filter ./services/missiv dev",

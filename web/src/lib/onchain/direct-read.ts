@@ -3,11 +3,11 @@ import type { AvatarEntity, OnchainState } from './types';
 import { epochInfo, time } from '$lib/time';
 import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contracts';
 import { publicClient } from '$lib/connection';
-import contracts from '$lib/contracts';
+import deployments from '$lib/deployments';
 import { type GetContractEventsReturnType } from 'viem';
 import { getChainParameters } from '$lib/connection/chains';
 
-const Game = contracts.contracts.Game;
+const Game = deployments.contracts.Game;
 
 type Camera = {
 	x: number;
@@ -98,12 +98,12 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
-		const blockTime = BigInt(getChainParameters(contracts.chainId).blockTime);
+		const blockTime = BigInt(getChainParameters(deployments.chainId).blockTime);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		let fromBlock =
 			(currentBlockNumber -
-				(BigInt(contracts.contracts.Game.linkedData.commitPhaseDuration) +
-					BigInt(contracts.contracts.Game.linkedData.revealPhaseDuration))) /
+				(BigInt(deployments.contracts.Game.linkedData.commitPhaseDuration) +
+					BigInt(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
 			blockTime;
 		if (fromBlock < 0n) {
 			fromBlock = 0n;

@@ -1,15 +1,15 @@
 import { PUBLIC_WALLET_HOST } from '$env/static/public';
 import { createConnection } from '@etherplay/connect';
-import contracts from '$lib/contracts';
+import deployments from '$lib/deployments';
 import { createPublicClient, createWalletClient, custom } from 'viem';
 import { derived } from 'svelte/store';
 
-const chainInfo = contracts.chainInfo;
+const chainInfo = deployments.chainInfo;
 export const connection = createConnection({
 	// TODO signingOrigin
 	signingOrigin: 'https://testing.etherplay.io',
 	walletHost: PUBLIC_WALLET_HOST,
-	chainInfo: contracts.chainInfo,
+	chainInfo: deployments.chainInfo,
 	prioritizeWalletProvider: false,
 	// alwaysUseCurrentAccount: true,
 	autoConnect: true,
@@ -18,7 +18,7 @@ export const connection = createConnection({
 
 export const paymentConnection = createConnection({
 	walletHost: PUBLIC_WALLET_HOST,
-	chainInfo: contracts.chainInfo,
+	chainInfo: deployments.chainInfo,
 	prioritizeWalletProvider: true,
 	alwaysUseCurrentAccount: true,
 	autoConnect: false,

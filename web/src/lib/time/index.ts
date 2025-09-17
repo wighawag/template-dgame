@@ -1,5 +1,5 @@
 import { connection } from '$lib/connection';
-import contracts from '$lib/contracts';
+import deployments from '$lib/deployments';
 import { derived, writable, type Readable } from 'svelte/store';
 
 export type SyncedTime = {
@@ -194,10 +194,10 @@ export function createLocalComputer(config: {
 }
 
 export const timeConfig = {
-	COMMIT_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.commitPhaseDuration),
-	REVEAL_PHASE_DURATION: Number(contracts.contracts.Game.linkedData.revealPhaseDuration),
-	START_TIME: Number(contracts.contracts.Game.linkedData.startTime),
-	COMMIT_TIME_ALLOWANCE: Number(contracts.contracts.Game.linkedData.revealPhaseDuration) + 0.1
+	COMMIT_PHASE_DURATION: Number(deployments.contracts.Game.linkedData.commitPhaseDuration),
+	REVEAL_PHASE_DURATION: Number(deployments.contracts.Game.linkedData.revealPhaseDuration),
+	START_TIME: Number(deployments.contracts.Game.linkedData.startTime),
+	COMMIT_TIME_ALLOWANCE: Number(deployments.contracts.Game.linkedData.revealPhaseDuration) + 0.1
 };
 
 export const localComputer = createLocalComputer(timeConfig);
@@ -262,9 +262,9 @@ export const twoPhase = derived<Readable<ThreePhase>, TwoPhase>(threePhase, ($th
 	if ($threePhase.phase === 'commit') {
 		phase = 'wait';
 		timeLeft =
-			$threePhase.timeLeft + Number(contracts.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
+			$threePhase.timeLeft + Number(deployments.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
 		duration =
-			$threePhase.duration + Number(contracts.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
+			$threePhase.duration + Number(deployments.contracts.Game.linkedData.revealPhaseDuration); // TODO reuse
 	}
 	if ($threePhase.phase === 'reveal') {
 		phase = 'wait';

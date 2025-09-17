@@ -1,6 +1,6 @@
 import { get, writable, type Readable } from 'svelte/store';
 import { account, publicClient, type Account } from '$lib/connection';
-import contracts from '$lib/contracts';
+import deployments from '$lib/deployments';
 
 export type AvatarCollection = { error?: { message: string } } & (
 	| {
@@ -50,7 +50,7 @@ export function createAvatarCollectionStore(
 		let avatarsOwnedResult: readonly [readonly bigint[], boolean];
 		try {
 			avatarsOwnedResult = await publicClient.readContract({
-				...contracts.contracts.Avatars,
+				...deployments.contracts.Avatars,
 				functionName: 'tokensOfOwner',
 				args: [$account, 0n, 100n] // TODO use pagination
 			});
@@ -69,7 +69,7 @@ export function createAvatarCollectionStore(
 		];
 		try {
 			avatarsDepositedResult = await publicClient.readContract({
-				...contracts.contracts.Game,
+				...deployments.contracts.Game,
 				functionName: 'avatarsPerOwner',
 				args: [$account, 0n, 100n] // TODO use pagination
 			});

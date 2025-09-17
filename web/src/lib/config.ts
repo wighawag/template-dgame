@@ -1,5 +1,5 @@
 import { getChainParameters } from './connection/chains';
-import contracts from './contracts';
+import deployments from './deployments';
 
 function getBigIntPowerOf10(n: bigint) {
 	if (n === 0n) return 1n; // Edge case: log10(0) is undefined, default to 10^0=1
@@ -21,7 +21,7 @@ function getBigIntPowerOf10(n: bigint) {
 }
 
 export const maxActionCost =
-	getChainParameters(contracts.chainId).expectedWorstGasPrice * 1_000_000n; // 1_000_000 per action is our limit
+	getChainParameters(deployments.chainId).expectedWorstGasPrice * 1_000_000n; // 1_000_000 per action is our limit
 export const stippend = maxActionCost * 100n; // 100 turn, we need to show
-export const price = BigInt(contracts.contracts.AvatarsSale.linkedData.paymentAmount);
+export const price = BigInt(deployments.contracts.AvatarsSale.linkedData.paymentAmount);
 export const creditsDivider = getBigIntPowerOf10(maxActionCost);
