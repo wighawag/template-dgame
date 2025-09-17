@@ -4,15 +4,15 @@ import {deployScript, artifacts} from '#rocketh';
 import {zeroAddress} from 'viem';
 
 export default deployScript(
-	async ({get, deployViaProxy, deployViaRouter, namedAccounts}) => {
+	async ({get, deployViaProxy, deployViaRouter, namedAccounts, data}) => {
 		const {deployer, admin} = namedAccounts;
 
 		const Avatars = get<Abi_Avatars>('Avatars');
 
 		const config = {
 			startTime: 0n,
-			commitPhaseDuration: 30n,
-			revealPhaseDuration: 5n,
+			commitPhaseDuration: data.Game.commitPhaseDuration,
+			revealPhaseDuration: data.Game.revealPhaseDuration,
 			time: zeroAddress,
 			avatars: Avatars.address,
 		};

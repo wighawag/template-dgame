@@ -7,6 +7,10 @@ import "../interfaces/IGame.sol";
 contract GameGetters is IGameGetters, UsingGameInternal {
     constructor(Config memory config) UsingGameInternal(config) {}
 
+    function getEpoch() external view returns (uint64 epoch, bool commiting) {
+        return _epoch();
+    }
+
     function getAvatarsInZone(
         uint64 zone,
         uint64 fromIndex,

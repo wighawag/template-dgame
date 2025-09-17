@@ -41,6 +41,16 @@ export const config = {
 				price: parseEther('0.01'),
 			},
 		},
+		Game: {
+			celosepolia: {
+				commitPhaseDuration: 35n,
+				revealPhaseDuration: 10n,
+			},
+			default: {
+				commitPhaseDuration: 30n,
+				revealPhaseDuration: 5n,
+			},
+		},
 	},
 } as const satisfies UserConfig;
 

@@ -106,11 +106,17 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			if (epoch != $state.avatar.epoch) {
-				$state.avatar = {
-					avatarID: $state.avatar.avatarID,
-					actions: [],
-					epoch
-				};
+				if ($state.avatar.actions[0].type === 'enter') {
+					$state.avatar = undefined;
+					set($state);
+					throw new Error(`old avatar's entrance was not succesful`);
+				} else {
+					$state.avatar = {
+						avatarID: $state.avatar.avatarID,
+						actions: [],
+						epoch
+					};
+				}
 			}
 
 			if ($state.avatar.submission) {
@@ -130,7 +136,11 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			if ($state.avatar) {
-				throw new Error(`got an avatar already`);
+				if ($state.avatar.actions[0].type === 'enter') {
+					$state.avatar = undefined;
+				} else {
+					throw new Error(`got an avatar already`);
+				}
 			}
 
 			const actions: LocalAction[] = [{ type: 'enter', x: position.x, y: position.y }];
@@ -258,6 +268,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				};
 				set($state);
 
+				console.log(`waiting for commit tx...`);
+
 				const receipt = await wait();
 				if (receipt.status === 'reverted') {
 					$state.avatar.submission = undefined;
@@ -346,6 +358,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					}
 				};
 				set($state);
+
+				console.log(`waiting for reveal tx...`);
 
 				const receipt = await wait();
 				if (receipt.status === 'reverted') {

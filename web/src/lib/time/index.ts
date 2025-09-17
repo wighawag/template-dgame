@@ -47,7 +47,9 @@ export function createTime() {
 			const lastBlockTime = Number(blockResponse.value.timestamp);
 
 			const block = { blockNumber: Number(blockResponse.value.number), blockTime: lastBlockTime };
-			if (lastBlockTime < now()) {
+			const currentTime = now();
+			if (lastBlockTime < currentTime) {
+				console.log(`time is ${currentTime - lastBlockTime} seconds ahead from block time`);
 				updateTimeFromBlock(performance.now(), block);
 			}
 
@@ -101,6 +103,12 @@ export function createTime() {
 		}
 	}
 
+	// used for debugging
+	async function checkTime() {
+		const block = await fetchBlockTime();
+		return block;
+	}
+
 	function now() {
 		const now = performance.now();
 		const timePassed = now - last_fetch_time;
@@ -111,7 +119,8 @@ export function createTime() {
 		now,
 		updateTimeFromProvider,
 		subscribe: time.subscribe,
-		fetchBlockTime
+		fetchBlockTime,
+		checkTime
 	};
 }
 
@@ -271,3 +280,4 @@ export const twoPhase = derived<Readable<ThreePhase>, TwoPhase>(threePhase, ($th
 (globalThis as any).epochInfo = epochInfo;
 (globalThis as any).time = time;
 (globalThis as any).threePhase = threePhase;
+(globalThis as any).twoPhase = twoPhase;

@@ -169,6 +169,14 @@ export class Writes {
 			)
 		).slice(0, 50) as `0x${string}`;
 
+		const epochInfo = await publicClient.readContract({
+			account: signerAccount,
+			...contracts.contracts.Game,
+			functionName: 'getEpoch'
+		});
+
+		console.log(epochInfo);
+
 		const transactionID = await walletClient.writeContract({
 			account: signerAccount,
 			...contracts.contracts.Game,

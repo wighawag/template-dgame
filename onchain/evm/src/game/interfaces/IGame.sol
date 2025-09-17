@@ -23,6 +23,8 @@ interface IGameReveal is UsingGameTypes {
 }
 
 interface IGameGetters is UsingGameTypes {
+    function getEpoch() external view returns (uint64 epoch, bool commiting);
+
     function getAvatarsInZone(
         uint64 zone,
         uint64 fromIndex,
