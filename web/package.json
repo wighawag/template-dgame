@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"dependencies": {
-		"@etherplay/connect": "^0.0.33",
+		"@etherplay/connect": "^0.0.34",
 		"@lucide/svelte": "^0.544.0",
 		"@pixi/devtools": "^2.0.1",
 		"abitype": "^1.1.0",

@@ -223,18 +223,20 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`too late`);
 			}
 
-			const block = await time.fetchBlockTime();
-			const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
-
-			if (!epochAccordingToBlockTime.isCommitPhase) {
-				throw new Error(`time is not valid`);
-			}
-
 			console.log(`commiting for epoch ${epoch}...`);
 
 			try {
-				const actions = [...$state.avatar.actions];
 				commiting = true;
+
+				const block = await time.fetchBlockTime();
+				const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+
+				if (!epochAccordingToBlockTime.isCommitPhase) {
+					throw new Error(`time is not valid`);
+				}
+
+				const actions = [...$state.avatar.actions];
+
 				const account = privateKeyToAccount($state.signer.privateKey);
 				const secretSig = await account.signMessage({
 					message: `Commit:${contracts.chainId}:${contracts.contracts.Game.address}:${epoch}`
@@ -314,13 +316,6 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`too late`);
 			}
 
-			const block = await time.fetchBlockTime();
-			const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
-
-			if (epochAccordingToBlockTime.isCommitPhase) {
-				throw new Error(`time is not valid`);
-			}
-
 			console.log(`revealing for epoch ${epoch}...`);
 
 			const commitment = $state.avatar.submission?.commit;
@@ -330,8 +325,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			try {
 				revealing = true;
-				const block = publicClient.getBlock({ blockTag: 'latest' });
-				time.up;
+
+				const block = await time.fetchBlockTime();
+				const epochAccordingToBlockTime = localComputer.calculateEpochInfo(block.blockTime);
+
+				if (epochAccordingToBlockTime.isCommitPhase) {
+					throw new Error(`time is not valid`);
+				}
 				const { transactionID, wait } = await writes.reveal_actions(
 					BigInt($state.avatar.avatarID),
 					commitment.secret,
