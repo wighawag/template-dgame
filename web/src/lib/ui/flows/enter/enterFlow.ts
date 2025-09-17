@@ -77,7 +77,8 @@ function createEnterFlow() {
 			return;
 		}
 
-		if ($avatars.avatarsInGame.length > 0) {
+		const $localState = get(localState);
+		if ($localState.signer && $localState.avatar) {
 			throw new Error(`avatar already in game`);
 		}
 

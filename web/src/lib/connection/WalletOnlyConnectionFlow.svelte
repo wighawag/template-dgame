@@ -3,6 +3,7 @@
 	import Button from '$lib/ui/generic/Button.svelte';
 	import Address from '$lib/ui/ethereum/Address.svelte';
 	import type { ConnectionStore, UnderlyingEthereumProvider } from '@etherplay/connect';
+	import BasicModal from '$lib/ui/modal/BasicModal.svelte';
 
 	interface Props {
 		connection: ConnectionStore<UnderlyingEthereumProvider>;
@@ -62,6 +63,8 @@
 				</Button>
 			{/each}
 		</div>
+	{:else}
+		We plan to support credit card payment but for now you need a web3 wallet to make the purchase
 	{/if}
 </Modal>
 
@@ -81,3 +84,20 @@
 	{/if}
 	<!-- TODO : cancel Button -->
 </Modal>
+
+<!-- TODO not a Modal -->
+<BasicModal
+	openWhen={($connection.step === 'SignedIn' && $connection.wallet?.invalidChainId) || false}
+	title={`Require Connection to ${connection.chainInfo.name || `network with chainId: ${connection.chainId}`}`}
+	cancel={true}
+	confirm={{
+		label: 'Switch',
+		onclick: () => connection.switchWalletChain(),
+		disabled: !!$connection.wallet?.switchingChain
+	}}
+	onCancel={() => connection.cancel()}
+>
+	<p>
+		Switch to {connection.chainInfo.name || `network with chainId: ${connection.chainId}`} to continue.
+	</p>
+</BasicModal>
