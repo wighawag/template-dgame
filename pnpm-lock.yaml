@@ -82,8 +82,8 @@ importers:
         specifier: ^3.0.6
         version: 3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       hardhat-deploy:
-        specifier: ^2.0.0-next.46
-        version: 2.0.0-next.46(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+        specifier: ^2.0.0-next.49
+        version: 2.0.0-next.49(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       ldenv:
         specifier: ^0.3.14
         version: 0.3.14
@@ -2684,8 +2684,8 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
 
-  hardhat-deploy@2.0.0-next.46:
-    resolution: {integrity: sha512-y1SGOc2VFaK4F5cyagPC15kBNleFuzK2IoUcw1WFCztmfrPX1DsIKTDrtZSm9acn51MCEVas+RphlPGTUTKYKA==}
+  hardhat-deploy@2.0.0-next.49:
+    resolution: {integrity: sha512-oFKX/+YaQLWLA2GJOTYdk+RDKTIWVz+X/3AOyiwddua/jxG14clfpgWZS37jiefzLVOQauJk+zmR3CdlQADIlg==}
     peerDependencies:
       hardhat: ^3.0.6
       rocketh: ^0.15.0
@@ -6370,7 +6370,7 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  hardhat-deploy@2.0.0-next.46(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
+  hardhat-deploy@2.0.0-next.49(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
     dependencies:
       '@nomicfoundation/hardhat-zod-utils': 3.0.1(zod@4.1.9)
       '@types/debug': 4.1.12
