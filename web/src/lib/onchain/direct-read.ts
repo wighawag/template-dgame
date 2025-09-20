@@ -5,7 +5,6 @@ import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contra
 import { publicClient } from '$lib/connection';
 import deployments from '$lib/deployments';
 import { type GetContractEventsReturnType } from 'viem';
-import { getChainParameters } from '$lib/connection/chains';
 
 const Game = deployments.contracts.Game;
 
@@ -98,7 +97,7 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
-		const blockTime = BigInt(getChainParameters(deployments.chainId).blockTime);
+		const blockTime = BigInt(deployments.chain.properties.blockTime);
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		let fromBlock =
 			(currentBlockNumber -

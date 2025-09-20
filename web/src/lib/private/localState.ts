@@ -46,7 +46,7 @@ function defaultState() {
 const $state: LocalState = defaultState();
 
 function LOCAL_STORAGE_STATE_KEY(signerAddress: `0x${string}`) {
-	return `__private__${deployments.chainId}_${deployments.contracts.Game.address}_${signerAddress}`;
+	return `__private__${deployments.chain.id}_${deployments.contracts.Game.address}_${signerAddress}`;
 }
 
 export function createLocalState(signer: Readable<OptionalSigner>) {
@@ -193,7 +193,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 				const account = privateKeyToAccount($state.signer.privateKey);
 				const secretSig = await account.signMessage({
-					message: `Commit:${deployments.chainId}:${deployments.contracts.Game.address}:${epoch}`
+					message: `Commit:${deployments.chain.id}:${deployments.contracts.Game.address}:${epoch}`
 				});
 				const secret = keccak256(secretSig);
 				const { transactionID, wait } = await writes.commit_actions(

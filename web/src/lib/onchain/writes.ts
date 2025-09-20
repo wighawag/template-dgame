@@ -8,19 +8,14 @@ import {
 	publicClient,
 	walletClient
 } from '$lib/connection';
-import { getChainParameters } from '$lib/connection/chains';
 import deployments from '$lib/deployments';
 import type { LocalAction } from '$lib/private/localState';
 import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { xyToBigIntID } from 'dgame-contracts';
 import { encodeAbiParameters, formatEther, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { balance } from './balance';
-import { get } from 'svelte/store';
 import { gasFee } from './gasFee';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
-
-const chainParameters = getChainParameters(deployments.chainId);
 
 function actionTypeNameToEnum(actionType: string): number {
 	switch (actionType) {

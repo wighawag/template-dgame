@@ -4,18 +4,41 @@
 import type {UserConfig} from 'rocketh';
 
 export const config = {
-	networks: {
-		hardhat: {
+	chains: {
+		31337: {
+			properties: {
+				blockTime: 1, // TODO use same value from hardhat config
+				expectedWorstGasPrice: parseEther('1', 'gwei'), // TODO use same value from hardhat config
+			},
 			tags: ['local', 'memory', 'testnet'],
 		},
-		localhost: {
-			tags: ['local', 'testnet'],
+		6342: {
+			properties: {
+				// mega-eth testnet
+				blockTime: 1,
+				expectedWorstGasPrice: parseEther('0.003', 'gwei'),
+			},
 		},
-		sepolia: {
-			tags: ['live', 'testner'],
+		50312: {
+			properties: {
+				// somnia testnet
+				blockTime: 1,
+				expectedWorstGasPrice: parseEther('10', 'gwei'),
+			},
 		},
-		default: {
-			tags: ['live'],
+		11142220: {
+			properties: {
+				// celo sepolia testnet
+				blockTime: 1,
+				expectedWorstGasPrice: parseEther('25', 'gwei'),
+			},
+		},
+		216: {
+			properties: {
+				// happychain testnet
+				blockTime: 2,
+				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
+			},
 		},
 	},
 	accounts: {

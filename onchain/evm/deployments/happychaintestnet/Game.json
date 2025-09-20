@@ -373,6 +373,31 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "avatarID",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "epoch",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes24",
+          "name": "commitmentHash",
+          "type": "bytes24"
+        }
+      ],
+      "name": "PreviousCommitmentNotRevealedEvent",
+      "type": "event"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -1045,8 +1070,8 @@
     "origin": "0x61c461ecc993aadeb7e4b47e96d1b8cc37314b20"
   },
   "receipt": {
-    "blockHash": "0x7c95ed6244b8ec3710e3c61200d9e497037652f6501d5fb8301b3a92af63e8b6",
-    "blockNumber": "0x7d112a",
+    "blockHash": "0x846ff2ca715853303ee603725e9ef1b978add6ef458f4bfacf6e3dbffb25b87b",
+    "blockNumber": "0x7ddae7",
     "transactionIndex": "0x1"
   },
   "immutableReferences": {
