@@ -8,7 +8,11 @@ interface UsingGameEvents is UsingGameTypes {
     /// @param avatarID the id of the NFT being deposited
     /// @param owner the account authorized to get the avatar back
     /// @param controller the account authorized to control the avatar in-game
-    event AvatarDeposited(uint256 indexed avatarID, address indexed owner, address controller);
+    event AvatarDeposited(
+        uint256 indexed avatarID,
+        address indexed owner,
+        address controller
+    );
 
     /// @notice A avatar has been withdrawn
     /// @param avatarID the id of the NFT being transfered out
@@ -19,7 +23,12 @@ interface UsingGameEvents is UsingGameTypes {
     /// @param epoch the epoch at which it happened
     /// @param zone the resulting avatar's zone
     /// @param newPosition the resulting avatar's position
-    event EnteredTheGame(uint256 indexed avatarID, uint64 indexed epoch, uint64 indexed zone, uint64 newPosition);
+    event EnteredTheGame(
+        uint256 indexed avatarID,
+        uint64 indexed epoch,
+        uint64 indexed zone,
+        uint64 newPosition
+    );
 
     /// @notice An avatar has left the game
     /// @param avatarID the id of the NFT being removed
@@ -37,7 +46,11 @@ interface UsingGameEvents is UsingGameTypes {
     /// @param avatarID avatar whose commitment is made
     /// @param epoch epoch number on which this commit belongs to
     /// @param commitmentHash the hash of moves
-    event CommitmentMade(uint256 indexed avatarID, uint64 indexed epoch, bytes24 commitmentHash);
+    event CommitmentMade(
+        uint256 indexed avatarID,
+        uint64 indexed epoch,
+        bytes24 commitmentHash
+    );
 
     /// @notice A player has cancelled its current commitment (before it reached the reveal phase)
     /// @param avatarID avatar whose commitment is cancelled
@@ -63,5 +76,9 @@ interface UsingGameEvents is UsingGameTypes {
     );
 
     // DEBUG
-    event PreviousCommitmentNotRevealedEvent(uint256 indexed avatarID, uint64 epoch, bytes24 commitmentHash);
+    event PreviousCommitmentNotRevealedEvent(
+        uint256 indexed avatarID,
+        uint64 epoch,
+        bytes24 commitmentHash
+    );
 }

@@ -48,7 +48,12 @@ contract Locker is IERC721Receiver {
 
     event DestinationRemoved(address destination);
 
-    event ItemRegistered(IERC721 indexed collection, uint256 indexed tokenID, address indexed owner, address delegate);
+    event ItemRegistered(
+        IERC721 indexed collection,
+        uint256 indexed tokenID,
+        address indexed owner,
+        address delegate
+    );
 
     event ItemUnregistered(
         IERC721 indexed collection,
@@ -108,13 +113,24 @@ contract Locker is IERC721Receiver {
         emit DestinationRemoved(to);
     }
 
-    function deposit(IERC721 collection, uint256 tokenID, address from, address owner, address delegate) external {
+    function deposit(
+        IERC721 collection,
+        uint256 tokenID,
+        address from,
+        address owner,
+        address delegate
+    ) external {
         _register(collection, tokenID, owner, delegate);
 
         collection.transferFrom(from, address(this), tokenID);
     }
 
-    function register(IERC721 collection, uint256 tokenID, address owner, address delegate) external {
+    function register(
+        IERC721 collection,
+        uint256 tokenID,
+        address owner,
+        address delegate
+    ) external {
         if (collection.ownerOf(tokenID) != address(this)) {
             revert CannotRegisterUnlessOwned(collection, tokenID);
         }
@@ -135,14 +151,22 @@ contract Locker is IERC721Receiver {
         IERC721 collection = IERC721(msg.sender);
 
         if (data.length == 64) {
-            (address owner, address delegate) = abi.decode(data, (address, address));
+            (address owner, address delegate) = abi.decode(
+                data,
+                (address, address)
+            );
             _register(collection, tokenID, owner, delegate);
             return IERC721Receiver.onERC721Received.selector;
         }
         revert InvalidData();
     }
 
-    function safeTransfer(IERC721 collection, uint256 tokenID, address to, bytes calldata data) external payable {
+    function safeTransfer(
+        IERC721 collection,
+        uint256 tokenID,
+        address to,
+        bytes calldata data
+    ) external payable {
         Item memory item = _registeredItems[collection][tokenID];
         if (!_vettedDestinations[to]) {
             address owner = item.owner;
@@ -156,9 +180,15 @@ contract Locker is IERC721Receiver {
             }
         }
 
-        _registeredItems[collection][tokenID] = Item({owner: address(0), delegate: address(0)});
+        _registeredItems[collection][tokenID] = Item({
+            owner: address(0),
+            delegate: address(0)
+        });
 
-        bytes memory dataToSend = bytes.concat(abi.encode(item.owner, item.delegate), data);
+        bytes memory dataToSend = bytes.concat(
+            abi.encode(item.owner, item.delegate),
+            data
+        );
 
         emit ItemUnregistered(collection, tokenID, item.owner, item.delegate);
 
@@ -170,7 +200,12 @@ contract Locker is IERC721Receiver {
     // INTERNAL
     // ------------------------------------------------------------------------
 
-    function _register(IERC721 collection, uint256 tokenID, address owner, address delegate) internal {
+    function _register(
+        IERC721 collection,
+        uint256 tokenID,
+        address owner,
+        address delegate
+    ) internal {
         if (owner == address(0)) {
             revert OwnerRequired();
         }
@@ -178,7 +213,10 @@ contract Locker is IERC721Receiver {
             revert DelegateRequired();
         }
 
-        _registeredItems[collection][tokenID] = Item({owner: owner, delegate: delegate});
+        _registeredItems[collection][tokenID] = Item({
+            owner: owner,
+            delegate: delegate
+        });
 
         emit ItemRegistered(collection, tokenID, owner, delegate);
     }

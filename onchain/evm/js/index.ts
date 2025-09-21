@@ -2,7 +2,12 @@ import type {Abi_IGame} from '#generated/abis/IGame.js';
 import type {Abi, ExtractAbiEvent, ExtractAbiEventNames} from 'abitype';
 import {Methods, type EIP1193ProviderWithoutEvents} from 'eip-1193';
 import {createCurriedJSONRPC, CurriedRPC} from 'remote-procedure-call';
-import {decodeFunctionResult, encodeEventTopics, encodeFunctionData, parseEventLogs} from 'viem';
+import {
+	decodeFunctionResult,
+	encodeEventTopics,
+	encodeFunctionData,
+	parseEventLogs,
+} from 'viem';
 
 export type Position = {
 	x: number;
@@ -23,7 +28,9 @@ export function bigIntIDToXY(position: bigint): Position {
 
 export function xyToBigIntID(x: number, y: number): bigint {
 	// const bn = (BigInt.asUintN(32, BigInt(x)) + BigInt.asUintN(32, BigInt(y))) << 32n;
-	const bn = (x < 0 ? 2n ** 32n + BigInt(x) : BigInt(x)) + ((y < 0 ? 2n ** 32n + BigInt(y) : BigInt(y)) << 32n);
+	const bn =
+		(x < 0 ? 2n ** 32n + BigInt(x) : BigInt(x)) +
+		((y < 0 ? 2n ** 32n + BigInt(y) : BigInt(y)) << 32n);
 	return bn;
 }
 
@@ -43,7 +50,12 @@ export type Avatars = Map<bigint, AvatarWithLastActions>;
 /**
  * Calculate the zones visible from the camera view plus neighboring zones
  */
-export function calculateVisibleZones(camera: {x: number; y: number; width: number; height: number}): bigint[] {
+export function calculateVisibleZones(camera: {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}): bigint[] {
 	const ZONE_SIZE = 16;
 	const ZONE_OFFSET = 8;
 
@@ -83,10 +95,10 @@ export function calculateVisibleZones(camera: {x: number; y: number; width: numb
 	return result;
 }
 
-function getEventFromAbi<abi extends Abi, eventName extends ExtractAbiEventNames<abi>>(
-	abi: abi,
-	eventName: eventName,
-): ExtractAbiEvent<abi, eventName> {
+function getEventFromAbi<
+	abi extends Abi,
+	eventName extends ExtractAbiEventNames<abi>,
+>(abi: abi, eventName: eventName): ExtractAbiEvent<abi, eventName> {
 	for (const item of abi) {
 		if (item.type === 'event' && item.name === eventName) {
 			return item as ExtractAbiEvent<abi, eventName>;
@@ -107,7 +119,9 @@ export async function getAvatarsFromContract(
 		functionName: 'getAvatarsInMultipleZones',
 		args: [zones, startIndex, limit],
 	});
-	const callResult = await rpc.call('eth_call')([{data: calldata, to: Game.address}]);
+	const callResult = await rpc.call('eth_call')([
+		{data: calldata, to: Game.address},
+	]);
 	if (!callResult.success) {
 		throw new Error(callResult.error.message, {cause: callResult.error});
 	}
@@ -140,7 +154,13 @@ export function createReader(
 		let allAvatars: Avatar[] = [];
 		let hasMore = true;
 		while (hasMore) {
-			const [avatars, more] = await getAvatarsFromContract(rpc, Game, zones, BigInt(startIndex), BigInt(limit));
+			const [avatars, more] = await getAvatarsFromContract(
+				rpc,
+				Game,
+				zones,
+				BigInt(startIndex),
+				BigInt(limit),
+			);
 			allAvatars = [...allAvatars, ...avatars];
 			hasMore = more;
 

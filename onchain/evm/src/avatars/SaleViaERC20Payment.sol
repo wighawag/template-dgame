@@ -8,7 +8,11 @@ import "solidity-kit/solc_0_8/ERC20/interfaces/IERC20.sol";
 import "solidity-kit/solc_0_8/ERC721/interfaces/IERC721.sol";
 
 interface IUniversalRouter {
-    function execute(bytes calldata commands, bytes[] calldata inputs, uint256 deadline) external payable;
+    function execute(
+        bytes calldata commands,
+        bytes[] calldata inputs,
+        uint256 deadline
+    ) external payable;
 }
 
 interface IERC20Permit {
@@ -25,13 +29,23 @@ interface IERC20Permit {
 
 abstract contract SaleViaERC20Payment is Proxied {
     error WrongPaymentAmount(uint256 amount, uint256 expected);
-    error TransferFailed(IERC20 token, address from, address to, uint256 amount);
+    error TransferFailed(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 amount
+    );
     error FailedToTransferNativeToken(address recipient);
     error InvalidPaymentToken(IERC20 token);
     error InsufficientTokenReceived(uint256 amount, uint256 expected);
     error NotFreeMapAdmin(address sender, address expected);
 
-    event Mint(address indexed sender, address indexed to, address indexed referrer, uint256 tokenID);
+    event Mint(
+        address indexed sender,
+        address indexed to,
+        address indexed referrer,
+        uint256 tokenID
+    );
 
     IERC721 public immutable ITEMS;
     IERC20 public immutable PAYMENT_TOKEN;
@@ -98,8 +112,19 @@ abstract contract SaleViaERC20Payment is Proxied {
                 s // signature components
             );
 
-            if (PAYMENT_TOKEN.transferFrom(msg.sender, RECIPIENT, PAYMENT_AMOUNT) == false) {
-                revert TransferFailed(PAYMENT_TOKEN, msg.sender, RECIPIENT, PAYMENT_AMOUNT);
+            if (
+                PAYMENT_TOKEN.transferFrom(
+                    msg.sender,
+                    RECIPIENT,
+                    PAYMENT_AMOUNT
+                ) == false
+            ) {
+                revert TransferFailed(
+                    PAYMENT_TOKEN,
+                    msg.sender,
+                    RECIPIENT,
+                    PAYMENT_AMOUNT
+                );
             }
         } else {
             freemap[msg.sender] = false;
@@ -115,8 +140,19 @@ abstract contract SaleViaERC20Payment is Proxied {
         address referrer
     ) external {
         if (!freemap[msg.sender]) {
-            if (PAYMENT_TOKEN.transferFrom(msg.sender, RECIPIENT, PAYMENT_AMOUNT) == false) {
-                revert TransferFailed(PAYMENT_TOKEN, msg.sender, RECIPIENT, PAYMENT_AMOUNT);
+            if (
+                PAYMENT_TOKEN.transferFrom(
+                    msg.sender,
+                    RECIPIENT,
+                    PAYMENT_AMOUNT
+                ) == false
+            ) {
+                revert TransferFailed(
+                    PAYMENT_TOKEN,
+                    msg.sender,
+                    RECIPIENT,
+                    PAYMENT_AMOUNT
+                );
             }
         } else {
             freemap[msg.sender] = false;
@@ -157,7 +193,11 @@ abstract contract SaleViaERC20Payment is Proxied {
             );
 
             // Construct the path for the swap in reverse order for exact output swaps: TOKEN -> WETH
-            bytes memory path = abi.encodePacked(PAYMENT_TOKEN, UNISWAP_FEE, WETH);
+            bytes memory path = abi.encodePacked(
+                PAYMENT_TOKEN,
+                UNISWAP_FEE,
+                WETH
+            );
 
             // Input for V3_SWAP_EXACT_OUT command
             // Parameters: (address recipient, uint256 amountOut, uint256 amountInMaximum, bytes path, bool payerIsUser)
@@ -177,7 +217,11 @@ abstract contract SaleViaERC20Payment is Proxied {
             );
 
             // Execute the swap through Universal Router
-            UNIVERSAL_ROUTER.execute{value: paymentAmount}(commands, inputs, deadline);
+            UNIVERSAL_ROUTER.execute{value: paymentAmount}(
+                commands,
+                inputs,
+                deadline
+            );
         } else {
             freemap[msg.sender] = false;
             if (paymentAmount != 0) {
@@ -228,10 +272,20 @@ abstract contract SaleViaERC20Payment is Proxied {
         // TODO use proxy that can receive it
     }
 
-    function _mint(address sender, address payable to, uint96 subID, address referrer, bytes calldata data) internal {
+    function _mint(
+        address sender,
+        address payable to,
+        uint96 subID,
+        address referrer,
+        bytes calldata data
+    ) internal {
         uint256 tokenID = _executeMint(to, subID, data);
         emit Mint(sender, to, referrer, tokenID);
     }
 
-    function _executeMint(address to, uint96 subID, bytes calldata data) internal virtual returns (uint256 tokenID);
+    function _executeMint(
+        address to,
+        uint96 subID,
+        bytes calldata data
+    ) internal virtual returns (uint256 tokenID);
 }

@@ -17,7 +17,11 @@ async function main() {
 	await env.execute(Game, {
 		account: env.namedAccounts.deployer,
 		functionName: 'commit',
-		args: [1n, '0x0000000000000000000000000000000000000000000000000000000000000000', zeroAddress],
+		args: [
+			1n,
+			'0x0000000000000000000000000000000000000000000000000000000000000000',
+			zeroAddress,
+		],
 	});
 
 	const after_avatars = await env.read(Game, {

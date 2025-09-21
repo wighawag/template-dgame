@@ -9,7 +9,11 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
     constructor(Config memory config) UsingGameInternal(config) {}
 
     // TODO deposit via permit
-    function deposit(uint256 avatarID, address controller, address payable payee) external payable {
+    function deposit(
+        uint256 avatarID,
+        address controller,
+        address payable payee
+    ) external payable {
         _deposit(avatarID, msg.sender, controller);
 
         // transfer Character to the game
@@ -33,7 +37,10 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
         if (data.length != 64) {
             revert UsingGameErrors.InvalidData();
         }
-        (address owner, address controller) = abi.decode(data, (address, address));
+        (address owner, address controller) = abi.decode(
+            data,
+            (address, address)
+        );
         _deposit(tokenID, owner, controller);
         return IERC721Receiver.onERC721Received.selector;
     }
@@ -59,7 +66,11 @@ contract GameDeposit is IGameDeposit, UsingGameInternal, IERC721Receiver {
         for (uint256 i = 0; i < actualLimit; i++) {
             uint256 avatarID = _ownedAvatars[owner][startIndex + i];
             Avatar storage avatar = _avatars[avatarID];
-            list[i] = AvatarStatus({avatarID: avatarID, inGame: avatar.inGame, position: avatar.position});
+            list[i] = AvatarStatus({
+                avatarID: avatarID,
+                inGame: avatar.inGame,
+                position: avatar.position
+            });
         }
 
         return (list, actualLimit != limit);

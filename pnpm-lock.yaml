@@ -91,8 +91,8 @@ importers:
         specifier: ^3.6.2
         version: 3.6.2
       prettier-plugin-solidity:
-        specifier: ^2.1.0
-        version: 2.1.0(prettier@3.6.2)
+        specifier: 2.2.0-rc.1
+        version: 2.2.0-rc.1(prettier@3.6.2)
       remote-procedure-call:
         specifier: ^0.1.1
         version: 0.1.1(@types/node@24.5.1)(lightningcss@1.30.1)(terser@5.43.1)
@@ -1247,8 +1247,8 @@ packages:
     peerDependencies:
       zod: ^3.23.8
 
-  '@nomicfoundation/slang@1.2.0':
-    resolution: {integrity: sha512-+04Z1RHbbz0ldDbHKQFOzveCdI9Rd3TZZu7fno5hHy3OsqTo9UK5Jgqo68wMvRovCO99POv6oCEyO7+urGeN8Q==}
+  '@nomicfoundation/slang@1.2.1':
+    resolution: {integrity: sha512-XQirzqDGxMnhOZtGPRLdc1F6UymU0N/lhXUcWsf6bqy29Pq+g6ougvbSTTCTXjgWXjBp6zQ1gaJmzWmMBvMgOw==}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -3221,8 +3221,8 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  prettier-plugin-solidity@2.1.0:
-    resolution: {integrity: sha512-O5HX4/PCE5aqiaEiNGbSRLbSBZQ6kLswAav5LBSewwzhT+sZlN6iAaLZlZcJzPEnIAxwLEHP03xKEg92fflT9Q==}
+  prettier-plugin-solidity@2.2.0-rc.1:
+    resolution: {integrity: sha512-rINcOk3Goqfa/FPOtdBaYpOoYRpWfgm15B3pcmOejPU0eExSyCSZtKFpE4KmwtJ0htMcNmp/aqspuNMm9aQUMg==}
     engines: {node: '>=20'}
     peerDependencies:
       prettier: '>=3.0.0'
@@ -4886,7 +4886,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@nomicfoundation/slang@1.2.0':
+  '@nomicfoundation/slang@1.2.1':
     dependencies:
       '@bytecodealliance/preview2-shim': 0.17.2
 
@@ -6997,9 +6997,9 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  prettier-plugin-solidity@2.1.0(prettier@3.6.2):
+  prettier-plugin-solidity@2.2.0-rc.1(prettier@3.6.2):
     dependencies:
-      '@nomicfoundation/slang': 1.2.0
+      '@nomicfoundation/slang': 1.2.1
       '@solidity-parser/parser': 0.20.2
       prettier: 3.6.2
       semver: 7.7.2

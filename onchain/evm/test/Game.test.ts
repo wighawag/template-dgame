@@ -29,7 +29,8 @@ describe('Game', function () {
 		// console.log(before_avatars);
 
 		const timestamp = await getTimestamp();
-		const {epoch: initialEpoch, commiting: initialCommiting} = getEpoch(timestamp);
+		const {epoch: initialEpoch, commiting: initialCommiting} =
+			getEpoch(timestamp);
 
 		const subID = 0n;
 		const avatarID = (BigInt(unnamedAccounts[0]) << 96n) + subID;
@@ -39,7 +40,10 @@ describe('Game', function () {
 			args: [
 				Game.address,
 				subID,
-				encodeAbiParameters([{type: 'address'}, {type: 'address'}], [unnamedAccounts[0], unnamedAccounts[0]]),
+				encodeAbiParameters(
+					[{type: 'address'}, {type: 'address'}],
+					[unnamedAccounts[0], unnamedAccounts[0]],
+				),
 				zeroAddress,
 				0n,
 				zeroAddress,
@@ -50,7 +54,8 @@ describe('Game', function () {
 		await advanceToEpoch(initialEpoch + 2);
 		const entrancePosition = 0n;
 		const hash = '0x000000000000000000000000000000000000000000000000';
-		const secret = '0x0000000000000000000000000000000000000000000000000000000000000000';
+		const secret =
+			'0x0000000000000000000000000000000000000000000000000000000000000000';
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
 			functionName: 'commit',
@@ -62,7 +67,12 @@ describe('Game', function () {
 		await env.execute(Game, {
 			account: env.unnamedAccounts[0],
 			functionName: 'reveal',
-			args: [avatarID, [{actionType: 0, data: entrancePosition}], secret, zeroAddress],
+			args: [
+				avatarID,
+				[{actionType: 0, data: entrancePosition}],
+				secret,
+				zeroAddress,
+			],
 		});
 
 		await advanceToEpoch(initialEpoch + 3);
@@ -96,7 +106,11 @@ describe('Game', function () {
 
 		const after_avatars = await env.read(Game, {
 			functionName: 'getAvatarsInMultipleZones',
-			args: [[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 0n], 0n, 100n],
+			args: [
+				[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n, 13n, 14n, 0n],
+				0n,
+				100n,
+			],
 		});
 
 		expect(after_avatars[0][0].position).toEqual(4n);

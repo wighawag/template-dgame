@@ -7,7 +7,11 @@ import "../interfaces/IGame.sol";
 contract GameCommit is IGameCommit, UsingGameInternal {
     constructor(Config memory config) UsingGameInternal(config) {}
 
-    function commit(uint256 avatarID, bytes24 commitmentHash, address payable payee) external payable {
+    function commit(
+        uint256 avatarID,
+        bytes24 commitmentHash,
+        address payable payee
+    ) external payable {
         _makeCommitment(msg.sender, avatarID, commitmentHash);
 
         if (payee != address(0)) {

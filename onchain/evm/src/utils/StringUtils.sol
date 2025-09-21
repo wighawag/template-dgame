@@ -9,6 +9,12 @@ library StringUtils {
     }
 
     function toString(int256 value) internal pure returns (string memory) {
-        return string(abi.encodePacked(value < 0 ? "-" : "", Strings.toString(SignedMath.abs(value))));
+        return
+            string(
+                abi.encodePacked(
+                    value < 0 ? "-" : "",
+                    Strings.toString(SignedMath.abs(value))
+                )
+            );
     }
 }

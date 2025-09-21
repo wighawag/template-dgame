@@ -11,7 +11,11 @@ library PositionUtils {
         position = (uint64(uint32(y)) << 32) + uint64(uint32(x));
     }
 
-    function offset(uint64 position, int32 x, int32 y) internal pure returns (uint64 newPosition) {
+    function offset(
+        uint64 position,
+        int32 x,
+        int32 y
+    ) internal pure returns (uint64 newPosition) {
         x = int32(uint32(position) & 0xFFFFFFFF) + x;
         y = int32(uint32(position >> 32)) + y;
         newPosition = (uint64(uint32(y)) << 32) + uint64(uint32(x));
@@ -28,7 +32,10 @@ library PositionUtils {
         }
     }
 
-    function zoneCoords(int32 x, int32 y) internal pure returns (int32 zoneX, int32 zoneY) {
+    function zoneCoords(
+        int32 x,
+        int32 y
+    ) internal pure returns (int32 zoneX, int32 zoneY) {
         zoneX = zoneCoord(x);
         zoneY = zoneCoord(y);
     }

@@ -1,10 +1,6 @@
-import { Blockie } from '$lib/utils/ethereum/blockie';
 import { viewState, type ViewEntity, type ViewState } from '$lib/view';
 import { Container, Graphics } from 'pixi.js';
 import type { Readable } from 'svelte/store';
-import { LoadingSprite } from './LoadingSprite';
-import { epochInfo, time } from '$lib/time';
-import gsap from 'gsap';
 import { AvatarObject } from './objects/AvatarObject';
 
 export function createRenderer(viewState: Readable<ViewState>) {

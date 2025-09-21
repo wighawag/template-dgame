@@ -25,7 +25,10 @@ export function setupFixtures(provider: EthereumProvider) {
 			let _timeOverride: {timestamp: number; whenMs: number} | undefined;
 
 			async function advanceToTime(time: number, mine?: boolean) {
-				await provider.request({method: 'evm_setNextBlockTimestamp', params: [time]});
+				await provider.request({
+					method: 'evm_setNextBlockTimestamp',
+					params: [time],
+				});
 				_timeOverride = {timestamp: time, whenMs: Date.now()};
 				if (mine) {
 					await provider.request({method: 'evm_mine'});
@@ -34,32 +37,44 @@ export function setupFixtures(provider: EthereumProvider) {
 
 			async function getTimestamp(): Promise<number> {
 				if (_timeOverride) {
-					const block = await provider.request({method: 'eth_getBlockByNumber', params: ['latest', false]});
+					const block = await provider.request({
+						method: 'eth_getBlockByNumber',
+						params: ['latest', false],
+					});
 					const blockTimestamp: number = (block as any).timestamp;
 					if (blockTimestamp > _timeOverride.timestamp) {
 						_timeOverride = undefined;
 						return blockTimestamp;
 					}
-					return _timeOverride.timestamp + Math.floor((Date.now() - _timeOverride.whenMs) / 1000);
+					return (
+						_timeOverride.timestamp +
+						Math.floor((Date.now() - _timeOverride.whenMs) / 1000)
+					);
 				}
 				return Math.floor(Date.now() / 1000);
 			}
 
 			function getEpoch(time: number): {epoch: number; commiting: boolean} {
-				const epochDuration = Number(linkedData.commitPhaseDuration) + Number(linkedData.revealPhaseDuration);
+				const epochDuration =
+					Number(linkedData.commitPhaseDuration) +
+					Number(linkedData.revealPhaseDuration);
 				const startTime = Number(linkedData.startTime);
 				if (time < startTime) {
 					throw new Error('Game not started');
 				}
 				const timePassed = time - startTime;
 				const epoch = Math.floor(timePassed / epochDuration + 2);
-				const commiting = timePassed - (epoch - 2) * epochDuration < Number(linkedData.commitPhaseDuration);
+				const commiting =
+					timePassed - (epoch - 2) * epochDuration <
+					Number(linkedData.commitPhaseDuration);
 
 				return {epoch, commiting};
 			}
 
 			function getEpochStartTime(epoch: number): number {
-				const epochDuration = Number(linkedData.commitPhaseDuration) + Number(linkedData.revealPhaseDuration);
+				const epochDuration =
+					Number(linkedData.commitPhaseDuration) +
+					Number(linkedData.revealPhaseDuration);
 				return Number(linkedData.startTime) + (epoch - 2) * epochDuration;
 			}
 
@@ -68,7 +83,10 @@ export function setupFixtures(provider: EthereumProvider) {
 			}
 
 			async function advanceToRevealPhase(epoch: number, mine?: boolean) {
-				await advanceToTime(getEpochStartTime(epoch) + Number(linkedData.commitPhaseDuration), mine);
+				await advanceToTime(
+					getEpochStartTime(epoch) + Number(linkedData.commitPhaseDuration),
+					mine,
+				);
 			}
 
 			return {

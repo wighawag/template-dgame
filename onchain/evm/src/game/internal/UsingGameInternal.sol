@@ -7,13 +7,21 @@ import "../interfaces/UsingGameErrors.sol";
 import "../../utils/PositionUtils.sol";
 import "hardhat/console.sol";
 
-abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGameErrors {
+abstract contract UsingGameInternal is
+    UsingGameStore,
+    UsingGameEvents,
+    UsingGameErrors
+{
     constructor(Config memory config) UsingGameStore(config) {}
 
     //-------------------------------------------------------------------------
     // ENTRY POINTS
     //-------------------------------------------------------------------------
-    function _deposit(uint256 avatarID, address owner, address controller) internal {
+    function _deposit(
+        uint256 avatarID,
+        address owner,
+        address controller
+    ) internal {
         _players[avatarID] = Player({owner: owner, controller: controller});
 
         uint256 length = _ownedAvatars[owner].length;
@@ -51,7 +59,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         AVATARS.safeTransferFrom(address(this), to, avatarID);
     }
 
-    function _makeCommitment(address controller, uint256 avatarID, bytes24 commitmentHash) internal {
+    function _makeCommitment(
+        address controller,
+        uint256 avatarID,
+        bytes24 commitmentHash
+    ) internal {
         if (_players[avatarID].controller != controller) {
             revert UsingGameErrors.NotAuthorizedController(controller);
         }
@@ -68,7 +80,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             // TODO reenable
             // revert PreviousCommitmentNotRevealed();
             // TODO delete
-            emit PreviousCommitmentNotRevealedEvent(avatarID, commitment.epoch, commitmentHash);
+            emit PreviousCommitmentNotRevealedEvent(
+                avatarID,
+                commitment.epoch,
+                commitmentHash
+            );
         }
 
         commitment.hash = commitmentHash;
@@ -103,7 +119,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         emit CommitmentCancelled(avatarID, epoch);
     }
 
-    function _reveal(uint256 avatarID, Action[] calldata actions, bytes32 secret) internal {
+    function _reveal(
+        uint256 avatarID,
+        Action[] calldata actions,
+        bytes32 secret
+    ) internal {
         (uint64 epoch, bool commiting) = _epoch();
 
         console.log("checking phase...");
@@ -132,7 +152,13 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         console.log("...done");
 
-        emit CommitmentRevealed(avatarID, epoch, PositionUtils.getZone(newPosition), hashRevealed, actions);
+        emit CommitmentRevealed(
+            avatarID,
+            epoch,
+            PositionUtils.getZone(newPosition),
+            hashRevealed,
+            actions
+        );
 
         commitment.epoch = 0; // used
     }
@@ -183,7 +209,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             // NWSE (North, West, South, East)
             if (action.actionType == ActionType.Enter) {
                 uint64 entryPosition = uint64(action.data);
-                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(entryPosition);
+                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(
+                    entryPosition
+                );
                 // TODO check valid entry
                 x = moveToX;
                 y = moveToY;
@@ -191,7 +219,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
                 break; // we ignore any more action
             } else if (action.actionType == ActionType.Move) {
                 uint64 movePosition = uint64(action.data);
-                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(movePosition);
+                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(
+                    movePosition
+                );
                 // TODO check valid move
                 x = moveToX;
                 y = moveToY;
@@ -210,7 +240,12 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             _avatars[avatarID].inGame = false;
             _avatars[avatarID].position = 0;
             _removeFromZone(initialZone, avatarID);
-            emit LeftTheGame(avatarID, epoch, PositionUtils.getZone(x, y), newPosition);
+            emit LeftTheGame(
+                avatarID,
+                epoch,
+                PositionUtils.getZone(x, y),
+                newPosition
+            );
         } else if (entering) {
             // Note if we can die, enterring should not die upon entering
             //  extra data needed
@@ -229,7 +264,12 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         }
     }
 
-    function _epoch() internal view virtual returns (uint64 epoch, bool commiting) {
+    function _epoch()
+        internal
+        view
+        virtual
+        returns (uint64 epoch, bool commiting)
+    {
         uint256 epochDuration = COMMIT_PHASE_DURATION + REVEAL_PHASE_DURATION;
         uint256 time = _timestamp();
         if (time < START_TIME) {
@@ -237,10 +277,14 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         }
         uint256 timePassed = time - START_TIME;
         epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
-        commiting = timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;
+        commiting =
+            timePassed - ((epoch - 2) * epochDuration) <
+            COMMIT_PHASE_DURATION;
     }
 
-    function _getResolvedAvatar(uint256 avatarID) internal view returns (AvatarResolved memory) {
+    function _getResolvedAvatar(
+        uint256 avatarID
+    ) internal view returns (AvatarResolved memory) {
         Avatar memory avatar = _avatars[avatarID];
 
         return AvatarResolved({position: avatar.position, avatarID: avatarID});
@@ -250,7 +294,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64 zone,
         uint64 fromIndex,
         uint64 limit
-    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
+    )
+        internal
+        view
+        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+    {
         (epoch, ) = _epoch();
         uint256 numAvatarsInZone = _zones[zone].avatars.length;
         if (fromIndex < numAvatarsInZone) {
@@ -262,7 +310,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             }
             avatars = new AvatarResolved[](limit);
             for (uint256 i = 0; i < limit; i++) {
-                avatars[i] = _getResolvedAvatar(_zones[zone].avatars[fromIndex + i]);
+                avatars[i] = _getResolvedAvatar(
+                    _zones[zone].avatars[fromIndex + i]
+                );
             }
         }
     }
@@ -271,7 +321,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         uint64[] calldata zones,
         uint64 fromIndex,
         uint64 limit
-    ) internal view returns (AvatarResolved[] memory avatars, bool more, uint64 epoch) {
+    )
+        internal
+        view
+        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+    {
         (epoch, ) = _epoch();
         // Create a struct to hold our working variables
         AvatarFetchState memory state = _initAvatarFetchState(zones, fromIndex);
@@ -321,7 +375,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             state.zoneEndIndices[i] = uint64(runningTotal);
 
             // Determine which zone contains our fromIndex
-            if (fromIndex < runningTotal && (i == 0 || fromIndex >= state.zoneEndIndices[i - 1])) {
+            if (
+                fromIndex < runningTotal &&
+                (i == 0 || fromIndex >= state.zoneEndIndices[i - 1])
+            ) {
                 state.currentZone = i;
                 state.zoneOffset = i > 0 ? state.zoneEndIndices[i - 1] : 0;
             }
@@ -345,7 +402,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
 
         while (avatarsReturned < limit && currentZone < zones.length) {
             uint64 inZoneIndex = currentFromIndex - zoneOffset;
-            uint64 zonesAvatarCount = uint64(_zones[zones[currentZone]].avatars.length);
+            uint64 zonesAvatarCount = uint64(
+                _zones[zones[currentZone]].avatars.length
+            );
 
             // Calculate how many avatars we can take from current zone
             uint64 toTake = limit - avatarsReturned;
@@ -373,7 +432,11 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         }
     }
 
-    function _checkHash(bytes24 commitmentHash, Action[] memory actions, bytes32 secret) internal pure {
+    function _checkHash(
+        bytes24 commitmentHash,
+        Action[] memory actions,
+        bytes32 secret
+    ) internal pure {
         // TODO remove
         if (commitmentHash == bytes24(0)) {
             return;
@@ -393,7 +456,9 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
             if (index == numAvatarsInZone - 1) {
                 _zones[zone].avatars.pop();
             } else {
-                uint256 lastAvatarID = _zones[zone].avatars[numAvatarsInZone - 1];
+                uint256 lastAvatarID = _zones[zone].avatars[
+                    numAvatarsInZone - 1
+                ];
                 _avatars[lastAvatarID].zoneIndex = index;
                 _zones[zone].avatars[index] = lastAvatarID;
                 _zones[zone].avatars.pop();
@@ -406,7 +471,10 @@ abstract contract UsingGameInternal is UsingGameStore, UsingGameEvents, UsingGam
         _zones[zone].avatars.push(avatarID);
     }
 
-    function _isValidMove(uint64 from, uint64 to) internal pure returns (bool valid) {
+    function _isValidMove(
+        uint64 from,
+        uint64 to
+    ) internal pure returns (bool valid) {
         (int32 x1, int32 y1) = PositionUtils.toXY(from);
         (int32 x2, int32 y2) = PositionUtils.toXY(to);
 

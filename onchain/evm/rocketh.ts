@@ -98,7 +98,12 @@ import * as deployExtension from '@rocketh/deploy'; // this one provide a deploy
 import * as readExecuteExtension from '@rocketh/read-execute'; // this one provide read,execute functions
 import * as deployProxyExtension from '@rocketh/proxy'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
 import * as deployRouterExtension from '@rocketh/router'; // this one provide a deployViaProxy function that let you declaratively deploy proxy based contracts
-const extensions = {...deployExtension, ...readExecuteExtension, ...deployProxyExtension, ...deployRouterExtension};
+const extensions = {
+	...deployExtension,
+	...readExecuteExtension,
+	...deployProxyExtension,
+	...deployRouterExtension,
+};
 // ------------------------------------------------------------------------------------------------
 // we re-export the artifacts, so they are easily available from the alias
 import * as artifacts from './generated/artifacts/index.js';
@@ -106,9 +111,11 @@ export {artifacts};
 // ------------------------------------------------------------------------------------------------
 // we create the rocketh functions we need by passing the extensions to the setup function
 import {setup} from 'rocketh';
-const {deployScript, loadAndExecuteDeployments} = setup<typeof extensions, typeof config.accounts, typeof config.data>(
-	extensions,
-);
+const {deployScript, loadAndExecuteDeployments} = setup<
+	typeof extensions,
+	typeof config.accounts,
+	typeof config.data
+>(extensions);
 // ------------------------------------------------------------------------------------------------
 // we do the same for hardhat-deploy
 import {setupHardhatDeploy} from 'hardhat-deploy/helpers';

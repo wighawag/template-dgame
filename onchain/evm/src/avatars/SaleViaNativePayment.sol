@@ -22,11 +22,21 @@ interface IERC20Permit {
 abstract contract SaleViaNativePayment is Proxied {
     error ExpectNativeToken();
     error WrongPaymentAmount(uint256 amount, uint256 expected);
-    error TransferFailed(IERC20 token, address from, address to, uint256 amount);
+    error TransferFailed(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 amount
+    );
     error FailedToTransferNativeToken(address recipient);
     error NotFreeMapAdmin(address sender, address expected);
 
-    event Mint(address indexed sender, address indexed to, address indexed referrer, uint256 tokenID);
+    event Mint(
+        address indexed sender,
+        address indexed to,
+        address indexed referrer,
+        uint256 tokenID
+    );
 
     IERC721 public immutable ITEMS;
     uint256 public immutable PAYMENT_AMOUNT;
@@ -170,10 +180,20 @@ abstract contract SaleViaNativePayment is Proxied {
         }
     }
 
-    function _mint(address sender, address payable to, uint96 subID, address referrer, bytes calldata data) internal {
+    function _mint(
+        address sender,
+        address payable to,
+        uint96 subID,
+        address referrer,
+        bytes calldata data
+    ) internal {
         uint256 tokenID = _executeMint(to, subID, data);
         emit Mint(sender, to, referrer, tokenID);
     }
 
-    function _executeMint(address to, uint96 subID, bytes calldata data) internal virtual returns (uint256 tokenID);
+    function _executeMint(
+        address to,
+        uint96 subID,
+        bytes calldata data
+    ) internal virtual returns (uint256 tokenID);
 }
