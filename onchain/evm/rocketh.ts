@@ -42,7 +42,7 @@ export const config = {
 		},
 		['rise-testnet']: {
 			properties: {
-				blockTime: 2,
+				blockTime: 1,
 				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 			},
 		},
