@@ -40,6 +40,12 @@ export const config = {
 				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 			},
 		},
+		['rise-testnet']: {
+			properties: {
+				blockTime: 2,
+				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
+			},
+		},
 	},
 	accounts: {
 		deployer: {
