@@ -44,6 +44,7 @@ export const config = {
 		},
 	},
 	defaultChainProperties: {
+		// if not specified, fallback on:
 		blockTime: 1,
 		expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 	},
