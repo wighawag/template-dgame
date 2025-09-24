@@ -38,6 +38,16 @@ const config: HardhatUserConfig = {
 					evmVersion: 'prague',
 				},
 			},
+			london: {
+				version: '0.8.28',
+				settings: {
+					optimizer: {
+						enabled: true,
+						runs: 999999,
+					},
+					evmVersion: 'london',
+				},
+			},
 		},
 	},
 	// this add automatic fork configuration

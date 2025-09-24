@@ -33,25 +33,10 @@ export const config = {
 				expectedWorstGasPrice: parseEther('25', 'gwei'),
 			},
 		},
-		216: {
-			properties: {
-				// happychain testnet
-				blockTime: 2,
-				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
-			},
-		},
-		['rise-testnet']: {
-			properties: {
-				blockTime: 1,
-				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
-			},
-		},
-		['cronos-mainnet']: {
-			properties: {
-				blockTime: 1,
-				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
-			},
-		},
+	},
+	defaultChainProperties: {
+		blockTime: 1,
+		expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 	},
 	accounts: {
 		deployer: {
