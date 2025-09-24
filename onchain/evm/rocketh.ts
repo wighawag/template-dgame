@@ -46,6 +46,12 @@ export const config = {
 				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 			},
 		},
+		['cronos-mainnet']: {
+			properties: {
+				blockTime: 1,
+				expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
+			},
+		},
 	},
 	accounts: {
 		deployer: {
