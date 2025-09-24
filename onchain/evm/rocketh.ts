@@ -57,20 +57,8 @@ export const config = {
 	},
 	data: {
 		sale: {
-			megatestnet: {
-				price: parseEther('0.00000001'),
-			},
-			somniatestnet: {
-				price: parseEther('0.00000001'),
-			},
-			celosepolia: {
-				price: parseEther('0.00000001'),
-			},
-			happychaintestnet: {
-				price: parseEther('0.00000001'),
-			},
 			default: {
-				price: parseEther('0.01'),
+				price: parseEther('0.00000001'),
 			},
 		},
 		Game: {
