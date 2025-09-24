@@ -57,8 +57,8 @@ importers:
         specifier: ^0.15.4
         version: 0.15.4(bufferutil@4.0.9)(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/verifier':
-        specifier: ^0.15.3
-        version: 0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+        specifier: ^0.15.5
+        version: 0.15.6(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       '@types/node':
         specifier: ^24.5.2
         version: 24.5.2
@@ -1575,8 +1575,8 @@ packages:
     peerDependencies:
       rocketh: 0.15.3
 
-  '@rocketh/verifier@0.15.3':
-    resolution: {integrity: sha512-xiMyX8gaAHdUnUipokyCWJBvq/3AfE8Z9aU5gXFsWJ7TOFIi/wnOxpyRgr0gda123MaBGW/8A3lCO0RuB9wtNA==}
+  '@rocketh/verifier@0.15.6':
+    resolution: {integrity: sha512-Cdx04dqwpBYYFTOjxFiTGLGiNZnuiyYWLtEYEDrHoa4f3ifa50KNxeehN47XPOA23oPTcc/b7hAWwV1NwsqWnw==}
     hasBin: true
     peerDependencies:
       rocketh: 0.15.3
@@ -5324,7 +5324,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/verifier@0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
+  '@rocketh/verifier@0.15.6(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
     dependencies:
       '@types/fs-extra': 11.0.4
       '@types/qs': 6.14.0
