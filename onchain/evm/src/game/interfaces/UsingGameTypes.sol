@@ -34,6 +34,7 @@ interface UsingGameTypes {
         uint256 revealPhaseDuration;
         ITime time;
         IERC721 avatars;
+        uint256 numActions;
     }
 
     struct AvatarStatus {

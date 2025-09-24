@@ -46,7 +46,7 @@ function defaultState() {
 const $state: LocalState = defaultState();
 
 function LOCAL_STORAGE_STATE_KEY(signerAddress: `0x${string}`) {
-	return `__private__${deployments.chain.id}_${deployments.contracts.Game.address}_${signerAddress}`;
+	return `__private__${deployments.chain.id}_${deployments.chain.genesisHash}_${deployments.contracts.Game.address}_${signerAddress}`;
 }
 
 export function createLocalState(signer: Readable<OptionalSigner>) {
@@ -134,6 +134,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			if ($state.avatar.actions[0]?.type === 'enter') {
+				return;
+			}
+
+			if (
+				$state.avatar?.actions &&
+				$state.avatar.actions.length >= Number(deployments.contracts.Game.linkedData.numActions) - 1
+			) {
 				return;
 			}
 

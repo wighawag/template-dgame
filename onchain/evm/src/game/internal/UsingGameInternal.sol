@@ -194,7 +194,7 @@ abstract contract UsingGameInternal is
 
     function _resolveActions(
         uint256 avatarID,
-        uint64 epoch,
+        uint64 epoch, 
         Action[] memory actions
     ) internal returns (uint64 newPosition) {
         Avatar memory avatar = _avatars[avatarID];
@@ -203,7 +203,8 @@ abstract contract UsingGameInternal is
         uint64 initialZone = PositionUtils.getZone(x, y);
         bool left = false;
         bool entering = false;
-        for (uint256 i = 0; i < actions.length; i++) {
+        uint256 numActions = actions.length > MAX_ACTIONS ? MAX_ACTIONS : actions.length; 
+        for (uint256 i = 0; i < numActions; i++) {
             Action memory action = actions[i];
 
             // NWSE (North, West, South, East)

@@ -13,6 +13,8 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
     uint256 internal immutable REVEAL_PHASE_DURATION;
     /// @notice the avatars NFT collection
     IERC721 internal immutable AVATARS;
+     /// @notice the max number of actions per turn
+    uint256 internal immutable MAX_ACTIONS;
 
     /// @notice the number of moves a hash represent, after that players make use of furtherMoves
     uint8 internal constant MAX_NUM_MOVES_PER_HASH = 32;
@@ -30,6 +32,7 @@ abstract contract UsingGameStore is UsingGameTypes, UsingVirtualTime {
     /// @notice Create an instance of a game
     /// @param config configuration options for the game
     constructor(Config memory config) UsingVirtualTime(config.time) {
+        MAX_ACTIONS = config.numActions; 
         START_TIME = config.startTime;
         COMMIT_PHASE_DURATION = config.commitPhaseDuration;
         REVEAL_PHASE_DURATION = config.revealPhaseDuration;
