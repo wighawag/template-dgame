@@ -39,26 +39,26 @@ importers:
         specifier: ^5.4.0
         version: 5.4.0
       '@rocketh/deploy':
-        specifier: ^0.15.0
-        version: 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
-      '@rocketh/doc':
-        specifier: ^0.15.2
-        version: 0.15.2(bufferutil@4.0.9)(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(utf-8-validate@5.0.10)
-      '@rocketh/export':
-        specifier: ^0.15.2
-        version: 0.15.2(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
-      '@rocketh/proxy':
         specifier: ^0.15.1
         version: 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      '@rocketh/doc':
+        specifier: ^0.15.3
+        version: 0.15.3(bufferutil@4.0.9)(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(utf-8-validate@5.0.10)
+      '@rocketh/export':
+        specifier: ^0.15.3
+        version: 0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+      '@rocketh/proxy':
+        specifier: ^0.15.2
+        version: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/read-execute':
         specifier: ^0.15.1
         version: 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/router':
-        specifier: ^0.15.2
-        version: 0.15.2(bufferutil@4.0.9)(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+        specifier: ^0.15.4
+        version: 0.15.4(bufferutil@4.0.9)(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/verifier':
-        specifier: ^0.15.2
-        version: 0.15.2(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+        specifier: ^0.15.3
+        version: 0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       '@types/node':
         specifier: ^24.5.2
         version: 24.5.2
@@ -82,7 +82,7 @@ importers:
         version: 3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       hardhat-deploy:
         specifier: ^2.0.0-next.51
-        version: 2.0.0-next.51(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+        version: 2.0.0-next.51(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       ldenv:
         specifier: ^0.3.14
         version: 0.3.14
@@ -96,8 +96,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1(@types/node@24.5.2)(lightningcss@1.30.1)(terser@5.43.1)
       rocketh:
-        specifier: ^0.15.2
-        version: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+        specifier: ^0.15.3
+        version: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       set-defaults:
         specifier: ^0.0.5
         version: 0.0.5
@@ -1549,37 +1549,37 @@ packages:
   '@poppinss/exception@1.2.2':
     resolution: {integrity: sha512-m7bpKCD4QMlFCjA/nKTs23fuvoVFoA83brRKmObCUNmi/9tVu8Ve3w4YQAnJu4q3Tjf5fr685HYIC/IA2zHRSg==}
 
-  '@rocketh/deploy@0.15.0':
-    resolution: {integrity: sha512-ExldQ7grKa5uMhnJyJgjkeqTWzHkGjhElpVE9kJETclEjT5ORe1tIB14+5h3r0Tpq/FiXFFp+8dGhwSOs3L1hw==}
+  '@rocketh/deploy@0.15.1':
+    resolution: {integrity: sha512-KybU4Q8pgiC6HqvKMLbDm7zjJwSjTfTO203cjAFcrRKN8AIoNbE/I5rdwbQcZt008l7ypuAqhbE+8QdDCJ0GWA==}
 
-  '@rocketh/doc@0.15.2':
-    resolution: {integrity: sha512-59r4lTI+jb0MyeumBzVpJzRN4YZUsF7tKCdBfMOhlPCoiE32SZSBKHU44cZyizHKj0hgIORuoypQBltYgCTvzg==}
+  '@rocketh/doc@0.15.3':
+    resolution: {integrity: sha512-raXJR92YOcpi4DtgTtGJfkzb1uUDznHWVc69RHL1ji3ruQjcx8pw3XtdwDvhNorO5eLghXoWyx5X5he4xCOhJg==}
     hasBin: true
     peerDependencies:
-      rocketh: 0.15.2
+      rocketh: 0.15.3
 
-  '@rocketh/export@0.15.2':
-    resolution: {integrity: sha512-UsOgtX2IuV7BfkFUUvxeV9UMkBeqofkO9DHvReqVvJZAdkO2L+S3jW1Hz1wBSOHHks2+PU9Vv+b454bShpIbJw==}
+  '@rocketh/export@0.15.3':
+    resolution: {integrity: sha512-xhu/QRrDW90wj/eZcqsoGNfyvuanrLZvXaK4H1YhMmcftN46esznkuaff5kW1golULl/jgAFCKaMfkCAIwMD+g==}
     hasBin: true
     peerDependencies:
-      rocketh: 0.15.2
+      rocketh: 0.15.3
 
-  '@rocketh/proxy@0.15.1':
-    resolution: {integrity: sha512-vN6rLfsY5mB+urY6y+XFEjynJi2lQP4devKhhYiRqW3EOVLXyrOpHKrxcG8n/PPY2oQ+1wO7Zy7MskI6089YYQ==}
+  '@rocketh/proxy@0.15.2':
+    resolution: {integrity: sha512-t0daUKBE5ekHx/6gRS/ecEoNAZpLRyLzwDebkek1sKdbHRLrvncsHeGJS4OJDzj8UjtXTFJuBRt301snJgi7jw==}
 
   '@rocketh/read-execute@0.15.1':
     resolution: {integrity: sha512-pfHIFpFeG1vvAIEx0QyW975JuEeTSxiNY2wafAeu7gY2U4y9HNr3ecG/Ty8iHn/Zueq5SYLSIlY3K0jzETzTEg==}
 
-  '@rocketh/router@0.15.2':
-    resolution: {integrity: sha512-RIHx587fWk14ceTxLbdQO27SyIXJSJBvgT9+4H/ogRAEY5VXgDzN2tD53VYig8RfapDjDkhgHjY0TNPCucxQag==}
+  '@rocketh/router@0.15.4':
+    resolution: {integrity: sha512-Jb3tJZXTLFnoRaF9VENvQ7FhDmUrRF/DsKtQNpS5vUtmGuO9dhggHaZ3Mu/gkm5BgmeFSvHnBlAqEFbpPP3IvA==}
     peerDependencies:
-      rocketh: 0.15.2
+      rocketh: 0.15.3
 
-  '@rocketh/verifier@0.15.2':
-    resolution: {integrity: sha512-JlixIryKnIbrR7O8U7pmd/IB0HNjWoxFE1/LIM0QznKmbTKBgYl2AQ7nhx4nclPt2bGY+Wgx8205TV1WHjVZ6g==}
+  '@rocketh/verifier@0.15.3':
+    resolution: {integrity: sha512-xiMyX8gaAHdUnUipokyCWJBvq/3AfE8Z9aU5gXFsWJ7TOFIi/wnOxpyRgr0gda123MaBGW/8A3lCO0RuB9wtNA==}
     hasBin: true
     peerDependencies:
-      rocketh: 0.15.2
+      rocketh: 0.15.3
 
   '@rollup/rollup-android-arm-eabi@4.50.0':
     resolution: {integrity: sha512-lVgpeQyy4fWN5QYebtW4buT/4kn4p4IJ+kDNB4uYNT5b8c8DLJDg6titg20NIg7E8RWwdWZORW6vUFfrLyG3KQ==}
@@ -3567,8 +3567,8 @@ packages:
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
 
-  rocketh@0.15.2:
-    resolution: {integrity: sha512-Wif/kHSkUNI853e0Wc/Wf4THU/bOj2Cvlm1W3X1rVBBzyINxx4LIvn8ng0FF/um5ssGO5Y5YSj7JZEpOKj906Q==}
+  rocketh@0.15.3:
+    resolution: {integrity: sha512-JIMIZPVORj6lXS1lrgXlBnDje+16VNOq7m1JjulRzb57Rv+RzmKWTl05JFauxJhGrdRbe6V7ivN/rTtu695adg==}
     hasBin: true
 
   rollup@4.50.0:
@@ -5258,7 +5258,7 @@ snapshots:
 
   '@poppinss/exception@1.2.2': {}
 
-  '@rocketh/deploy@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
+  '@rocketh/deploy@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
     dependencies:
       named-logs: 0.3.2
       viem: 2.37.7(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
@@ -5268,29 +5268,29 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/doc@0.15.2(bufferutil@4.0.9)(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(utf-8-validate@5.0.10)':
+  '@rocketh/doc@0.15.3(bufferutil@4.0.9)(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(utf-8-validate@5.0.10)':
     dependencies:
       '@types/fs-extra': 11.0.4
       commander: 13.1.0
       ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       fs-extra: 11.3.2
       handlebars: 4.7.8
-      rocketh: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      rocketh: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@rocketh/export@0.15.2(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
+  '@rocketh/export@0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
     dependencies:
       '@types/fs-extra': 11.0.4
       chalk: 5.6.2
       commander: 13.1.0
       fs-extra: 11.3.2
-      rocketh: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      rocketh: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
 
-  '@rocketh/proxy@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
+  '@rocketh/proxy@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
     dependencies:
-      '@rocketh/deploy': 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      '@rocketh/deploy': 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/read-execute': 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       named-logs: 0.3.2
       viem: 2.37.7(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
@@ -5310,12 +5310,12 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/router@0.15.2(bufferutil@4.0.9)(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
+  '@rocketh/router@0.15.4(bufferutil@4.0.9)(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
     dependencies:
-      '@rocketh/deploy': 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      '@rocketh/deploy': 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       named-logs: 0.3.2
-      rocketh: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      rocketh: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       solidity-proxy: 0.4.2
       viem: 2.37.7(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
     transitivePeerDependencies:
@@ -5324,7 +5324,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/verifier@0.15.2(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
+  '@rocketh/verifier@0.15.3(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))':
     dependencies:
       '@types/fs-extra': 11.0.4
       '@types/qs': 6.14.0
@@ -5333,7 +5333,7 @@ snapshots:
       fs-extra: 11.3.2
       ldenv: 0.3.14
       neoqs: 6.13.0
-      rocketh: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      rocketh: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
 
   '@rollup/rollup-android-arm-eabi@4.50.0':
     optional: true
@@ -6664,13 +6664,13 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  hardhat-deploy@2.0.0-next.51(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
+  hardhat-deploy@2.0.0-next.51(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
     dependencies:
       '@nomicfoundation/hardhat-zod-utils': 3.0.1(zod@4.1.9)
       '@types/debug': 4.1.12
       debug: 4.4.3
       hardhat: 3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      rocketh: 0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      rocketh: 0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       slash: 5.1.0
       zod: 4.1.9
     transitivePeerDependencies:
@@ -7434,7 +7434,7 @@ snapshots:
 
   rfdc@1.4.1: {}
 
-  rocketh@0.15.2(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9):
+  rocketh@0.15.3(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9):
     dependencies:
       '@types/figlet': 1.7.0
       '@types/prompts': 2.4.9
