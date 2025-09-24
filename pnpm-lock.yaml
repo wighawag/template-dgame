@@ -48,11 +48,11 @@ importers:
         specifier: ^0.15.1
         version: 0.15.1(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       '@rocketh/proxy':
-        specifier: ^0.15.0
-        version: 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+        specifier: ^0.15.1
+        version: 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/read-execute':
-        specifier: ^0.15.0
-        version: 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+        specifier: ^0.15.1
+        version: 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       '@rocketh/router':
         specifier: ^0.15.1
         version: 0.15.1(bufferutil@4.0.9)(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
@@ -81,8 +81,8 @@ importers:
         specifier: ^3.0.6
         version: 3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       hardhat-deploy:
-        specifier: ^2.0.0-next.49
-        version: 2.0.0-next.49(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
+        specifier: ^2.0.0-next.50
+        version: 2.0.0-next.50(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9))
       ldenv:
         specifier: ^0.3.14
         version: 0.3.14
@@ -1564,11 +1564,11 @@ packages:
     peerDependencies:
       rocketh: 0.15.1
 
-  '@rocketh/proxy@0.15.0':
-    resolution: {integrity: sha512-XJfS9CRWR7YZXgN3qzR3jdLnUKX6BLQzQRdlqrAAsaEk1FTBdHRBEzZiLNG8QwsOiv+t9N5U+HWRan5KtzuzWQ==}
+  '@rocketh/proxy@0.15.1':
+    resolution: {integrity: sha512-vN6rLfsY5mB+urY6y+XFEjynJi2lQP4devKhhYiRqW3EOVLXyrOpHKrxcG8n/PPY2oQ+1wO7Zy7MskI6089YYQ==}
 
-  '@rocketh/read-execute@0.15.0':
-    resolution: {integrity: sha512-yNN+VL9deWd15sCRMQ3Zd28qwU0cxMx3hwVMARK/1g/Fhx1ZtbuZjvkduMq5dQgZIQDIBZvh5iPS3SmmSZGP8A==}
+  '@rocketh/read-execute@0.15.1':
+    resolution: {integrity: sha512-pfHIFpFeG1vvAIEx0QyW975JuEeTSxiNY2wafAeu7gY2U4y9HNr3ecG/Ty8iHn/Zueq5SYLSIlY3K0jzETzTEg==}
 
   '@rocketh/router@0.15.1':
     resolution: {integrity: sha512-KRfyC0uxB2gNzNL/1Pp7Z9O17Ax13xF9onQUbt2fZXSsPAI6qzDSVtyUiXn75OyvE488BaKyeRvo4mfUh5JabA==}
@@ -2860,8 +2860,8 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
 
-  hardhat-deploy@2.0.0-next.49:
-    resolution: {integrity: sha512-oFKX/+YaQLWLA2GJOTYdk+RDKTIWVz+X/3AOyiwddua/jxG14clfpgWZS37jiefzLVOQauJk+zmR3CdlQADIlg==}
+  hardhat-deploy@2.0.0-next.50:
+    resolution: {integrity: sha512-e6X+a22BBz0/nigeyQ6U+mJWHebTi5wRKhzfykarVnDnv32QH9Blz6Jsg8/8SJuSG0okG/9CPM7V1HiqwXNL2w==}
     peerDependencies:
       hardhat: ^3.0.6
       rocketh: ^0.15.0
@@ -5288,10 +5288,10 @@ snapshots:
       fs-extra: 11.3.2
       rocketh: 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
 
-  '@rocketh/proxy@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
+  '@rocketh/proxy@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
     dependencies:
       '@rocketh/deploy': 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
-      '@rocketh/read-execute': 0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
+      '@rocketh/read-execute': 0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       named-logs: 0.3.2
       viem: 2.37.7(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
     transitivePeerDependencies:
@@ -5300,7 +5300,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@rocketh/read-execute@0.15.0(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
+  '@rocketh/read-execute@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)':
     dependencies:
       named-logs: 0.3.2
       viem: 2.37.7(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
@@ -6664,7 +6664,7 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  hardhat-deploy@2.0.0-next.49(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
+  hardhat-deploy@2.0.0-next.50(hardhat@3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10))(rocketh@0.15.1(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)):
     dependencies:
       '@nomicfoundation/hardhat-zod-utils': 3.0.1(zod@4.1.9)
       '@types/debug': 4.1.12

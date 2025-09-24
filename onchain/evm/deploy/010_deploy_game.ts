@@ -7,6 +7,8 @@ export default deployScript(
 	async ({get, deployViaProxy, deployViaRouter, namedAccounts, data}) => {
 		const {deployer, admin} = namedAccounts;
 
+		console.log({deployer, admin});
+
 		const Avatars = get<Abi_Avatars>('Avatars');
 
 		const config = {
