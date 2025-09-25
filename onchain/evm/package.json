@@ -61,7 +61,7 @@
 		":deploy+export": "hardhat --network $MODE deploy --skip-prompts && rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
 		"local_node": "hardhat node",
-		"compile": "hardhat compile",
+		"compile": "hardhat --show-stack-traces compile",
 		"compile:watch": "as-soon -w src pnpm compile",
 		"fork:execute": "ldenv tsx @=HARDHAT_FORK=@@MODE @@",
 		"fork:deploy": "pnpm compile --build-profile production && ldenv hardhat @=HARDHAT_FORK=@@MODE deploy @@",

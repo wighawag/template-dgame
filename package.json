@@ -29,6 +29,7 @@
     "---------------------- ONCHAIN ----------------------": "",
     "onchain:deploy": "ldenv pnpm run --filter ./onchain/evm deploy @@MODE @@",
     "onchain:verify": "ldenv pnpm run --filter ./onchain/evm verify @@MODE @@",
+    "onchain:compile": "ldenv pnpm --filter ./onchain/evm compile",
     "onchain:build": "ldenv pnpm --filter ./onchain/evm compile ~~ pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
     "---------------------- SERVICES ----------------------": "",
     "push-notification": "pnpm --filter ./services/push-notification dev",
