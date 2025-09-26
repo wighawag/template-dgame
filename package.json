@@ -18,6 +18,7 @@
   "scripts": {
     "prepare": "set-defaults .vscode",
     "preinstall": "npx only-allow pnpm",
+    "cleandep": "rm -rf node_modules && pnpm -r exec rm -rf node_modules",
     "---------------------- INSTALL ----------------------": "",
     "sync-deps": "syncpack fix-mismatches && pnpm -r format:fix",
     "---------------------- FORMAT ----------------------": "",

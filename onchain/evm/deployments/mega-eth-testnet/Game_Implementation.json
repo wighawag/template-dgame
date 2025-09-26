@@ -1,5 +1,5 @@
 {
-  "address": "0x9370d088b7022593f550dfe8e7490207d8709a08",
+  "address": "0xfbf3c582497e4123a06d5fefe8210a8ff5741061",
   "abi": [
     {
       "inputs": [
@@ -591,6 +591,11 @@
               "internalType": "contract IERC721",
               "name": "avatars",
               "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "numActions",
+              "type": "uint256"
             }
           ],
           "internalType": "struct UsingGameTypes.Config",
@@ -841,6 +846,141 @@
   "deployedBytecode": "0x60806040525f803560e01c90808061003860017f0000000000000000000000000000000000000000000000000000000000000000610698565b90505b8082116103d2575f600261004f83856106b1565b61005991906106c4565b90505f60068210156100a1576100708260286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b600c8210156100f1576100b5600683610698565b6100c09060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b601282101561014157610105600c83610698565b6101109060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b601882101561019157610155601283610698565b6101609060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b601e8210156101e1576101a5601883610698565b6101b09060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b6024821015610231576101f5601e83610698565b6102009060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b602a82101561028157610245602483610698565b6102509060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b60308210156102d157610295602a83610698565b6102a09060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b6036821015610321576102e5603083610698565b6102f09060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff169050610364565b61032c603683610698565b6103379060286106fc565b7f0000000000000000000000000000000000000000000000000000000000000000901c64ffffffffff1690505b63ffffffff600882901c811690871681111561038c57610385600184610698565b93506103ca565b8663ffffffff168163ffffffff1610156103b2576103ab8360016106b1565b94506103ca565b6103c060ff831660016106b1565b95505050506103d2565b50505061003b565b5f8360010361040257507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360020361043157507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360030361046057507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360040361048f57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b836005036104be57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b836006036104ed57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360070361051c57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360080361054b57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b8360090361057a57507f00000000000000000000000000000000000000000000000000000000000000006105cc565b83600a036105a957507f00000000000000000000000000000000000000000000000000000000000000006105cc565b507f00000000000000000000000000000000000000000000000000000000000000005b73ffffffffffffffffffffffffffffffffffffffff811661064d576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152600e60248201527f554e4b4e4f574e5f4d4554484f44000000000000000000000000000000000000604482015260640160405180910390fd5b365f80375f80365f845af43d5f803e808015610667573d5ff35b3d5ffd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b818103818111156106ab576106ab61066b565b92915050565b808201808211156106ab576106ab61066b565b5f826106f7577f4e487b71000000000000000000000000000000000000000000000000000000005f52601260045260245ffd5b500490565b80820281158282048414176106ab576106ab61066b56fea2646970667358221220de8a0a4ea7b6cbed149f85e903c529be37b4629444671bfef13629d53bd04ed764736f6c63430008140033",
   "linkReferences": {},
   "deployedLinkReferences": {},
+  "immutableReferences": {
+    "4": [
+      {
+        "length": 32,
+        "start": 990
+      }
+    ],
+    "6": [
+      {
+        "length": 32,
+        "start": 1037
+      }
+    ],
+    "8": [
+      {
+        "length": 32,
+        "start": 1084
+      }
+    ],
+    "10": [
+      {
+        "length": 32,
+        "start": 1131
+      }
+    ],
+    "12": [
+      {
+        "length": 32,
+        "start": 1178
+      }
+    ],
+    "14": [
+      {
+        "length": 32,
+        "start": 1225
+      }
+    ],
+    "16": [
+      {
+        "length": 32,
+        "start": 1272
+      }
+    ],
+    "18": [
+      {
+        "length": 32,
+        "start": 1319
+      }
+    ],
+    "20": [
+      {
+        "length": 32,
+        "start": 1366
+      }
+    ],
+    "22": [
+      {
+        "length": 32,
+        "start": 1413
+      }
+    ],
+    "24": [
+      {
+        "length": 32,
+        "start": 1452
+      }
+    ],
+    "26": [
+      {
+        "length": 32,
+        "start": 114
+      }
+    ],
+    "28": [
+      {
+        "length": 32,
+        "start": 194
+      }
+    ],
+    "30": [
+      {
+        "length": 32,
+        "start": 274
+      }
+    ],
+    "32": [
+      {
+        "length": 32,
+        "start": 354
+      }
+    ],
+    "34": [
+      {
+        "length": 32,
+        "start": 434
+      }
+    ],
+    "36": [
+      {
+        "length": 32,
+        "start": 514
+      }
+    ],
+    "38": [
+      {
+        "length": 32,
+        "start": 594
+      }
+    ],
+    "40": [
+      {
+        "length": 32,
+        "start": 674
+      }
+    ],
+    "42": [
+      {
+        "length": 32,
+        "start": 754
+      }
+    ],
+    "44": [
+      {
+        "length": 32,
+        "start": 825
+      }
+    ],
+    "46": [
+      {
+        "length": 32,
+        "start": 20
+      }
+    ]
+  },
+  "inputSourceName": "project/solc_0_8/router/Router10X60.sol",
   "devdoc": {
     "kind": "dev",
     "version": 1,
@@ -1062,158 +1202,15 @@
       ]
     }
   },
-  "solcInput": "{\n  \"language\": \"Solidity\",\n  \"sources\": {\n    \"solc_0.8/proxy/EIP173Proxy.sol\": {\n      \"content\": \"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"./Proxy.sol\\\";\\n\\ninterface ERC165 {\\n    function supportsInterface(bytes4 id) external view returns (bool);\\n}\\n\\n///@notice Proxy implementing EIP173 for ownership management\\ncontract EIP173Proxy is Proxy {\\n    // ////////////////////////// EVENTS ///////////////////////////////////////////////////////////////////////\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    // /////////////////////// CONSTRUCTOR //////////////////////////////////////////////////////////////////////\\n\\n    constructor(\\n        address implementationAddress,\\n        address ownerAddress,\\n        bytes memory data\\n    ) payable {\\n        _setOwner(ownerAddress);\\n        _setImplementation(implementationAddress, data);\\n    }\\n\\n    // ///////////////////// EXTERNAL ///////////////////////////////////////////////////////////////////////////\\n\\n    function owner() external view returns (address) {\\n        return _owner();\\n    }\\n\\n    function supportsInterface(bytes4 id) external view returns (bool) {\\n        if (id == 0x01ffc9a7 || id == 0x7f5828d0) {\\n            return true;\\n        }\\n        if (id == 0xFFFFFFFF) {\\n            return false;\\n        }\\n\\n        ERC165 implementation;\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            implementation := sload(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)\\n        }\\n\\n        // Technically this is not standard compliant as ERC-165 require 30,000 gas which that call cannot ensure\\n        // because it is itself inside `supportsInterface` that might only get 30,000 gas.\\n        // In practise this is unlikely to be an issue.\\n        try implementation.supportsInterface(id) returns (bool support) {\\n            return support;\\n        } catch {\\n            return false;\\n        }\\n    }\\n\\n    function transferOwnership(address newOwner) external onlyOwner {\\n        _setOwner(newOwner);\\n    }\\n\\n    function upgradeTo(address newImplementation) external onlyOwner {\\n        _setImplementation(newImplementation, \\\"\\\");\\n    }\\n\\n    function upgradeToAndCall(address newImplementation, bytes calldata data) external payable onlyOwner {\\n        _setImplementation(newImplementation, data);\\n    }\\n\\n    // /////////////////////// MODIFIERS ////////////////////////////////////////////////////////////////////////\\n\\n    modifier onlyOwner() {\\n        require(msg.sender == _owner(), \\\"NOT_AUTHORIZED\\\");\\n        _;\\n    }\\n\\n    // ///////////////////////// INTERNAL //////////////////////////////////////////////////////////////////////\\n\\n    function _owner() internal view returns (address adminAddress) {\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            adminAddress := sload(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103)\\n        }\\n    }\\n\\n    function _setOwner(address newOwner) internal {\\n        address previousOwner = _owner();\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            sstore(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103, newOwner)\\n        }\\n        emit OwnershipTransferred(previousOwner, newOwner);\\n    }\\n}\\n\"\n    },\n    \"solc_0.8/proxy/Proxy.sol\": {\n      \"content\": \"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// EIP-1967\\nabstract contract Proxy {\\n    // /////////////////////// EVENTS ///////////////////////////////////////////////////////////////////////////\\n\\n    event ProxyImplementationUpdated(address indexed previousImplementation, address indexed newImplementation);\\n\\n    // ///////////////////// EXTERNAL ///////////////////////////////////////////////////////////////////////////\\n\\n    receive() external payable virtual {\\n        revert(\\\"ETHER_REJECTED\\\"); // explicit reject by default\\n    }\\n\\n    fallback() external payable {\\n        _fallback();\\n    }\\n\\n    // ///////////////////////// INTERNAL //////////////////////////////////////////////////////////////////////\\n\\n    function _fallback() internal {\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            let implementationAddress := sload(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)\\n            calldatacopy(0x0, 0x0, calldatasize())\\n            let success := delegatecall(gas(), implementationAddress, 0x0, calldatasize(), 0, 0)\\n            let retSz := returndatasize()\\n            returndatacopy(0, 0, retSz)\\n            switch success\\n            case 0 {\\n                revert(0, retSz)\\n            }\\n            default {\\n                return(0, retSz)\\n            }\\n        }\\n    }\\n\\n    function _setImplementation(address newImplementation, bytes memory data) internal {\\n        address previousImplementation;\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            previousImplementation := sload(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)\\n        }\\n\\n        // solhint-disable-next-line security/no-inline-assembly\\n        assembly {\\n            sstore(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc, newImplementation)\\n        }\\n\\n        emit ProxyImplementationUpdated(previousImplementation, newImplementation);\\n\\n        if (data.length > 0) {\\n            (bool success, ) = newImplementation.delegatecall(data);\\n            if (!success) {\\n                assembly {\\n                    // This assembly ensure the revert contains the exact string data\\n                    let returnDataSize := returndatasize()\\n                    returndatacopy(0, 0, returnDataSize)\\n                    revert(0, returnDataSize)\\n                }\\n            }\\n        }\\n    }\\n}\\n\"\n    },\n    \"solc_0.8/proxy/EIP173ProxyWithReceive.sol\": {\n      \"content\": \"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"./EIP173Proxy.sol\\\";\\n\\n///@notice Proxy implementing EIP173 for ownership management that accept ETH via receive\\ncontract EIP173ProxyWithReceive is EIP173Proxy {\\n    constructor(\\n        address implementationAddress,\\n        address ownerAddress,\\n        bytes memory data\\n    ) payable EIP173Proxy(implementationAddress, ownerAddress, data) {}\\n\\n    receive() external payable override {}\\n}\\n\"\n    }\n  },\n  \"settings\": {\n    \"optimizer\": {\n      \"enabled\": true,\n      \"runs\": 999999\n    },\n    \"outputSelection\": {\n      \"*\": {\n        \"*\": [\n          \"abi\",\n          \"evm.bytecode\",\n          \"evm.deployedBytecode\",\n          \"evm.methodIdentifiers\",\n          \"metadata\",\n          \"devdoc\",\n          \"userdoc\",\n          \"storageLayout\",\n          \"evm.gasEstimates\"\n        ],\n        \"\": [\n          \"ast\"\n        ]\n      }\n    },\n    \"metadata\": {\n      \"useLiteralContent\": true\n    }\n  }\n}",
-  "solcInputHash": "4a46ee6c1a29be400c9fab1ecc28e172",
-  "argsData": "0x0000000000000000000000003ab3844d5d6614febbe19d59244a815cff691a1700000000000000000000000061c461ecc993aadeb7e4b47e96d1b8cc37314b2000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000",
+  "argsData": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000460f3da794060fee095d551f3d788a4d38b7ac090000000000000000000000003bf3dd25acd50068023af9398053037ac117a4870000000000000000000000001a2664d9b44af3febe28af75cfdcc629c17c831b000000000000000000000000babf49136c3e5577ea38b6cfe643898af1ba1256000000000000000000000000000000000000000000000000000000000000000e00f714ce010000000000000000000000000000000000000000000000000000001328ec9b00000000000000000000000000000000000000000000000000000000150b7a02010000000000000000000000000000000000000000000000000000002e2d29840100000000000000000000000000000000000000000000000000000069bcdb7d000000000000000000000000000000000000000000000000000000007020b46303000000000000000000000000000000000000000000000000000000757991a8000000000000000000000000000000000000000000000000000000008aa6adcd0100000000000000000000000000000000000000000000000000000094e434ec02000000000000000000000000000000000000000000000000000000c3176e7c00000000000000000000000000000000000000000000000000000000c3f909d400000000000000000000000000000000000000000000000000000000c4928f7903000000000000000000000000000000000000000000000000000000d6e3b25202000000000000000000000000000000000000000000000000000000df7d391f00000000000000000000000000000000000000000000000000000000",
   "transaction": {
-    "hash": "0x92f693371425c7b22af2ed4dd1a4a0f7a9ad8b48174671fd588cd17ddfc3ddf7",
+    "hash": "0xd6f4b90baebb3645b6846338e2ef355458a2246f4bdc068855f47c68d218f367",
+    "nonce": "0x1a",
     "origin": "0x61c461ecc993aadeb7e4b47e96d1b8cc37314b20"
   },
   "receipt": {
-    "blockHash": "0x846ff2ca715853303ee603725e9ef1b978add6ef458f4bfacf6e3dbffb25b87b",
-    "blockNumber": "0x7ddae7",
-    "transactionIndex": "0x1"
-  },
-  "immutableReferences": {
-    "4": [
-      {
-        "length": 32,
-        "start": 990
-      }
-    ],
-    "6": [
-      {
-        "length": 32,
-        "start": 1037
-      }
-    ],
-    "8": [
-      {
-        "length": 32,
-        "start": 1084
-      }
-    ],
-    "10": [
-      {
-        "length": 32,
-        "start": 1131
-      }
-    ],
-    "12": [
-      {
-        "length": 32,
-        "start": 1178
-      }
-    ],
-    "14": [
-      {
-        "length": 32,
-        "start": 1225
-      }
-    ],
-    "16": [
-      {
-        "length": 32,
-        "start": 1272
-      }
-    ],
-    "18": [
-      {
-        "length": 32,
-        "start": 1319
-      }
-    ],
-    "20": [
-      {
-        "length": 32,
-        "start": 1366
-      }
-    ],
-    "22": [
-      {
-        "length": 32,
-        "start": 1413
-      }
-    ],
-    "24": [
-      {
-        "length": 32,
-        "start": 1452
-      }
-    ],
-    "26": [
-      {
-        "length": 32,
-        "start": 114
-      }
-    ],
-    "28": [
-      {
-        "length": 32,
-        "start": 194
-      }
-    ],
-    "30": [
-      {
-        "length": 32,
-        "start": 274
-      }
-    ],
-    "32": [
-      {
-        "length": 32,
-        "start": 354
-      }
-    ],
-    "34": [
-      {
-        "length": 32,
-        "start": 434
-      }
-    ],
-    "36": [
-      {
-        "length": 32,
-        "start": 514
-      }
-    ],
-    "38": [
-      {
-        "length": 32,
-        "start": 594
-      }
-    ],
-    "40": [
-      {
-        "length": 32,
-        "start": 674
-      }
-    ],
-    "42": [
-      {
-        "length": 32,
-        "start": 754
-      }
-    ],
-    "44": [
-      {
-        "length": 32,
-        "start": 825
-      }
-    ],
-    "46": [
-      {
-        "length": 32,
-        "start": 20
-      }
-    ]
-  },
-  "inputSourceName": "project/solc_0_8/router/Router10X60.sol",
-  "linkedData": {
-    "startTime": "0",
-    "commitPhaseDuration": "40",
-    "revealPhaseDuration": "15",
-    "time": "0x0000000000000000000000000000000000000000",
-    "avatars": "0xad994dedaab665ce5aad2a333253e30708087149"
+    "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "blockNumber": "0x10de7e9",
+    "transactionIndex": "0xc"
   }
 }
