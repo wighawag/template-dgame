@@ -5,13 +5,13 @@
   "dependencies": {
     "commander": "^14.0.1",
     "dgame-contracts": "workspace:*",
-    "viem": "^2.37.7"
+    "viem": "^2.37.8"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
     "ldenv": "^0.3.14",
     "set-defaults": "^0.0.5",
-    "tsx": "^4.20.5",
+    "tsx": "^4.20.6",
     "wait-on": "^9.0.1"
   },
   "scripts": {
