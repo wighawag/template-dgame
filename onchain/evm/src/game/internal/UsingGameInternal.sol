@@ -5,6 +5,8 @@ import "./UsingGameStore.sol";
 import "../interfaces/UsingGameEvents.sol";
 import "../interfaces/UsingGameErrors.sol";
 import "../../utils/PositionUtils.sol";
+import "../../utils/StringUtils.sol";
+import "./GameUtils.sol";
 import "hardhat/console.sol";
 
 abstract contract UsingGameInternal is
@@ -148,7 +150,7 @@ abstract contract UsingGameInternal is
 
         console.log("resolving actions...");
 
-        uint64 newPosition = _resolveActions(avatarID, epoch, actions);
+        (uint64 newPosition, uint256 numActionsResolved) = _resolveActions(avatarID, epoch, actions);
 
         console.log("...done");
 
@@ -157,7 +159,7 @@ abstract contract UsingGameInternal is
             epoch,
             PositionUtils.getZone(newPosition),
             hashRevealed,
-            actions
+            actions[0:numActionsResolved]
         );
 
         commitment.epoch = 0; // used
@@ -191,15 +193,14 @@ abstract contract UsingGameInternal is
     //-------------------------------------------------------------------------
     // INTERNALS
     //-------------------------------------------------------------------------
-
     function _resolveActions(
         uint256 avatarID,
         uint64 epoch, 
         Action[] memory actions
-    ) internal returns (uint64 newPosition) {
+    ) internal returns (uint64 newPosition, uint256 numActionsResolved) {
         Avatar memory avatar = _avatars[avatarID];
-        uint64 initialPosition = avatar.position;
-        (int32 x, int32 y) = PositionUtils.toXY(initialPosition);
+        newPosition = avatar.position;
+        (int32 x, int32 y) = PositionUtils.toXY(newPosition);
         uint64 initialZone = PositionUtils.getZone(x, y);
         bool left = false;
         bool entering = false;
@@ -217,24 +218,34 @@ abstract contract UsingGameInternal is
                 x = moveToX;
                 y = moveToY;
                 entering = true;
+                numActionsResolved++;
                 break; // we ignore any more action
             } else if (action.actionType == ActionType.Move) {
                 uint64 movePosition = uint64(action.data);
                 (int32 moveToX, int32 moveToY) = PositionUtils.toXY(
                     movePosition
                 );
-                // TODO check valid move
-                x = moveToX;
-                y = moveToY;
+
+                if(_isValidMove(newPosition,movePosition)) {
+                    x = moveToX;
+                    y = moveToY;
+                   numActionsResolved++;
+                } else {
+                     break; // We ignore any further actions
+                }
+                
             } else if (action.actionType == ActionType.Exit) {
                 // TODO use cell action
                 // for now consider it an Exit
                 left = true;
+                numActionsResolved++;
                 break; // We ignore any further actions
             }
+
+            newPosition = PositionUtils.fromXY(x, y);
         }
 
-        newPosition = PositionUtils.fromXY(x, y);
+        
         if (left) {
             // Note if we can die, does exiting should still be conditional to not dying
             //  extra data needed ?
@@ -478,6 +489,26 @@ abstract contract UsingGameInternal is
     ) internal pure returns (bool valid) {
         (int32 x1, int32 y1) = PositionUtils.toXY(from);
         (int32 x2, int32 y2) = PositionUtils.toXY(to);
+
+        console.log("checking ");
+        console.logInt(x1);
+        console.logInt(y1);
+        console.logInt(x2);
+        console.logInt(y2);
+        console.log("-------------");
+
+        // TODO cache area, detect area change and update accordingly
+        UsingGameTypes.Area memory area = GameUtils.areaAt(x2, y2);
+        console.log("area");
+        console.log(StringUtils.toHexString(area.firstBytes32));
+        console.log(StringUtils.toHexString(area.secondBytes32));
+        console.log("----");
+        bool isWall = GameUtils.wallAt(area, x2, y2);
+        
+        if (isWall) {
+            console.log('WALL');
+            return false;
+        }
 
         if (x1 == x2 && y1 == y2 + 1) {
             return true;

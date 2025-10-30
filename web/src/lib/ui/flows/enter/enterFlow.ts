@@ -4,7 +4,7 @@ import { writes } from '$lib/onchain/writes';
 import type { Connection, UnderlyingEthereumProvider } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
-import { onchainState } from '$lib/view';
+import { onchainState, viewState } from '$lib/view';
 import { localState } from '$lib/private/localState';
 import { epochInfo, twoPhase } from '$lib/time';
 
@@ -77,9 +77,9 @@ function createEnterFlow() {
 			return;
 		}
 
-		const $localState = get(localState);
-		if ($localState.signer && $localState.avatar) {
-			throw new Error(`avatar already in game`);
+		const $viewState = get(viewState);
+		if ($viewState.avatarID) {
+			throw new Error(`avatar already in game : ${$viewState.avatarID}`);
 		}
 
 		// TODO let use with avatars join in

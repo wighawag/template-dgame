@@ -5,8 +5,18 @@ import { avatars } from '$lib/onchain/avatars';
 import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
 import { epochInfo } from '$lib/time';
 import { viewState, type Position } from '$lib/view';
+import { Areas, zoneLocalCoord } from 'dgame-contracts';
 
-function addMove(dx: number, dy: number) {
+type ReadyState = {
+	step: 'Ready';
+	currentPosition: Position;
+	currentCellType: number;
+	exited: boolean;
+	epoch: number;
+};
+type CurrentState = { step: 'Idle' } | ReadyState;
+
+function gatherState(): CurrentState {
 	const $epochInfo = epochInfo.now();
 	const { currentEpoch: epoch } = $epochInfo;
 
@@ -16,19 +26,66 @@ function addMove(dx: number, dy: number) {
 		$localState.signer && $localState.avatar?.avatarID
 			? $viewState.entities[$localState.avatar.avatarID]
 			: undefined;
+
 	if ($localState.signer && $localState.avatar && avatarEntity) {
 		let currentPosition: Position;
+
+		let exited = false;
 		if ($localState.avatar.epoch === epoch && $localState.avatar.actions.length > 0) {
-			currentPosition = $localState.avatar.actions[$localState.avatar.actions.length - 1];
+			const lastAction = $localState.avatar.actions[$localState.avatar.actions.length - 1];
+
+			currentPosition = lastAction;
+			exited = lastAction.type === 'exit';
 		} else {
 			currentPosition = avatarEntity.position;
 		}
+		const areaLocalX = zoneLocalCoord(currentPosition.x);
+		const areaLocalY = zoneLocalCoord(currentPosition.y);
+		// TODO pick area
+		const area = Areas[2];
+		const cellIndex = areaLocalX + areaLocalY * area.size;
+		const currentCellType = area.cells[cellIndex];
 
-		localState.addAction(epoch, {
-			type: 'move',
-			x: currentPosition.x + dx,
-			y: currentPosition.y + dy
-		});
+		return { step: 'Ready', currentPosition, currentCellType, exited, epoch };
+	} else {
+		return {
+			step: 'Idle'
+		};
+	}
+}
+
+function addMove(dx: number, dy: number) {
+	const currentState = gatherState();
+
+	if (currentState.step === 'Ready' && !currentState.exited) {
+		const toX = currentState.currentPosition.x + dx;
+		const toY = currentState.currentPosition.y + dy;
+
+		const areaLocalX = zoneLocalCoord(toX);
+		const areaLocalY = zoneLocalCoord(toY);
+		// TODO pick area
+		const area = Areas[2];
+		const cellIndex = areaLocalX + areaLocalY * area.size;
+
+		if (area.cells[cellIndex] == 0 || area.cells[cellIndex] == 3) {
+			localState.addAction(currentState.epoch, {
+				type: 'move',
+				x: toX,
+				y: toY
+			});
+		}
+	}
+}
+
+function addExit(currentState: ReadyState) {
+	if (!currentState.exited) {
+		if (currentState.currentCellType == 3) {
+			localState.addAction(currentState.epoch, {
+				type: 'exit',
+				x: currentState.currentPosition.x,
+				y: currentState.currentPosition.y
+			});
+		}
 	}
 }
 
@@ -50,7 +107,12 @@ export function startListening() {
 	});
 
 	eventEmitter.on('action', () => {
-		// TODO action localState
+		const currentState = gatherState();
+		if (currentState.step === 'Ready') {
+			if (currentState.currentCellType === 3) {
+				addExit(currentState);
+			}
+		}
 	});
 
 	eventEmitter.on('clicked', (pos) => {

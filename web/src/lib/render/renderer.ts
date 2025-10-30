@@ -2,10 +2,14 @@ import { viewState, type ViewEntity, type ViewState } from '$lib/view';
 import { Container, Graphics } from 'pixi.js';
 import type { Readable } from 'svelte/store';
 import { AvatarObject } from './objects/AvatarObject';
+import { WallRenderer } from './WallRenderer';
+import { camera } from './camera';
 
 export function createRenderer(viewState: Readable<ViewState>) {
 	let avatarObjects: { [id: string]: AvatarObject } = {};
 	let unsubscribe: (() => void) | undefined = undefined;
+	let wallRenderer: WallRenderer | undefined = undefined;
+	let cameraUnsubscribe: (() => void) | undefined = undefined;
 
 	function onAppStarted(container: Container) {
 		const entrance = new Graphics().rect(-4, -4, 8, 8).fill(0xffff34);
@@ -16,9 +20,21 @@ export function createRenderer(viewState: Readable<ViewState>) {
 		container.addChild(pathDisplayObject);
 		pathDisplayObject.zIndex = 1;
 
+		// Initialize wall renderer
+		const cellSize = 10; // Same as in PixiCanvas
+		wallRenderer = new WallRenderer(container, cellSize);
+		wallRenderer.zIndex = 0; // Render walls behind avatars
+
 		const world = {
 			pathDisplayObject
 		};
+
+		// Subscribe to camera changes for wall rendering
+		cameraUnsubscribe = camera.subscribe(($camera) => {
+			if (wallRenderer) {
+				wallRenderer.update($camera);
+			}
+		});
 
 		unsubscribe = viewState.subscribe(($viewState) => {
 			const processed = new Set();
@@ -78,6 +94,10 @@ export function createRenderer(viewState: Readable<ViewState>) {
 
 	function onAppStopped() {
 		unsubscribe?.();
+		cameraUnsubscribe?.();
+		if (wallRenderer) {
+			wallRenderer.destroy();
+		}
 	}
 
 	return {

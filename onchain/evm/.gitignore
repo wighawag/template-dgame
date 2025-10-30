@@ -24,7 +24,3 @@ docs
 !*.default
 
 dist/
-
-
-# TODO remove
-src/proxy

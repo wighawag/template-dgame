@@ -25,36 +25,39 @@ export const viewState = derived(
 		const entities = { ...$onchainState.entities } as { [id: string]: ViewEntity };
 		let avatarID: string | undefined;
 		if ($localState.signer && $localState.avatar) {
-			avatarID = $localState.avatar.avatarID;
-			let avatarEntity = $onchainState.entities[avatarID] as AvatarEntity | undefined;
-			if ($localState.avatar.actions[0]?.type === 'enter') {
-				avatarEntity = {
-					type: 'avatar',
-					id: avatarID,
-					life: 1,
-					position: $localState.avatar.actions[0],
-					path: []
-				};
-			}
+			const currentAvatarID = $localState.avatar.avatarID;
+			let avatarEntity = $onchainState.entities[currentAvatarID] as AvatarEntity | undefined;
+			if (avatarEntity || !$localState.avatar.exiting) {
+				avatarID = currentAvatarID;
+				if ($localState.avatar.actions[0]?.type === 'enter') {
+					avatarEntity = {
+						type: 'avatar',
+						id: avatarID,
+						life: 1,
+						position: $localState.avatar.actions[0],
+						path: []
+					};
+				}
 
-			if (avatarEntity) {
-				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
+				if (avatarEntity) {
+					const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
 
-				let current_position = { ...avatarEntity.position };
-				const path: Position[] = [];
-				if ($localState.avatar.actions.length > 0 && $localState.avatar.epoch == epoch) {
-					for (const action of $localState.avatar.actions) {
-						path.push(current_position);
-						if (action.type === 'move') {
-							current_position = { x: action.x, y: action.y };
+					let current_position = { ...avatarEntity.position };
+					const path: Position[] = [];
+					if ($localState.avatar.actions.length > 0 && $localState.avatar.epoch == epoch) {
+						for (const action of $localState.avatar.actions) {
+							path.push(current_position);
+							if (action.type === 'move') {
+								current_position = { x: action.x, y: action.y };
+							}
 						}
 					}
+					entities[avatarID] = {
+						...avatarEntity,
+						position: current_position,
+						path
+					};
 				}
-				entities[avatarID] = {
-					...avatarEntity,
-					position: current_position,
-					path
-				};
 			}
 		}
 

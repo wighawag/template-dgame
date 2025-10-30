@@ -35,6 +35,7 @@ export type LocalState =
 				};
 				epoch: number;
 				avatarID: string;
+				exiting: boolean;
 			};
 	  };
 
@@ -106,7 +107,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				avatarID: $state.avatar.avatarID,
 				actions: [],
 				epoch,
-				submission: undefined
+				submission: undefined,
+				exiting: $state.avatar.exiting
 			};
 		}
 	}
@@ -153,16 +155,20 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				throw new Error(`no signer`);
 			}
 
-			if ($state.avatar && $state.avatar.avatarID != avatarID.toString()) {
-				throw new Error(`got an avatar already`);
-			}
+			// TODO should we still check here to avoid overriding by mistake ?
+			// if ($state.avatar && $state.avatar.avatarID != avatarID.toString()) {
+			// 	throw new Error(`got an avatar already`);
+			// }
 
 			const actions: LocalAction[] = [{ type: 'enter', x: position.x, y: position.y }];
+
+			// console.log(`avatars`, avatarID);
 
 			$state.avatar = {
 				avatarID: avatarID.toString(),
 				actions,
-				epoch
+				epoch,
+				exiting: false
 			};
 
 			set($state);
@@ -217,6 +223,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 						actions
 					}
 				};
+				$state.avatar.exiting = !!actions.find((action) => action.type === 'exit');
 				set($state);
 
 				console.log(`waiting for commit tx...`);
@@ -248,7 +255,11 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			if ($state.avatar.actions.length > 0) {
 				if ($state.avatar.actions[$state.avatar.actions.length - 1].type !== 'enter') {
-					$state.avatar.actions.pop();
+					const lastAction = $state.avatar.actions.pop();
+					// if (lastAction?.type === 'exit') {
+					// TODO auto cancel the move too ?
+					// need to handle case where there i s no move
+					// }
 				}
 			}
 			set($state);

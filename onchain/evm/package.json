@@ -36,6 +36,7 @@
 		"earl": "^1.3.0",
 		"eip-1193": "^0.6.5",
 		"forge-std": "github:foundry-rs/forge-std#v1.9.4",
+		"handlebars": "^4.7.8",
 		"hardhat": "^3.0.6",
 		"hardhat-deploy": "^2.0.0-next.52",
 		"ldenv": "^0.3.14",

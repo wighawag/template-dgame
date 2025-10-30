@@ -77,6 +77,9 @@ importers:
       forge-std:
         specifier: github:foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       hardhat:
         specifier: ^3.0.6
         version: 3.0.6(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -122,12 +125,12 @@ importers:
 
   services/bot:
     dependencies:
-      commander:
-        specifier: ^14.0.1
-        version: 14.0.1
       dgame-contracts:
         specifier: workspace:*
         version: link:../../onchain/evm
+      commander:
+        specifier: ^14.0.1
+        version: 14.0.1
       viem:
         specifier: ^2.37.8
         version: 2.37.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
@@ -207,12 +210,12 @@ importers:
       bits-ui:
         specifier: ^2.11.4
         version: 2.11.4(@internationalized/date@3.8.1)(svelte@5.39.6)
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
       dgame-contracts:
         specifier: workspace:*
         version: link:../onchain/evm
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       eip-1193:
         specifier: ^0.6.5
         version: 0.6.5
@@ -7059,7 +7062,7 @@ snapshots:
       named-logs-context: 0.1.1
       push-notification-service-server: 0.0.3(typia@7.6.4(@samchon/openapi@2.5.3)(@types/node@24.5.2)(typescript@5.9.2))
       remote-sql-d1: 0.0.6(@cloudflare/workers-types@4.20250319.0)
-      viem: 2.37.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@3.25.23)
+      viem: 2.37.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.1.9)
       workers-logger: 0.2.1
     transitivePeerDependencies:
       - '@cloudflare/workers-types'

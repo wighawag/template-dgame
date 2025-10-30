@@ -28,9 +28,6 @@ docs
 
 dist/
 
-
-# TODO remove
-src/proxy
 #############################################
 deployments
 package.json

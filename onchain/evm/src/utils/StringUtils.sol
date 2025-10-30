@@ -17,4 +17,8 @@ library StringUtils {
                 )
             );
     }
+
+    function toHexString(uint256 value) internal pure returns (string memory) {
+        return Strings.toHexString(value);
+    }
 }

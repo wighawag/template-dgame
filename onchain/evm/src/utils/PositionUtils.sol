@@ -28,7 +28,10 @@ library PositionUtils {
         if (a >= 0) {
             b = (a + ZONE_OFFSET) / ZONE_SIZE;
         } else {
-            b = -((-a + ZONE_OFFSET) / ZONE_SIZE);
+            // b = -((-a + ZONE_OFFSET) / ZONE_SIZE);
+            int256 absA = -a;
+            int256 negPart = (absA + ZONE_OFFSET - 1) / ZONE_SIZE; // ceil division
+            b = int32(-negPart);
         }
     }
 
@@ -49,5 +52,9 @@ library PositionUtils {
     function getZone(int32 x, int32 y) internal pure returns (uint64 zone) {
         (int32 zoneX, int32 zoneY) = zoneCoords(x, y);
         zone = (uint64(uint32(zoneY)) << 32) + uint64(uint32(zoneX));
+    }
+
+    function zoneLocalCoord(int32 x) internal pure returns (uint8 index) {
+        return uint8(uint32(x - (zoneCoord(x) * ZONE_SIZE - ZONE_OFFSET)));
     }
 }
