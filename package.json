@@ -50,6 +50,6 @@
     "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
     "stop": "zellij kill-session $npm_package_name",
     "start:pnpm": "pnpm -r dev",
-    "start": "zellij-launcher a $npm_package_name || zellij -n dev/zellij.kdl -s $npm_package_name"
+    "start": "zellij-launcher a $npm_package_name || ldenv -d localhost zellij -n dev/zellij.kdl -s $npm_package_name"
   }
 }

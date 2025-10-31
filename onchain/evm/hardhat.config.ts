@@ -75,6 +75,11 @@ const config: HardhatUserConfig = {
 						mining: {
 							interval: 1000,
 						},
+						accounts: {
+							mnemonic:
+								process.env.MNEMONIC ||
+								'test test test test test test test test test test test junk',
+						},
 					},
 					test: {
 						type: 'edr-simulated',
