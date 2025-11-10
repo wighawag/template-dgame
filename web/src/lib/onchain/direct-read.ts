@@ -5,6 +5,7 @@ import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contra
 import { publicClient } from '$lib/connection';
 import deployments from '$lib/deployments';
 import { type GetContractEventsReturnType } from 'viem';
+import type { LocalAction } from '$lib/private/localState';
 
 const Game = deployments.contracts.Game;
 
@@ -92,6 +93,8 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 
 		const epoch = result[2];
 
+		console.debug(`fetched state from epoch: ${epoch}`);
+
 		if (Number(epoch) < lastEpoch) {
 			// we consider for refetch
 			lastEpoch = Number(epoch);
@@ -101,8 +104,9 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 		const currentBlockNumber = await publicClient.getBlockNumber();
 		let fromBlock =
 			(currentBlockNumber -
-				(BigInt(deployments.contracts.Game.linkedData.commitPhaseDuration) +
-					BigInt(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
+				2n * // we multiply by 2 as we fetch for 2 epochs
+					(BigInt(deployments.contracts.Game.linkedData.commitPhaseDuration) +
+						BigInt(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
 			blockTime;
 		if (fromBlock < 0n) {
 			fromBlock = 0n;
@@ -112,16 +116,16 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			...Game,
 			eventName: 'CommitmentRevealed',
 			args: {
-				epoch: epoch - 1n,
+				epoch: [epoch - 1n],
 				zone: zones
 			},
 			strict: true,
 			fromBlock,
 			toBlock: currentBlockNumber
 		});
+		// console.debug(allEvents);
 
-		// console.log(`events for ${epoch}`, events);
-
+	
 		const avatarEvents: Map<
 			bigint,
 			GetContractEventsReturnType<typeof Game.abi, 'CommitmentRevealed', true>[0]
@@ -137,23 +141,37 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 		for (const entityFetched of result[0]) {
 			const id = entityFetched.avatarID.toString();
 
-			let path: Position[] = [];
+			let actions: LocalAction[] = [];
 
 			const event = avatarEvents.get(entityFetched.avatarID);
 			if (event) {
-				path = event.args.actions.filter((v) => v.actionType == 1).map((v) => bigIntIDToXY(v.data));
+				actions = event.args.actions.map((v) => {
+					const coords = bigIntIDToXY(v.data);
+					return {
+						type:
+							v.actionType === 0
+								? 'enter'
+								: v.actionType === 1
+									? 'move'
+									: 'exit',
+						x: coords.x,
+						y: coords.y
+					};
+				});
 			}
 
 			const { x, y } = bigIntIDToXY(entityFetched.position);
 			const entity: AvatarEntity = {
 				id,
+				owner: entityFetched.owner,
 				type: 'avatar',
 				position: {
 					x: Number(x),
 					y: Number(y)
 				},
-				life: 1, // TODO ?
-				path
+				life: entityFetched.life,
+				lastEpoch: Number(entityFetched.lastEpoch),
+				actions
 			};
 			state.entities[id] = entity;
 		}

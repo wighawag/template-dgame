@@ -22,9 +22,21 @@ interface UsingGameTypes {
         uint128 data;
     }
 
+    struct PublicAvatar {
+        address owner;
+        uint256 avatarID;
+        bool inGame;
+        uint64 position;
+        uint64 lastEpoch;
+        uint8 life;
+    }
+
     struct AvatarResolved {
         uint256 avatarID;
+        bool inGame;
         uint64 position;
+        uint64 lastEpoch;
+        uint8 life;
     }
 
     /// @notice Config struct to configure the game instance
@@ -34,14 +46,9 @@ interface UsingGameTypes {
         uint256 revealPhaseDuration;
         ITime time;
         IERC721 avatars;
-        uint256 numActions;
+        uint256 numMoves;
     }
 
-    struct AvatarStatus {
-        uint256 avatarID;
-        bool inGame;
-        uint64 position;
-    }
     // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
@@ -63,9 +70,12 @@ interface UsingGameTypes {
     }
 
     struct Avatar {
-        bool inGame;
+        bool inGame; // TODO startEpoch could act as InGame
         uint64 position;
         uint64 zoneIndex;
+        uint64 startEpoch;
+        uint64 lastEpoch;
+        uint8 life;
     }
 
     struct Zone {

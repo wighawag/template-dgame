@@ -2,14 +2,13 @@ import { createDirectReadStore } from '$lib/onchain/direct-read';
 import type { AvatarEntity } from '$lib/onchain/types';
 import { camera } from '$lib/render/camera';
 import { derived, get, writable } from 'svelte/store';
-import { localState } from '../private/localState';
+import { localState, type LocalAction } from '../private/localState';
 import { epochInfo, time } from '$lib/time';
 
 export type Position = { x: number; y: number };
 
-export type AvatarViewEntity = AvatarEntity & {
-	path?: Position[];
-};
+export type AvatarViewEntity = AvatarEntity;
+
 export type ViewEntity = AvatarViewEntity;
 export type ViewState = {
 	avatarID?: string;
@@ -29,33 +28,35 @@ export const viewState = derived(
 			let avatarEntity = $onchainState.entities[currentAvatarID] as AvatarEntity | undefined;
 			if (avatarEntity || !$localState.avatar.exiting) {
 				avatarID = currentAvatarID;
+				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
 				if ($localState.avatar.actions[0]?.type === 'enter') {
 					avatarEntity = {
+						owner: $localState.signer.owner,
 						type: 'avatar',
 						id: avatarID,
 						life: 1,
 						position: $localState.avatar.actions[0],
-						path: []
+						lastEpoch: epoch,
+						actions: []
 					};
 				}
 
 				if (avatarEntity) {
-					const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
+					const actions: LocalAction[] = [];
+					let current_action: LocalAction = { type: 'move', ...avatarEntity.position };
+					actions.push(current_action);
+					// console.log(`current pos`, current_position);
 
-					let current_position = { ...avatarEntity.position };
-					const path: Position[] = [];
 					if ($localState.avatar.actions.length > 0 && $localState.avatar.epoch == epoch) {
 						for (const action of $localState.avatar.actions) {
-							path.push(current_position);
-							if (action.type === 'move') {
-								current_position = { x: action.x, y: action.y };
-							}
+							current_action = { ...action };
+							actions.push(current_action);
 						}
 					}
 					entities[avatarID] = {
 						...avatarEntity,
-						position: current_position,
-						path
+						position: current_action,
+						actions
 					};
 				}
 			}

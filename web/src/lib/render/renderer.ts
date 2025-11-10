@@ -4,18 +4,15 @@ import type { Readable } from 'svelte/store';
 import { AvatarObject } from './objects/AvatarObject';
 import { WallRenderer } from './WallRenderer';
 import { camera } from './camera';
+import type { GameObject } from './objects/GameObject';
 
 export function createRenderer(viewState: Readable<ViewState>) {
-	let avatarObjects: { [id: string]: AvatarObject } = {};
+	let gameObjects: { [id: string]: GameObject } = {};
 	let unsubscribe: (() => void) | undefined = undefined;
 	let wallRenderer: WallRenderer | undefined = undefined;
 	let cameraUnsubscribe: (() => void) | undefined = undefined;
 
-	function onAppStarted(container: Container) {
-		const entrance = new Graphics().rect(-4, -4, 8, 8).fill(0xffff34);
-		entrance.alpha = 0.4;
-		container.addChild(entrance);
-
+	async function onAppStarted(container: Container) {
 		let pathDisplayObject = new Container();
 		container.addChild(pathDisplayObject);
 		pathDisplayObject.zIndex = 1;
@@ -24,6 +21,9 @@ export function createRenderer(viewState: Readable<ViewState>) {
 		const cellSize = 10; // Same as in PixiCanvas
 		wallRenderer = new WallRenderer(container, cellSize);
 		wallRenderer.zIndex = 0; // Render walls behind avatars
+
+		// Initialize the spritesheet for the WallRenderer
+		await wallRenderer.initialize();
 
 		const world = {
 			pathDisplayObject
@@ -39,26 +39,27 @@ export function createRenderer(viewState: Readable<ViewState>) {
 		unsubscribe = viewState.subscribe(($viewState) => {
 			const processed = new Set();
 
-			function onEntityAdded(id: string, entity: ViewEntity): AvatarObject {
+			function onEntityAdded(id: string, entity: ViewEntity): GameObject {
 				if (entity.type == 'avatar') {
+					// console.log(`avatar added ${entity.id}`);
 					const avatarObject = new AvatarObject(world, entity);
 					container.addChild(avatarObject);
-					avatarObjects[id] = avatarObject;
+					gameObjects[id] = avatarObject;
 					return avatarObject;
 				} else {
-					throw new Error(`no render for entity type : ${(entity as any).type}`);
+					throw new Error(`unknown object type : ${entity.type}`);
 				}
 			}
 
-			function onEntityRemoved(id: string, avatarObject: AvatarObject) {
+			function onEntityRemoved(id: string, gameObject: GameObject) {
+				// console.log(`entity removed ${id}`);
 				// TODO removal type ?
-				container.removeChild(avatarObject);
+				container.removeChild(gameObject);
+				delete gameObjects[id];
 			}
 
-			function updateEntity(id: string, avatarObject: AvatarObject, entity: ViewEntity) {
-				if (entity.type === 'avatar') {
-					avatarObject.update(entity, $viewState.epoch);
-				}
+			function updateEntity(id: string, gameObject: GameObject, entity: ViewEntity) {
+				gameObject.update(entity, $viewState.epoch);
 			}
 
 			const entityIDs = Object.keys($viewState.entities);
@@ -66,27 +67,30 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				processed.add(entityID);
 
 				const entity = $viewState.entities[entityID];
-				let avatarObject = avatarObjects[entityID];
-				if (!avatarObject) {
-					avatarObject = onEntityAdded(entityID, entity);
+				let gameObject = gameObjects[entityID];
+				if (!gameObject) {
+					gameObject = onEntityAdded(entityID, entity);
 				} else {
 					// was already present
 				}
 
-				if (entityID == $viewState.avatarID) {
-					avatarObject.markAsPlayerControlled(true);
-				} else {
-					avatarObject.markAsPlayerControlled(false);
+				if (gameObject instanceof AvatarObject) {
+					if (entityID == $viewState.avatarID) {
+						gameObject.markAsPlayerControlled(true);
+					} else {
+						gameObject.markAsPlayerControlled(false);
+					}
 				}
+
 				// anyway we update the value
-				updateEntity(entityID, avatarObject, entity);
+				updateEntity(entityID, gameObject, entity);
 			}
 
 			// Check for removals
-			const avatarObjectIDs = Object.keys(avatarObjects);
+			const avatarObjectIDs = Object.keys(gameObjects);
 			for (const avatarObjectID of avatarObjectIDs) {
 				if (!processed.has(avatarObjectID)) {
-					onEntityRemoved(avatarObjectID, avatarObjects[avatarObjectID]);
+					onEntityRemoved(avatarObjectID, gameObjects[avatarObjectID]);
 				}
 			}
 		});

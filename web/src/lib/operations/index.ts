@@ -1,11 +1,12 @@
 import { eventEmitter } from '$lib/render/eventEmitter';
-import { localState } from '$lib/private/localState';
+import { localState, type LocalReadyState, type LocalState } from '$lib/private/localState';
 import { get } from 'svelte/store';
 import { avatars } from '$lib/onchain/avatars';
 import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
 import { epochInfo } from '$lib/time';
-import { viewState, type Position } from '$lib/view';
-import { Areas, zoneLocalCoord } from 'dgame-contracts';
+import { viewState, type Position, type ViewState } from '$lib/view';
+import { areaAt, Areas, zoneLocalCoord } from 'dgame-contracts';
+import deployments from '$lib/deployments';
 
 type ReadyState = {
 	step: 'Ready';
@@ -13,13 +14,16 @@ type ReadyState = {
 	currentCellType: number;
 	exited: boolean;
 	epoch: number;
+	$viewState: ViewState;
+	$localState: LocalReadyState;
 };
-type CurrentState = { step: 'Idle' } | ReadyState;
+type CurrentState = { step: 'Idle'; $viewState: ViewState; $localState: LocalState } | ReadyState;
 
 function gatherState(): CurrentState {
 	const $epochInfo = epochInfo.now();
 	const { currentEpoch: epoch } = $epochInfo;
 
+	localState.update(epoch);
 	const $localState = get(localState);
 	const $viewState = get(viewState);
 	const avatarEntity =
@@ -41,15 +45,24 @@ function gatherState(): CurrentState {
 		}
 		const areaLocalX = zoneLocalCoord(currentPosition.x);
 		const areaLocalY = zoneLocalCoord(currentPosition.y);
-		// TODO pick area
-		const area = Areas[2];
+		const area = areaAt(currentPosition.x, currentPosition.y);
 		const cellIndex = areaLocalX + areaLocalY * area.size;
 		const currentCellType = area.cells[cellIndex];
 
-		return { step: 'Ready', currentPosition, currentCellType, exited, epoch };
+		return {
+			step: 'Ready',
+			currentPosition,
+			currentCellType,
+			exited,
+			epoch,
+			$viewState,
+			$localState: $localState as LocalReadyState
+		};
 	} else {
 		return {
-			step: 'Idle'
+			step: 'Idle',
+			$viewState,
+			$localState
 		};
 	}
 }
@@ -63,9 +76,15 @@ function addMove(dx: number, dy: number) {
 
 		const areaLocalX = zoneLocalCoord(toX);
 		const areaLocalY = zoneLocalCoord(toY);
-		// TODO pick area
-		const area = Areas[2];
+		const area = areaAt(toX, toY);
 		const cellIndex = areaLocalX + areaLocalY * area.size;
+	
+		const numMovesSoFar = currentState.$localState.avatar.actions.filter(
+			(v) => v.type === 'move'
+		).length;
+		if (numMovesSoFar >= Number(deployments.contracts.Game.linkedData.numMoves)) {
+			return;
+		}
 
 		if (area.cells[cellIndex] == 0 || area.cells[cellIndex] == 3) {
 			localState.addAction(currentState.epoch, {
@@ -110,17 +129,35 @@ export function startListening() {
 		const currentState = gatherState();
 		if (currentState.step === 'Ready') {
 			if (currentState.currentCellType === 3) {
+				// console.log(`adding exit`);
 				addExit(currentState);
+			} else {
+				console.log(`no action to do`)
 			}
 		}
 	});
 
+	eventEmitter.on('action-2', () => {
+		const currentState = gatherState();
+		if (currentState.step === 'Ready') {
+			console.log(`no action to do`)
+		}
+	});
+
 	eventEmitter.on('clicked', (pos) => {
-		if (pos.x == 0 && pos.y == 0) {
+		const areaLocalX = zoneLocalCoord(pos.x);
+		const areaLocalY = zoneLocalCoord(pos.y);
+		const area = areaAt(pos.x, pos.y);
+		const cellIndex = areaLocalX + areaLocalY * area.size;
+		const currentCellType = area.cells[cellIndex];
+
+		if (currentCellType == 0) {
 			const $avatars = get(avatars);
-			// if ($avatars.step == 'Loaded' && $avatars.avatarsInGame.length == 0) {
-			enterFlow.start();
-			// }
+
+			if ($avatars.step == 'Loaded') {
+				// && $avatars.avatarsInGame.length == 0) {
+				enterFlow.start(pos);
+			}
 		}
 	});
 

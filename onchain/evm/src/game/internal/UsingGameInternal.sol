@@ -89,6 +89,11 @@ abstract contract UsingGameInternal is
             );
         }
 
+        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, 0);
+        if (avatar.life == 0) {
+            revert AvatarIsDead(avatarID);
+        }
+
         commitment.hash = commitmentHash;
         commitment.epoch = epoch;
 
@@ -128,31 +133,27 @@ abstract contract UsingGameInternal is
     ) internal {
         (uint64 epoch, bool commiting) = _epoch();
 
-        console.log("checking phase...");
         if (commiting) {
             revert InCommitmentPhase();
         }
         Commitment storage commitment = _commitments[avatarID];
 
-        console.log("checking commitment...");
         if (commitment.epoch == 0) {
             revert NothingToReveal();
         }
 
-        console.log("checking epoch...");
         if (commitment.epoch != epoch) {
             revert InvalidEpoch();
         }
 
-        console.log("checking hash...");
         bytes24 hashRevealed = commitment.hash;
         _checkHash(hashRevealed, actions, secret);
 
-        console.log("resolving actions...");
-
-        (uint64 newPosition, uint256 numActionsResolved) = _resolveActions(avatarID, epoch, actions);
-
-        console.log("...done");
+        (uint64 newPosition, uint256 numActionsResolved) = _resolveActions(
+            avatarID,
+            epoch,
+            actions
+        );
 
         emit CommitmentRevealed(
             avatarID,
@@ -190,90 +191,161 @@ abstract contract UsingGameInternal is
 
     //-------------------------------------------------------------------------
 
+    struct ActionResolution {
+        uint256 avatarID;
+        uint64 epoch;
+        bool stopProcessing;
+        int32 startX;
+        int32 startY;
+        uint64 startZone;
+        int32 currentX;
+        int32 currentY;
+        uint64 currentZone;
+        bool left;
+        bool entering;
+        uint256 numActionsResolved;
+    }
+
     //-------------------------------------------------------------------------
     // INTERNALS
     //-------------------------------------------------------------------------
     function _resolveActions(
         uint256 avatarID,
-        uint64 epoch, 
+        uint64 epoch,
         Action[] memory actions
     ) internal returns (uint64 newPosition, uint256 numActionsResolved) {
         Avatar memory avatar = _avatars[avatarID];
-        newPosition = avatar.position;
-        (int32 x, int32 y) = PositionUtils.toXY(newPosition);
-        uint64 initialZone = PositionUtils.getZone(x, y);
-        bool left = false;
-        bool entering = false;
-        uint256 numActions = actions.length > MAX_ACTIONS ? MAX_ACTIONS : actions.length; 
-        for (uint256 i = 0; i < numActions; i++) {
-            Action memory action = actions[i];
+        (int32 startX, int32 startY) = PositionUtils.toXY(avatar.position);
+        uint64 startZone = PositionUtils.getZone(startX, startY);
 
-            // NWSE (North, West, South, East)
-            if (action.actionType == ActionType.Enter) {
-                uint64 entryPosition = uint64(action.data);
-                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(
-                    entryPosition
-                );
-                // TODO check valid entry
-                x = moveToX;
-                y = moveToY;
-                entering = true;
-                numActionsResolved++;
-                break; // we ignore any more action
-            } else if (action.actionType == ActionType.Move) {
-                uint64 movePosition = uint64(action.data);
-                (int32 moveToX, int32 moveToY) = PositionUtils.toXY(
-                    movePosition
-                );
+        ActionResolution memory resolution = ActionResolution({
+            avatarID: avatarID,
+            epoch: epoch,
+            stopProcessing: false,
+            startX: startX,
+            startY: startY,
+            startZone: startZone,
+            currentX: startX,
+            currentY: startY,
+            currentZone: startZone,
+            left: false,
+            entering: false,
+            numActionsResolved: 0
+        });
 
-                if(_isValidMove(newPosition,movePosition)) {
-                    x = moveToX;
-                    y = moveToY;
-                   numActionsResolved++;
-                } else {
-                     break; // We ignore any further actions
-                }
-                
-            } else if (action.actionType == ActionType.Exit) {
-                // TODO use cell action
-                // for now consider it an Exit
-                left = true;
-                numActionsResolved++;
-                break; // We ignore any further actions
-            }
+        _forEachActions(resolution, actions);
 
-            newPosition = PositionUtils.fromXY(x, y);
-        }
+        newPosition = PositionUtils.fromXY(
+            resolution.currentX,
+            resolution.currentY
+        );
+        numActionsResolved = resolution.numActionsResolved;
 
-        
-        if (left) {
+        if (resolution.left) {
             // Note if we can die, does exiting should still be conditional to not dying
             //  extra data needed ?
             _avatars[avatarID].inGame = false;
             _avatars[avatarID].position = 0;
-            _removeFromZone(initialZone, avatarID);
+            _removeFromZone(resolution.startZone, avatarID);
             emit LeftTheGame(
                 avatarID,
                 epoch,
-                PositionUtils.getZone(x, y),
+                resolution.currentZone,
                 newPosition
             );
-        } else if (entering) {
-            // Note if we can die, enterring should not die upon entering
-            //  extra data needed
+        } else if (resolution.entering) {
             _avatars[avatarID].inGame = true;
+            _avatars[avatarID].startEpoch = epoch;
             _avatars[avatarID].position = newPosition;
+            _avatars[avatarID].life = 1;
             uint64 zone = PositionUtils.getZone(newPosition);
             _addToZone(zone, avatarID);
             emit EnteredTheGame(avatarID, epoch, zone, newPosition);
         } else {
-            uint64 newZone = PositionUtils.getZone(x, y);
-            if (initialZone != newZone) {
-                _removeFromZone(initialZone, avatarID);
-                _addToZone(newZone, avatarID);
+            if (resolution.startZone != resolution.currentZone) {
+                _removeFromZone(resolution.startZone, avatarID);
+                _addToZone(resolution.currentZone, avatarID);
             }
             _avatars[avatarID].position = newPosition;
         }
+
+        _avatars[avatarID].lastEpoch = epoch;
+    }
+
+    function _forEachActions(
+        ActionResolution memory resolution,
+        Action[] memory actions
+    ) internal {
+        uint256 move_count = 0;
+        for (uint256 i = 0; i < actions.length; i++) {
+            Action memory action = actions[i];
+
+            // NWSE (North, West, South, East)
+            if (action.actionType == ActionType.Enter) {
+                _enter(resolution, action.data);
+            } else if (action.actionType == ActionType.Move) {
+                if (move_count >= MAX_MOVES) {
+                    break;
+                }
+                _move(resolution, action.data);
+                move_count++;
+            } else if (action.actionType == ActionType.Exit) {
+                _exit(resolution, action.data);
+            }
+
+            if (resolution.stopProcessing) {
+                break;
+            }
+        }
+    }
+
+    function _enter(
+        ActionResolution memory resolution,
+        uint128 actionData
+    ) internal pure {
+        uint64 entryPosition = uint64(actionData);
+        (int32 moveToX, int32 moveToY) = PositionUtils.toXY(entryPosition);
+        // TODO check valid entry
+        resolution.currentX = moveToX;
+        resolution.currentY = moveToY;
+        resolution.currentZone = PositionUtils.getZone(moveToX, moveToY);
+        resolution.entering = true;
+        resolution.numActionsResolved++;
+        resolution.stopProcessing = true;
+    }
+
+    function _move(
+        ActionResolution memory resolution,
+        uint128 actionData
+    ) internal view {
+        uint64 movePosition = uint64(actionData);
+        (int32 moveToX, int32 moveToY) = PositionUtils.toXY(movePosition);
+
+        if (
+            _isValidMove(
+                resolution.currentX,
+                resolution.currentY,
+                moveToX,
+                moveToY,
+                resolution.epoch
+            )
+        ) {
+            resolution.currentX = moveToX;
+            resolution.currentY = moveToY;
+            resolution.currentZone = PositionUtils.getZone(moveToX, moveToY);
+            resolution.numActionsResolved++;
+        } else {
+            resolution.stopProcessing = true;
+        }
+    }
+
+    function _exit(
+        ActionResolution memory resolution,
+        uint128 actionData
+    ) internal pure {
+        resolution.numActionsResolved++;
+        resolution.left = true;
+        resolution.stopProcessing = true;
     }
 
     function _epoch()
@@ -290,16 +362,49 @@ abstract contract UsingGameInternal is
         uint256 timePassed = time - START_TIME;
         epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
         commiting =
-            timePassed - ((epoch - 2) * epochDuration) <
-            COMMIT_PHASE_DURATION;
+            timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;
     }
 
     function _getResolvedAvatar(
-        uint256 avatarID
+        uint256 avatarID,
+        uint64 epoch
     ) internal view returns (AvatarResolved memory) {
         Avatar memory avatar = _avatars[avatarID];
 
-        return AvatarResolved({position: avatar.position, avatarID: avatarID});
+        if (epoch == 0) {
+            epoch = avatar.lastEpoch + 1;
+        }
+
+        uint8 life = avatar.life;
+        if (!avatar.inGame) {
+            life = 1;
+        }
+
+        return
+            AvatarResolved({
+                position: avatar.position,
+                inGame: avatar.inGame,
+                lastEpoch: avatar.lastEpoch,
+                avatarID: avatarID,
+                life: life
+            });
+    }
+
+    function _getPublicAvatar(
+        uint256 avatarID
+    ) internal view returns (PublicAvatar memory) {
+        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, 0);
+        Player memory player = _players[avatarID];
+
+        return
+            PublicAvatar({
+                owner: player.owner,
+                position: avatar.position,
+                inGame: avatar.inGame,
+                lastEpoch: avatar.lastEpoch,
+                avatarID: avatarID,
+                life: avatar.life
+            });
     }
 
     function _getAvatarsInZone(
@@ -309,7 +414,7 @@ abstract contract UsingGameInternal is
     )
         internal
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
     {
         (epoch, ) = _epoch();
         uint256 numAvatarsInZone = _zones[zone].avatars.length;
@@ -320,9 +425,9 @@ abstract contract UsingGameInternal is
             } else {
                 more = true;
             }
-            avatars = new AvatarResolved[](limit);
+            avatars = new PublicAvatar[](limit);
             for (uint256 i = 0; i < limit; i++) {
-                avatars[i] = _getResolvedAvatar(
+                avatars[i] = _getPublicAvatar(
                     _zones[zone].avatars[fromIndex + i]
                 );
             }
@@ -336,7 +441,7 @@ abstract contract UsingGameInternal is
     )
         internal
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
     {
         (epoch, ) = _epoch();
         // Create a struct to hold our working variables
@@ -352,13 +457,13 @@ abstract contract UsingGameInternal is
                 more = true;
             }
 
-            avatars = new AvatarResolved[](limit);
+            avatars = new PublicAvatar[](limit);
 
             // Fill the result array by traversing zones
             _fillAvatarResults(zones, fromIndex, limit, state, avatars);
         } else {
             // No avatars to return
-            avatars = new AvatarResolved[](0);
+            avatars = new PublicAvatar[](0);
             more = false;
         }
 
@@ -405,7 +510,7 @@ abstract contract UsingGameInternal is
         uint64 fromIndex,
         uint64 limit,
         AvatarFetchState memory state,
-        AvatarResolved[] memory avatars
+        PublicAvatar[] memory avatars
     ) private view {
         uint64 avatarsReturned = 0;
         uint64 currentFromIndex = fromIndex;
@@ -428,7 +533,7 @@ abstract contract UsingGameInternal is
             for (uint64 i = 0; i < toTake; i++) {
                 uint64 zoneId = zones[currentZone];
                 uint256 avatarId = _zones[zoneId].avatars[inZoneIndex + i];
-                avatars[avatarsReturned + i] = _getResolvedAvatar(avatarId);
+                avatars[avatarsReturned + i] = _getPublicAvatar(avatarId);
             }
 
             avatarsReturned += toTake;
@@ -484,32 +589,21 @@ abstract contract UsingGameInternal is
     }
 
     function _isValidMove(
-        uint64 from,
-        uint64 to
-    ) internal pure returns (bool valid) {
-        (int32 x1, int32 y1) = PositionUtils.toXY(from);
-        (int32 x2, int32 y2) = PositionUtils.toXY(to);
-
-        console.log("checking ");
-        console.logInt(x1);
-        console.logInt(y1);
-        console.logInt(x2);
-        console.logInt(y2);
-        console.log("-------------");
-
+        int32 x1,
+        int32 y1,
+        int32 x2,
+        int32 y2,
+        uint64 epoch
+    ) internal view returns (bool valid) {
         // TODO cache area, detect area change and update accordingly
         UsingGameTypes.Area memory area = GameUtils.areaAt(x2, y2);
-        console.log("area");
-        console.log(StringUtils.toHexString(area.firstBytes32));
-        console.log(StringUtils.toHexString(area.secondBytes32));
-        console.log("----");
-        bool isWall = GameUtils.wallAt(area, x2, y2);
-        
+        bool isWall = GameUtils.obstacleAt(area, x2, y2);
+
         if (isWall) {
-            console.log('WALL');
             return false;
         }
 
+        // Check if the move is adjacent (one tile in any direction)
         if (x1 == x2 && y1 == y2 + 1) {
             return true;
         }

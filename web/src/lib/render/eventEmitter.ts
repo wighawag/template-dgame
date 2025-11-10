@@ -7,6 +7,7 @@ export const eventEmitter = new EventEmitter<{
 	left: () => void;
 	right: () => void;
 	action: () => void;
+	'action-2': () => void;
 	backspace: () => void;
 }>();
 

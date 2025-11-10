@@ -14,30 +14,40 @@ import deployments from '$lib/deployments';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { Position } from 'dgame-contracts';
 
-export type LocalAction = { type: 'move' | 'exit' | 'enter'; x: number; y: number };
-export type LocalState =
-	| { signer: undefined }
-	| {
-			signer: Signer;
-			avatar?: {
-				actions: LocalAction[];
-				submission?: {
-					commit: {
-						secret: `0x${string}`;
-						epoch: number;
-						txHash: string;
-						actions: LocalAction[];
-					};
-					reveal?: {
-						epoch: number;
-						txHash: string;
-					};
-				};
-				epoch: number;
-				avatarID: string;
-				exiting: boolean;
-			};
-	  };
+export type LocalAction = {
+	type: 'move' | 'exit' | 'enter';
+	x: number;
+	y: number;
+};
+
+export type LocalAvatar = {
+	actions: LocalAction[];
+	submission?: {
+		commit: {
+			secret: `0x${string}`;
+			epoch: number;
+			txHash: string;
+			actions: LocalAction[];
+		};
+		reveal?: {
+			epoch: number;
+			txHash: string;
+		};
+	};
+	epoch: number;
+	avatarID: string;
+	exiting: boolean;
+};
+
+export type LocalSignedInState = {
+	signer: Signer;
+	avatar?: LocalAvatar;
+};
+export type LocalReadyState = {
+	signer: Signer;
+	avatar: LocalAvatar;
+};
+export type LocalState = { signer: undefined } | LocalSignedInState | LocalReadyState;
 
 function defaultState() {
 	return {
@@ -102,7 +112,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 		if (!$state.avatar) {
 			return;
 		}
-		if (epoch != $state.avatar.epoch) {
+		if (epoch > $state.avatar.epoch) {
 			$state.avatar = {
 				avatarID: $state.avatar.avatarID,
 				actions: [],
@@ -139,16 +149,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				return;
 			}
 
-			if (
-				$state.avatar?.actions &&
-				$state.avatar.actions.length >= Number(deployments.contracts.Game.linkedData.numActions) - 1
-			) {
-				return;
-			}
-
 			$state.avatar.actions.push(action);
 			set($state);
 		},
+		update: updateLocalState,
 		enter(avatarID: bigint, epoch: number, position: Position) {
 			updateLocalState(epoch);
 			if (!$state.signer) {
@@ -160,6 +164,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			// 	throw new Error(`got an avatar already`);
 			// }
 
+			console.log(`enterring at epoch: ${epoch}`);
 			const actions: LocalAction[] = [{ type: 'enter', x: position.x, y: position.y }];
 
 			// console.log(`avatars`, avatarID);
@@ -174,7 +179,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			set($state);
 		},
 
-		async commit() {
+		async commit(options?: { pollingInterval?: number }) {
 			if (commiting) {
 				console.log(`already commiting...`);
 				return;
@@ -190,6 +195,11 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 
 			const $epochInfo = epochInfo.now();
 			const { currentEpoch: epoch } = $epochInfo;
+
+			if ($state.avatar.epoch > epoch) {
+				console.log(`not in yet`);
+				return;
+			}
 
 			updateLocalState(epoch);
 
@@ -212,7 +222,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				const { transactionID, wait } = await writes.commit_actions(
 					BigInt($state.avatar.avatarID),
 					secret,
-					actions
+					actions,
+					options
 				);
 
 				$state.avatar.submission = {
@@ -229,7 +240,9 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				console.log(`waiting for commit tx...`);
 
 				const receipt = await wait();
+				console.log(`... commit receipt received!`);
 				if (receipt.status === 'reverted') {
+					console.error(`commit reverted`, receipt);
 					$state.avatar.submission = undefined;
 					set($state);
 				}
@@ -265,7 +278,19 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			set($state);
 		},
 
-		async reveal() {
+		removeAvatar() {
+			if (!$state.signer) {
+				throw new Error(`no signer`);
+			}
+
+			if (!$state.avatar) {
+				throw new Error(`no avatar`);
+			}
+			$state.avatar = undefined;
+			set($state);
+		},
+
+		async reveal(options?: { pollingInterval?: number }) {
 			if (revealing) {
 				console.log(`already revealing...`);
 				return;
@@ -308,7 +333,8 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				const { transactionID, wait } = await writes.reveal_actions(
 					BigInt($state.avatar.avatarID),
 					commitment.secret,
-					commitment.actions
+					commitment.actions,
+					options
 				);
 
 				$state.avatar.submission = {
@@ -323,7 +349,9 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				console.log(`waiting for reveal tx...`);
 
 				const receipt = await wait();
+				console.log(`... reveal receipt received!`);
 				if (receipt.status === 'reverted') {
+					console.error(`reveal reverted`, receipt);
 					$state.avatar.submission.reveal = undefined;
 					set($state);
 				}

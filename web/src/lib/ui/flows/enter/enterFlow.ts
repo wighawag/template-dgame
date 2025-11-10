@@ -7,28 +7,31 @@ import { purchaseFlow } from '../purchase/purchaseFlow';
 import { onchainState, viewState } from '$lib/view';
 import { localState } from '$lib/private/localState';
 import { epochInfo, twoPhase } from '$lib/time';
+import type { Position } from 'dgame-contracts';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
 			step: 'Idle';
 	  }
-	| {
-			step: 'Loading';
-	  }
-	| {
-			step: 'RequireSignIn';
-	  }
-	| {
-			step: 'RequireAvatars';
-	  }
-	| {
-			step: 'RequireDeposit';
-	  }
-	| {
-			step: 'Ready';
-			avatars: readonly bigint[];
-			pendingTransaction?: `0x${string}`;
-	  }
+	| ({ position: Position } & (
+			| {
+					step: 'Loading';
+			  }
+			| {
+					step: 'RequireSignIn';
+			  }
+			| {
+					step: 'RequireAvatars';
+			  }
+			| {
+					step: 'RequireDeposit';
+			  }
+			| {
+					step: 'Ready';
+					avatars: readonly bigint[];
+					pendingTransaction?: `0x${string}`;
+			  }
+	  ))
 );
 
 function createEnterFlow() {
@@ -41,13 +44,16 @@ function createEnterFlow() {
 	}
 
 	function onConnectionChanged($connection: Connection<UnderlyingEthereumProvider>) {
+		if ($data.step === 'Idle') {
+			return;
+		}
 		if ($data.step === 'RequireSignIn') {
 			if ($connection.step === 'SignedIn') {
 				setTimeout(() => start(), 1);
 			}
 		} else {
 			if ($connection.step != 'SignedIn') {
-				set({ step: 'RequireSignIn' });
+				set({ step: 'RequireSignIn', position: $data.position });
 			}
 		}
 	}
@@ -62,18 +68,23 @@ function createEnterFlow() {
 
 	let unsubscribeFromConnection: (() => void) | undefined;
 	let unsubscribeFromAvatars: (() => void) | undefined;
-	function start() {
+	function start(pos?: Position) {
 		const $connection = get(connection);
 		unsubscribeFromConnection = connection.subscribe(onConnectionChanged);
 		unsubscribeFromAvatars = avatars.subscribe(onAvatarsChanged);
 
+		const position = pos || ($data.step !== 'Idle' ? $data.position : { x: 0, y: 0 });
+
 		if ($connection.step !== 'SignedIn') {
-			set({ step: 'RequireSignIn' });
+			set({
+				step: 'RequireSignIn',
+				position
+			});
 			return;
 		}
 		const $avatars = get(avatars);
 		if ($avatars.step != 'Loaded') {
-			set({ step: 'Loading' });
+			set({ step: 'Loading', position });
 			return;
 		}
 
@@ -89,9 +100,9 @@ function createEnterFlow() {
 		// }
 
 		if ($avatars.avatarsOnBench.length > 0) {
-			set({ step: 'Ready', avatars: $avatars.avatarsOnBench });
+			set({ step: 'Ready', avatars: $avatars.avatarsOnBench, position });
 		} else {
-			set({ step: 'RequireAvatars' });
+			set({ step: 'RequireAvatars', position });
 		}
 	}
 
@@ -106,7 +117,7 @@ function createEnterFlow() {
 		if ($twoPhase.phase !== 'play') {
 			epoch += 1;
 		}
-		localState.enter(avatarID, epoch, { x: 0, y: 0 });
+		localState.enter(avatarID, epoch, $data.position);
 		set({
 			step: 'Idle'
 		});

@@ -64,7 +64,7 @@ export function createAvatarCollectionStore(
 
 		// TODO use pagination
 		let avatarsDepositedResult: readonly [
-			readonly { avatarID: bigint; inGame: boolean; position: bigint }[],
+			readonly { avatarID: bigint; inGame: boolean; position: bigint; life: number }[],
 			boolean
 		];
 		try {
@@ -84,7 +84,11 @@ export function createAvatarCollectionStore(
 		const avatarsOnBench = avatarsDepositedResult[0]
 			.filter((v) => !v.inGame)
 			.map((v) => v.avatarID);
-		const avatarsInGame = avatarsDepositedResult[0].filter((v) => v.inGame).map((v) => v.avatarID);
+		const avatarsInGame = avatarsDepositedResult[0]
+			.filter((v) => v.inGame && v.life > 0)
+			.map((v) => v.avatarID);
+
+		// console.log(avatarsDepositedResult);
 
 		set({
 			step: 'Loaded',

@@ -1,99 +1,108 @@
 <script lang="ts">
+	import { localState } from '$lib/private/localState';
+	import Modal from '$lib/ui/modal/Modal.svelte';
+	import { fade } from 'svelte/transition';
 	import { epochInfo, time, threePhase, twoPhase } from './index';
-
-	// let percentage = $derived(
-	// 	100 - Math.floor(($epochInfo.timeLeftInPhase * 100) / $epochInfo.currentPhaseDuration)
-	// );
-
-	// let color = $derived($epochInfo.isCommitPhase ? '#ff0000' : 'oklch(85.2% 0.199 91.936)');
-	// let background = $derived($epochInfo.isCommitPhase ? '#00ff00' : '#ff0000');
-
-	// let percentage = $derived(100 - Math.floor(($threePhase.timeLeft * 100) / $threePhase.duration));
-
-	// let color = $derived(
-	// 	$threePhase.phase == 'play'
-	// 		? 'oklch(85.2% 0.199 91.936)'
-	// 		: $threePhase.phase == 'commit'
-	// 			? 'red'
-	// 			: 'blue'
-	// );
-	// let background = $derived(
-	// 	$threePhase.phase == 'play'
-	// 		? '#00ff00'
-	// 		: $threePhase.phase == 'commit'
-	// 			? 'oklch(85.2% 0.199 91.936)'
-	// 			: 'red'
-	// );
+	import ms from 'pretty-ms';
 
 	let percentage = $derived(100 - Math.floor(($twoPhase.timeLeft * 100) / $twoPhase.duration));
 
-	let color = $derived($twoPhase.phase == 'play' ? 'red' : 'oklch(85.2% 0.199 91.936)');
-	let background = $derived($twoPhase.phase == 'play' ? '#00ff00' : 'red');
+	let color = $derived(
+		$twoPhase.phase == 'play' ? 'oklch(57.7% 0.245 27.325)' : 'oklch(85.2% 0.199 91.936)'
+	);
+	let background = $derived($twoPhase.phase == 'play' ? 'oklch(79.2% 0.209 151.711)' : 'red');
+
+	// SVG pie chart parameters
+	const size = 100;
+	const center = size / 2;
+	const radius = 40;
+
+	// Calculate the path for the pie slice - starts at top like a clock
+	function calculatePiePath(percent: number): string {
+		const angle = (percent / 100) * 360;
+		const startAngle = 0; // Start at top (12 o'clock)
+		const endAngle = startAngle + angle;
+
+		const startX = center + radius * Math.cos(((startAngle - 90) * Math.PI) / 180);
+		const startY = center + radius * Math.sin(((startAngle - 90) * Math.PI) / 180);
+		const endX = center + radius * Math.cos(((endAngle - 90) * Math.PI) / 180);
+		const endY = center + radius * Math.sin(((endAngle - 90) * Math.PI) / 180);
+
+		const largeArcFlag = angle > 180 ? 1 : 0;
+
+		if (angle === 0) return '';
+		if (angle >= 360) {
+			return `M ${center} ${center} L ${startX} ${startY} A ${radius} ${radius} 0 1 1 ${endX} ${endY} Z`;
+		}
+
+		return `M ${center} ${center} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+	}
+
+	const piePath = $derived(calculatePiePath(percentage));
 </script>
 
-<div
-	class="progress"
-	id="progress_wrapper"
-	style={`--color: ${color}; --background: ${background}; --percentage: ${percentage}`}
->
-	<progress id="progress" value="20" max="100"></progress>
+<div class="progress-container" style={`--color: ${color}; --background: ${background}`}>
+	<svg width={size} height={size} class="progress-svg" viewBox={`0 0 ${size} ${size}`}>
+		<!-- Background circle (full pie) -->
+		<circle
+			cx={center}
+			cy={center}
+			r={radius}
+			fill="var(--background)"
+			class="progress-background"
+		/>
+		<!-- Progress pie slice -->
+		{#if piePath}
+			<path d={piePath} fill="var(--color)" class="progress-bar" />
+		{/if}
+	</svg>
 </div>
 
+{#if $twoPhase.phase === 'wait' && $twoPhase.timeLeft > 0.1 && !!$localState.signer && !!$localState.avatar}
+	<div
+		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-red-600 px-4 text-black text-white shadow-md"
+	>
+		<span>Please wait for Action Resolution...</span>
+		<div>{ms($twoPhase.timeLeft * 1000)} left</div>
+	</div>
+
+	<div
+		transition:fade
+		class="full-screen-border border-red-600"
+		style="
+      border-width: 10px; 
+      border-radius: 0px;
+    "
+	></div>
+{/if}
+
 <style>
-	.progress {
-		width: calc(var(--size, 100) * 1px);
-		height: calc(var(--size, 100) * 1px);
-		border-radius: 100%;
-		overflow: hidden;
-		padding: 0;
+	.progress-container {
+		width: 100px;
+		height: 100px;
 		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: transparent;
-		background: transparent;
+		display: inline-block;
 		float: left;
 	}
-	progress {
-		height: 100%;
-	}
-	.progress:before {
-		content: '';
-		background: white;
-		position: absolute;
-		z-index: 100;
-		/* parenthesis are required */
-		width: calc((var(--size, 100) - (var(--width, 100) * 2)) * 1px);
-		height: calc((var(--size, 100) - (var(--width, 100) * 2)) * 1px);
-		border-radius: 50%;
-		margin: auto auto;
-	}
-	progress::-moz-progress-value {
-		background: transparent;
-	}
-	progress::-webkit-progress-value {
-		background: transparent;
-	}
-	progress::-moz-progress-bar {
-		background: transparent;
+
+	.progress-svg {
+		/* Removed transform - path calculation handles correct starting position */
 	}
 
-	progress {
-		background: conic-gradient(
-			var(--color, red) 0% (var(--percentage, 33) * 1%),
-			var(--background, yellow) (var(--percentage, 33) * 1%) 100%
-		);
+	.progress-background {
+		/* Removed opacity to restore original colors */
 	}
-	progress::-webkit-progress-bar {
-		background: conic-gradient(
-			var(--color, red) 0% calc(var(--percentage, 33) * 1%),
-			var(--background, yellow) calc(var(--percentage, 33) * 1%) 100%
-		);
+
+	.progress-bar {
+		filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
 	}
-	progress::-moz-progress-bar {
-		background: conic-gradient(
-			var(--color, red) 0% calc(var(--percentage, 33) * 1%),
-			var(--background, yellow) calc(var(--percentage, 33) * 1%) 100%
-		);
+
+	.full-screen-border {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 999999;
+		box-sizing: border-box;
+		border-style: solid;
 	}
 </style>

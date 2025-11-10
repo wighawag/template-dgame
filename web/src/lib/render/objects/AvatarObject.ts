@@ -14,12 +14,15 @@ export class AvatarObject extends GameObject {
 				epoch: number;
 		  }
 		| undefined;
+
 	constructor(
-		protected world: { pathDisplayObject: Container },
+		protected world: {
+			pathDisplayObject: Container;
+		},
 		protected entity: AvatarEntity
 	) {
 		super();
-		const sprite = new LoadingSprite(Blockie.getURI(entity.id));
+		const sprite = new LoadingSprite(Blockie.getURI(entity.owner));
 		this.addChild(sprite);
 		sprite.x = -5 + 2;
 		sprite.y = -5 + 2;
@@ -38,11 +41,22 @@ export class AvatarObject extends GameObject {
 
 		{
 			const graphics = new Graphics()
-				.moveTo(0, 0)
-				.lineTo(10, 10)
-				.moveTo(0, 10)
-				.lineTo(10, 0)
+				.moveTo(-5, -5)
+				.lineTo(5, 5)
+				.moveTo(-5, 5)
+				.lineTo(5, -5)
 				.stroke({ width: 1, color: 0xff0000 });
+			this.addChild(graphics);
+			graphics.visible = false;
+		}
+
+		{
+			const graphics = new Graphics()
+				.moveTo(-5, -5)
+				.lineTo(5, 5)
+				.moveTo(-5, 5)
+				.lineTo(5, -5)
+				.stroke({ width: 1, color: 0x00ff00 });
 			this.addChild(graphics);
 			graphics.visible = false;
 		}
@@ -59,31 +73,41 @@ export class AvatarObject extends GameObject {
 			this.children[3].visible = false;
 		}
 
+		if (entity.actions.find((v) => v.type === 'exit')) {
+			this.children[4].visible = true;
+		} else {
+			this.children[4].visible = false;
+		}
+
 		this.children[1].visible = false;
 		this.children[2].visible = false;
+		// this.children[3].visible = true;
 
 		if (this.playerControlled) {
 			this.zIndex = 2;
-			// TODO move that elseewhere and remove the need to delete all and reconstruct
+			// TODO move that elsewhere and remove the need to delete all and reconstruct
 			// Make sure to destroy all children first to prevent memory leaks
 			this.world.pathDisplayObject.removeChildren();
-
-			const path = entity.path;
-			if (path) {
-				for (const pos of path) {
-					const graphics = new Graphics();
-					this.world.pathDisplayObject
-						.addChild(graphics)
-						.rect(-5 + 4, -5 + 4, 2, 2)
-						.fill(0x00ff00);
-					graphics.x = 10 * pos.x;
-					graphics.y = 10 * pos.y;
+			
+			const actions = entity.actions;
+			if (actions) {
+				for (const action of actions) {
+					if (action.type === 'move' || action.type === 'enter') {
+						// Draw path movement (existing code)
+						const graphics = new Graphics();
+						this.world.pathDisplayObject
+							.addChild(graphics)
+							.rect(-5 + 4, -5 + 4, 2, 2)
+							.fill(0x00ff00);
+						graphics.x = 10 * action.x;
+						graphics.y = 10 * action.y;
+					}
 				}
 			}
 
 			// if (entity.epoch > time.now() - 0.9) {
-			// 	displayObject.children[1].visible = false;
-			// 	displayObject.children[2].visible = true;
+			// 	this.children[1].visible = false;
+			// 	this.children[2].visible = true;
 			// } else {
 			this.children[1].visible = true;
 			this.children[2].visible = false;
@@ -98,13 +122,14 @@ export class AvatarObject extends GameObject {
 			};
 
 			if (
-				entity.path.length > 0 &&
+				entity.actions.length > 0 &&
 				!(this.position.x == destination.x && this.position.y == destination.y) &&
 				(!this.epochAnim || this.epochAnim.epoch !== epoch)
 			) {
-				const duration = entity.path.length > 10 ? 1.2 / entity.path.length : 0.1;
+				// TODO ignore non-move actions ? or deal with them differently
+				const duration = entity.actions.length > 10 ? 1.2 / entity.actions.length : 0.1;
 				const tl = gsap.timeline();
-				for (const p of entity.path) {
+				for (const p of entity.actions) {
 					tl.to(this.position, { x: 10 * p.x, y: 10 * p.y, duration });
 				}
 				this.epochAnim = {

@@ -37,8 +37,8 @@
 			{:else if $avatars.step === 'Loading'}
 				Loading...{/if}</span
 		> -->
-		<span>{$gasFee.step == 'Loaded' ? formatEther($gasFee.average.maxFeePerGas) : ''}</span>
-		<span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span>
+		<!-- <span>{$gasFee.step == 'Loaded' ? formatEther($gasFee.average.maxFeePerGas) : ''}</span> -->
+		<!-- <span>{Math.floor($epochInfo.timeLeftInPhase * 100) / 100}</span> -->
 		<span
 			>{$balance.step == 'Loaded'
 				? `${Math.floor($balance.credits * 100) / 100} Credits`
@@ -92,6 +92,10 @@
 					<div class="mb-2 text-xs text-gray-400">Connected as:</div>
 					<div class="mb-4 break-all font-mono text-sm text-white">
 						{$connection.account.address}
+					</div>
+					<div class="mb-2 text-xs text-gray-400">Controller:</div>
+					<div class="mb-4 break-all font-mono text-sm text-white">
+						{$connection.account.signer.address}
 					</div>
 					<Button
 						class="w-full"

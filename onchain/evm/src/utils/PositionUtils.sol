@@ -57,4 +57,20 @@ library PositionUtils {
     function zoneLocalCoord(int32 x) internal pure returns (uint8 index) {
         return uint8(uint32(x - (zoneCoord(x) * ZONE_SIZE - ZONE_OFFSET)));
     }
+
+    function zoneLocalIndex(
+        int32 x,
+        int32 y
+    ) internal pure returns (uint8 index) {
+        uint8 zx = zoneLocalCoord(x);
+        uint8 zy = zoneLocalCoord(y);
+        return uint8(zy * uint32(ZONE_SIZE)) + zx;
+    }
+
+    function zoneLocalIndex(
+        uint64 position
+    ) internal pure returns (uint8 index) {
+        (int32 x, int32 y) = toXY(position);
+        return zoneLocalIndex(x, y);
+    }
 }

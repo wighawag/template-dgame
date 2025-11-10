@@ -26,6 +26,10 @@ export function createKeyboardController(eventEmitter: EventEnitter): KeyboardCo
 		eventEmitter.emit('action');
 	}
 
+	function onEnter() {
+		eventEmitter.emit('action-2');
+	}
+
 	function onBackspace() {
 		eventEmitter.emit('backspace');
 	}
@@ -74,6 +78,10 @@ export function createKeyboardController(eventEmitter: EventEnitter): KeyboardCo
 
 			case ' ':
 				onSpace();
+				break;
+
+			case 'Enter':
+				onEnter();
 				break;
 
 			case 'Backspace':

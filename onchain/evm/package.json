@@ -39,7 +39,7 @@
 		"handlebars": "^4.7.8",
 		"hardhat": "^3.0.6",
 		"hardhat-deploy": "^2.0.0-next.52",
-		"ldenv": "^0.3.14",
+		"ldenv": "^0.3.15",
 		"prettier": "^3.6.2",
 		"prettier-plugin-solidity": "2.2.0-rc.1",
 		"remote-procedure-call": "^0.1.1",
@@ -57,10 +57,11 @@
 		"#generated/*.js": "./generated/*.js"
 	},
 	"scripts": {
-		"prepare": "set-defaults .vscode && pnpm compile",
+		"prepare": "set-defaults .vscode && pnpm generate_areas &&  pnpm compile",
 		"---------------------- INTERNAL ----------------------": "",
 		":deploy+export": "hardhat --network $MODE deploy --skip-prompts && rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
+		"generate_areas": "tsx scripts/asciiAreaToStruct.ts ./data/demo_areas",
 		"local_node": "ldenv -d localhost hardhat node",
 		"compile": "hardhat --show-stack-traces compile",
 		"compile:watch": "as-soon -w src pnpm compile",

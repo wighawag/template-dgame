@@ -1,3 +1,6 @@
+import {encodePacked, keccak256} from 'viem';
+import {Areas} from './generated/Areas.js';
+
 export const ZONE_SIZE = 16;
 export const ZONE_OFFSET = 8;
 
@@ -34,4 +37,27 @@ export function wallAt(
 	}
 	return wall;
 	// return ((walls >> (127n - i)) & 1n) == 1n;
+}
+
+const areaCache: Map<string, {cells: readonly number[]; size: number}> =
+	new Map();
+export function areaAt(x: number, y: number) {
+	// TODO add in genesis hash ?
+	const areaX = zoneCoord(x);
+	const areaY = zoneCoord(y);
+
+	const key = `${areaX},${areaY}`;
+	const fromCache = areaCache.get(key);
+
+	if (fromCache) {
+		return fromCache;
+	}
+
+	// TODO use evm execution diretly ?
+	const areaHash = BigInt(
+		keccak256(encodePacked(['int32', 'int32'], [areaX, areaY])),
+	);
+	const area = Areas[Number(areaHash % BigInt(Areas.length))];
+	areaCache.set(key, area);
+	return area;
 }

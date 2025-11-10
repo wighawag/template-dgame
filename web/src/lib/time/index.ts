@@ -7,9 +7,25 @@ export type SyncedTime = {
 	value: number;
 };
 
-export function createTime() {
+function formatTime(timestamp: number): string {
+	return `${new Date(timestamp * 1000).toLocaleTimeString([], {
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit'
+	})},${(timestamp * 1000) % 1000}`;
+}
+
+export function createTime(chainInfo: { averageBlockTime: number; minPollingInterval?: number }) {
+	let expectedBlockTime = chainInfo.averageBlockTime;
+	let minPollingInterval = 200;
+
 	let last_time = Math.floor(Date.now() / 1000);
-	let last_fetch_time = performance.now();
+	let last_fetch_time_ms = Date.now();
+	let last_fetch_block_number: number | null = null;
+
+	let pollingInterval: NodeJS.Timeout | null = null;
+	let hasAccurateTime = false; // Track if we have the most accurate blockchain time
+
 	let $time: SyncedTime = { value: last_time };
 	const time = writable<SyncedTime>($time, start);
 
@@ -20,65 +36,110 @@ export function createTime() {
 	}
 
 	function start() {
-		let interval = setInterval(() => {
-			const now = performance.now();
-			const timePassed = now - last_fetch_time;
-			set({ value: last_time + timePassed / 1000, lastSync: $time.lastSync });
+		// Main time update interval (updates every second)
+		const timeUpdateInterval = setInterval(() => {
+			const now = Date.now();
+			const timePassedMS = now - last_fetch_time_ms;
+			set({ value: last_time + timePassedMS / 1000, lastSync: $time.lastSync });
 		}, 1000);
 
-		sync();
+		// Start with immediate first approximation
+		initialSync();
 
-		return () => clearInterval(interval);
-	}
-
-	async function sync() {
-		const synced = await updateTimeFromProvider();
-		if (!synced) {
-			setTimeout(sync, 1000);
-		}
-	}
-
-	async function fetchBlockTime(): Promise<{ blockNumber: number; blockTime: number }> {
-		const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
-			'latest',
-			false as true // TODO fix eip-1193 Methods
-		]);
-		if (blockResponse.success && blockResponse.value) {
-			const lastBlockTime = Number(blockResponse.value.timestamp);
-
-			const block = { blockNumber: Number(blockResponse.value.number), blockTime: lastBlockTime };
-			const currentTime = now();
-			if (lastBlockTime < currentTime) {
-				console.log(`time is ${currentTime - lastBlockTime} seconds ahead from block time`);
-				updateTimeFromBlock(performance.now(), block);
+		return () => {
+			clearInterval(timeUpdateInterval);
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+				pollingInterval = null;
 			}
+		};
+	}
 
-			return block;
+	async function initialSync() {
+		// Use the existing updateTimeFromProvider function for initial sync
+		const synced = await updateTimeFromProvider();
+		if (synced) {
+			// Initial sync successful, now start polling to catch the next block
+			// for maximum accuracy, then we'll stop polling
+			startBlockPolling();
 		} else {
-			throw new Error(`could not fetch latest block`);
+			console.error('Initial sync failed, retrying...');
+			setTimeout(initialSync, 1000);
 		}
+	}
+
+	function startBlockPolling() {
+		// Only start polling if we don't have accurate time yet
+		if (hasAccurateTime) return;
+
+		// Poll more frequently for faster networks, less for slower ones
+		// Aim for roughly 1/10th of expected block time
+		const pollInterval = Math.max(Math.floor((expectedBlockTime * 1000) / 100), minPollingInterval);
+
+		pollingInterval = setInterval(async () => {
+			try {
+				const before_fetch = Date.now();
+				const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
+					'latest',
+					false as true // TODO fix eip-1193 Methods
+				]);
+
+				if (blockResponse.success && blockResponse.value) {
+					const currentBlockNumber = Number(blockResponse.value.number);
+					const currentBlockTime = Number(blockResponse.value.timestamp);
+
+					console.debug(
+						`got ${currentBlockNumber} at ${formatTime(currentBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
+					);
+
+					// If we have a new block, we now have the most accurate blockchain time
+					if (last_fetch_block_number === null || currentBlockNumber > last_fetch_block_number) {
+						const after_fetch = Date.now();
+						const predicted_fetch_time = (before_fetch + after_fetch) / 2;
+
+						updateTimeFromBlock(predicted_fetch_time, {
+							blockTime: currentBlockTime,
+							blockNumber: currentBlockNumber
+						});
+
+						// We now have the most accurate blockchain time, stop polling
+						hasAccurateTime = true;
+						if (pollingInterval) {
+							clearInterval(pollingInterval);
+							pollingInterval = null;
+						}
+					}
+				}
+			} catch (err) {
+				// Silently fail on polling errors to avoid console spam
+				console.debug('Block polling failed:', err);
+			}
+		}, pollInterval);
 	}
 
 	function updateTimeFromBlock(
-		fetchTime: number,
+		fetchTimeMS: number,
 		block: { blockTime: number; blockNumber: number }
 	) {
 		last_time = block.blockTime;
-		last_fetch_time = fetchTime;
+		last_fetch_time_ms = fetchTimeMS;
+		last_fetch_block_number = block.blockNumber;
 
-		const now = performance.now();
-		const timePassed = now - last_fetch_time;
+		const nowMS = Date.now();
+		const timePassedMS = nowMS - last_fetch_time_ms;
+		console.debug(`timePassed: ${timePassedMS / 1000}`);
+		console.debug(`time is ${formatTime(last_time + timePassedMS / 1000)}`);
 		set({
-			value: last_time + timePassed / 1000,
+			value: last_time + timePassedMS / 1000,
 			lastSync: {
-				timestampMS: last_fetch_time,
+				timestampMS: last_fetch_time_ms,
 				blockNumber: block.blockNumber
 			}
 		});
 	}
 
 	async function updateTimeFromProvider() {
-		const before_fetch = performance.now();
+		const before_fetch = Date.now();
 		try {
 			const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
 				'latest',
@@ -87,12 +148,17 @@ export function createTime() {
 
 			if (blockResponse.success && blockResponse.value) {
 				const lastBlockTime = Number(blockResponse.value.timestamp);
-				const after_fetch = performance.now();
+				const currentBlockNumber = Number(blockResponse.value.number);
+				const after_fetch = Date.now();
 				const predicted_fetch_time = (before_fetch + after_fetch) / 2;
+
+				console.debug(
+					`our first block (${currentBlockNumber}) at ${formatTime(lastBlockTime)} / ${formatTime(predicted_fetch_time)}`
+				);
 
 				updateTimeFromBlock(predicted_fetch_time, {
 					blockTime: lastBlockTime,
-					blockNumber: Number(blockResponse.value.number)
+					blockNumber: currentBlockNumber
 				});
 				return true;
 			}
@@ -103,28 +169,22 @@ export function createTime() {
 		}
 	}
 
-	// used for debugging
-	async function checkTime() {
-		const block = await fetchBlockTime();
-		return block;
-	}
-
 	function now() {
-		const now = performance.now();
-		const timePassed = now - last_fetch_time;
-		return last_time + timePassed / 1000;
+		const nowMS = Date.now();
+		const timePassedMS = nowMS - last_fetch_time_ms;
+		return last_time + timePassedMS / 1000;
 	}
 
 	return {
 		now,
-		updateTimeFromProvider,
-		subscribe: time.subscribe,
-		fetchBlockTime,
-		checkTime
+		subscribe: time.subscribe
 	};
 }
 
-export const time = createTime();
+export const time = createTime({
+	averageBlockTime: deployments.chain.properties.blockTime,
+	minPollingInterval: 100
+});
 
 export type EpochInfo = {
 	currentEpoch: number;

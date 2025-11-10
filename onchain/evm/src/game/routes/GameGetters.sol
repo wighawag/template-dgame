@@ -18,7 +18,7 @@ contract GameGetters is IGameGetters, UsingGameInternal {
     )
         external
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
     {
         return _getAvatarsInZone(zone, fromIndex, limit);
     }
@@ -30,15 +30,16 @@ contract GameGetters is IGameGetters, UsingGameInternal {
     )
         external
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch)
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
     {
         return _getAvatarsInMultipleZones(zones, fromIndex, limit);
     }
 
     function getAvatar(
         uint256 avatarID
-    ) external view returns (AvatarResolved memory) {
-        return _getResolvedAvatar(avatarID);
+    ) external view returns (PublicAvatar memory) {
+        return _getPublicAvatar(avatarID);
+        (avatarID);
     }
 
     function getCommitment(
@@ -55,7 +56,7 @@ contract GameGetters is IGameGetters, UsingGameInternal {
                 revealPhaseDuration: REVEAL_PHASE_DURATION,
                 avatars: AVATARS,
                 time: TIME,
-                numActions: MAX_ACTIONS
+                numMoves: MAX_MOVES
             });
     }
 }

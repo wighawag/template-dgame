@@ -65,15 +65,16 @@ interface UsingGameErrors is UsingGameTypes {
     /// prevent player from acknowledging missed reveal if there is still time to reveal.
     error CanStillReveal();
 
-    /// @notice Player have to reveal if they can
+    /// @notice happen when attempting to move a dead avatar
+    ///  The avatar is dead, no action possible
     /// @param avatarID the id of the dead avatar
-    /// The avatar is dead, no action possible
     error AvatarIsDead(uint256 avatarID);
 
     /// @notice The cell configuration is invalid
-    /// This can happen win debug mode where admin can setup cell bypassing moves rules
-    /// For example when setting up neighborood configuration that would require a cell to have negative life
+    ///  This can happen win debug mode where admin can setup cell bypassing moves rules
+    ///  For example when setting up neighborood configuration that would require a cell to have negative life
     error ImpossibleConfiguration();
 
+    /// @notice happen when attempting to send a non-avatar ERC721 to the game
     error OnlyAvatarsAreAccepted();
 }

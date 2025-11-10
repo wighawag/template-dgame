@@ -36,7 +36,7 @@ interface IGameGetters is UsingGameTypes {
     )
         external
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch);
 
     function getAvatarsInMultipleZones(
         uint64[] calldata zones,
@@ -45,11 +45,11 @@ interface IGameGetters is UsingGameTypes {
     )
         external
         view
-        returns (AvatarResolved[] memory avatars, bool more, uint64 epoch);
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch);
 
     function getAvatar(
         uint256 avatarID
-    ) external view returns (AvatarResolved memory avatar);
+    ) external view returns (PublicAvatar memory avatar);
 
     function getCommitment(
         uint256 avatarID
@@ -69,7 +69,7 @@ interface IGameDeposit is UsingGameTypes {
         address owner,
         uint256 startIndex,
         uint256 limit
-    ) external view returns (AvatarStatus[] memory avatarIDs, bool more);
+    ) external view returns (PublicAvatar[] memory avatarIDs, bool more);
 }
 
 interface IGame is

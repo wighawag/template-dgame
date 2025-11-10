@@ -1,3 +1,4 @@
+import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
 import { avatars } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
 import { extractedPromise } from '$lib/utils/promise';
@@ -64,17 +65,19 @@ function createPurchaseFlow() {
 			let wait: () => Promise<unknown>;
 			let avatarID: bigint;
 			let transactionID: `0x${string}`;
-			// if (PUBLIC_FAUCET_PRIVATE_KEY) {
-			// 	const transaction = await writes.purchaseViaFaucet();
-			// 	wait = transaction.wait;
-			// 	avatarID = transaction.avatarID;
-			// 	transactionID = transaction.transactionID;
-			// } else {
-			const transaction = await writes.purchaseViaPaymentConnection();
-			wait = transaction.wait;
-			avatarID = transaction.avatarID;
-			transactionID = transaction.transactionID;
-			// }
+			if (PUBLIC_FAUCET_PRIVATE_KEY) {
+				console.log(`using faucet for purchase...`);
+				const transaction = await writes.purchaseViaFaucet();
+				wait = transaction.wait;
+				avatarID = transaction.avatarID;
+				transactionID = transaction.transactionID;
+			} else {
+				console.log(`using wallet for purchase...`);
+				const transaction = await writes.purchaseViaPaymentConnection();
+				wait = transaction.wait;
+				avatarID = transaction.avatarID;
+				transactionID = transaction.transactionID;
+			}
 			set({ step: 'PendingTransaction', pendingTransaction: transactionID });
 			await wait();
 			let $avatars = await avatars.update();

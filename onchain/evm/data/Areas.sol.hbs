@@ -21,4 +21,8 @@ library Areas {
          }
         {{/each}}
     }
+
+    function getAreaFromHash(bytes32 areaHash) internal pure returns (UsingGameTypes.Area memory area) {
+        return getArea(uint256(areaHash) % {{areas.length}});
+    }
 }

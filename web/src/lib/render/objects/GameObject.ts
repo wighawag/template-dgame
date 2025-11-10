@@ -1,7 +1,10 @@
+import type { ViewEntity } from '$lib/view';
 import { Container } from 'pixi.js';
 
-export class GameObject extends Container {
+export abstract class GameObject extends Container {
 	constructor() {
 		super();
 	}
+
+	abstract update(entity: ViewEntity, epoch: number): void;
 }

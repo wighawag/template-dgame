@@ -23,7 +23,7 @@ export const config = {
 			properties: {
 				// somnia testnet
 				blockTime: 1,
-				expectedWorstGasPrice: parseEther('10', 'gwei'),
+				expectedWorstGasPrice: parseEther('3', 'gwei'),
 			},
 		},
 		11142220: {
@@ -63,17 +63,13 @@ export const config = {
 			},
 		},
 		Game: {
-			celosepolia: {
+			'celos-epolia': {
 				commitPhaseDuration: 35n,
 				revealPhaseDuration: 10n,
 			},
-			happychaintestnet: {
-				commitPhaseDuration: 40n,
-				revealPhaseDuration: 15n,
-			},
 			default: {
-				commitPhaseDuration: 30n,
-				revealPhaseDuration: 5n,
+				commitPhaseDuration: 20n,
+				revealPhaseDuration: 2n,
 			},
 		},
 	},

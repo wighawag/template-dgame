@@ -15,7 +15,7 @@
 
 <Modal openWhen={$purchaseFlow.step == 'Ready'} onCancel={() => purchaseFlow.cancel()}>
 	{#snippet title()}
-		Standard Spider is $X.XX
+		Avatar is $X.XX
 	{/snippet}
 	<Button onclick={() => purchaseFlow.purchase()}>buy</Button>
 </Modal>

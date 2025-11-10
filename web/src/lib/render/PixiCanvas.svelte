@@ -4,7 +4,7 @@
 	import { initDevtools } from '@pixi/devtools';
 	import { onMount } from 'svelte';
 	import { type Writable } from 'svelte/store';
-	import type { Camera } from './camera';
+	import type { Camera, CameraWatcher } from './camera';
 	import type { Renderer } from './renderer';
 	import { createKeyboardController } from '$lib/ui/keyboard-controller';
 	import type { EventEnitter } from './eventEmitter';
@@ -12,7 +12,7 @@
 
 	// import { gsap } from 'gsap';
 	// import { PixiPlugin } from 'gsap/PixiPlugin';
-	// // register the plugin
+	// register the plugin
 	// gsap.registerPlugin(PixiPlugin);
 	// // give the plugin a reference to the PIXI object
 	// PixiPlugin.registerPIXI({
@@ -23,7 +23,7 @@
 	// });
 
 	interface Props {
-		camera: Writable<Camera>;
+		camera: CameraWatcher;
 		renderer: Renderer;
 		eventEmitter: EventEnitter;
 	}
@@ -55,12 +55,41 @@
 
 		const keyboardController = createKeyboardController(eventEmitter);
 
+		let isDragging = false;
+		let dragStartPos = { x: 0, y: 0 };
+		let clickThreshold = 5; // pixels
+
 		function onclick(event: FederatedPointerEvent) {
-			const pos = viewport.toWorld(event.x, event.y);
-			eventEmitter.emit('clicked', {
-				x: Math.round(pos.x / cellSize),
-				y: Math.round(pos.y / cellSize)
-			});
+			// Only trigger click if we're not in a drag operation
+			if (!isDragging) {
+				const pos = viewport.toWorld(event.x, event.y);
+				eventEmitter.emit('clicked', {
+					x: Math.round(pos.x / cellSize),
+					y: Math.round(pos.y / cellSize)
+				});
+			}
+		}
+
+		function onPointerDown(event: FederatedPointerEvent) {
+			isDragging = false;
+			dragStartPos = { x: event.x, y: event.y };
+		}
+
+		function onPointerMove(event: FederatedPointerEvent) {
+			const deltaX = Math.abs(event.x - dragStartPos.x);
+			const deltaY = Math.abs(event.y - dragStartPos.y);
+
+			// If movement exceeds threshold, we're dragging
+			if (deltaX > clickThreshold || deltaY > clickThreshold) {
+				isDragging = true;
+			}
+		}
+
+		function onPointerUp() {
+			// Reset drag state after a short delay to ensure click event doesn't fire
+			setTimeout(() => {
+				isDragging = false;
+			}, 10);
 		}
 
 		function resizeViewport() {
@@ -117,7 +146,12 @@
 
 			viewport.addChild(gridPixel);
 
+			// Register pointer events for proper click/drag handling
+			viewport.on('pointerdown', onPointerDown);
+			viewport.on('pointermove', onPointerMove);
+			viewport.on('pointerup', onPointerUp);
 			viewport.on('click', onclick);
+			viewport.on('tap', onclick);
 
 			// const displayObject = new Container();
 			// {
@@ -167,7 +201,7 @@
 				const offsetX = viewportX / scale;
 				const offsetY = viewportY / scale;
 
-				camera.set({
+				camera.update({
 					x: viewport.center.x / cellSize,
 					y: viewport.center.y / cellSize,
 					width: viewport.worldScreenWidth / cellSize,

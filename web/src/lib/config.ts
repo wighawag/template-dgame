@@ -1,4 +1,5 @@
 import deployments from './deployments';
+import { gasFee } from './onchain/gasFee';
 
 function getBigIntPowerOf10(n: bigint) {
 	if (n === 0n) return 1n; // Edge case: log10(0) is undefined, default to 10^0=1
@@ -24,3 +25,5 @@ export const maxActionCost =
 export const stippend = maxActionCost * 100n; // 100 turn, we need to show
 export const price = BigInt(deployments.contracts.AvatarsSale.linkedData.paymentAmount);
 export const creditsDivider = getBigIntPowerOf10(maxActionCost);
+
+gasFee.subscribe(() => {});

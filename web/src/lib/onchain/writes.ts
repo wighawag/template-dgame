@@ -62,8 +62,47 @@ export class Writes {
 		);
 
 		const totalValue = price + stippend;
+		console.log(`sending ${formatEther(totalValue)} native tokens along...`);
 		const subID = generateRandom96BitBigInt();
 		const avatarID = (BigInt($connection.account.address) << 96n) + subID;
+
+		// -------------------------------------------------
+		// required on somnia
+		// -------------------------------------------------
+		if ((deployments.chain as any).id === 50312) {
+			const transactionCount = await publicClient.getTransactionCount({
+				address: $connection.account.signer.address
+			});
+			const balance = await publicClient.getBalance({
+				address: $connection.account.signer.address
+			});
+			if (balance == 0n && transactionCount == 0) {
+				const account_creation_hash = await walletClient.sendTransaction({
+					to: $connection.account.signer.address,
+					value: 1n,
+					account: faucetAccount
+				});
+				await publicClient.waitForTransactionReceipt({ hash: account_creation_hash });
+			}
+		}
+		// -------------------------------------------------
+
+		console.log({ subID, signer: $connection.account.signer.address, stippend });
+
+		// const simulation = await publicClient.simulateContract({
+		// 	account: faucetAccount,
+		// 	...deployments.contracts.AvatarsSale,
+		// 	functionName: 'purchase',
+		// 	args: [
+		// 		deployments.contracts.Game.address,
+		// 		subID,
+		// 		data,
+		// 		$connection.account.signer.address,
+		// 		stippend,
+		// 		zeroAddress
+		// 	],
+		// 	value: totalValue
+		// });
 		const hash = await walletClient.writeContract({
 			account: faucetAccount,
 			...deployments.contracts.AvatarsSale,
@@ -133,7 +172,12 @@ export class Writes {
 		};
 	}
 
-	async commit_actions(avatarID: bigint, secret: `0x${string}`, actions: LocalAction[]) {
+	async commit_actions(
+		avatarID: bigint,
+		secret: `0x${string}`,
+		actions: LocalAction[],
+		options?: { pollingInterval?: number }
+	) {
 		const $connection = await connection.ensureConnected();
 		const nativeTokenBalanceResponse = await connection.provider.call('eth_getBalance')([
 			$connection.account.signer.address
@@ -142,7 +186,9 @@ export class Writes {
 			throw new Error(`cannot get native token balance`);
 		}
 		if (BigInt(nativeTokenBalanceResponse.value) < maxActionCost * 2n) {
-			throw new Error(`cannot commit with too low balance`);
+			throw new Error(
+				`cannot commit with too low balance: ${formatEther(BigInt(nativeTokenBalanceResponse.value))} < ${formatEther(maxActionCost * 2n)}`
+			);
 		}
 		const signerAccount = privateKeyToAccount($connection.account.signer.privateKey);
 
@@ -203,11 +249,20 @@ export class Writes {
 		});
 		return {
 			transactionID,
-			wait: () => publicClient.waitForTransactionReceipt({ hash: transactionID })
+			wait: () =>
+				publicClient.waitForTransactionReceipt({
+					hash: transactionID,
+					pollingInterval: options?.pollingInterval
+				})
 		};
 	}
 
-	async reveal_actions(avatarID: bigint, secret: `0x${string}`, actions: LocalAction[]) {
+	async reveal_actions(
+		avatarID: bigint,
+		secret: `0x${string}`,
+		actions: LocalAction[],
+		options?: { pollingInterval?: number }
+	) {
 		const $connection = await connection.ensureConnected();
 		const signerAccount = privateKeyToAccount($connection.account.signer.privateKey);
 
@@ -246,7 +301,11 @@ export class Writes {
 		});
 		return {
 			transactionID,
-			wait: () => publicClient.waitForTransactionReceipt({ hash: transactionID })
+			wait: () =>
+				publicClient.waitForTransactionReceipt({
+					hash: transactionID,
+					pollingInterval: options?.pollingInterval
+				})
 		};
 	}
 }

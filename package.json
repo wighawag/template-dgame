@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "ldenv": "^0.3.14",
+    "ldenv": "^0.3.15",
     "set-defaults": "^0.0.5",
     "syncpack": "^13.0.4",
     "zellij-launcher": "^0.0.1"
@@ -32,6 +32,7 @@
     "onchain:verify": "ldenv pnpm run --filter ./onchain/evm verify @@MODE @@",
     "onchain:compile": "ldenv pnpm --filter ./onchain/evm compile",
     "onchain:build": "ldenv pnpm --filter ./onchain/evm compile ~~ pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
+    "onchain:export": "ldenv pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
     "---------------------- SERVICES ----------------------": "",
     "push-notification": "pnpm --filter ./services/push-notification dev",
     "missiv": "pnpm --filter ./services/missiv dev",
@@ -40,7 +41,7 @@
     "serve": "pnpm run --filter ./web serve",
     "---------------------- WEB USING EXISTING DEPLOYMENT ----------------------": "",
     "zellij-attach": "zellij-launcher a $npm_package_name-attach-$MODE || zellij -n dev/zellij-attach.kdl -s $npm_package_name-attach-$MODE",
-    "attach": "ldenv -d localhost pnpm onchain:build @@MODE ~~ pnpm run zellij-attach ~~ @@",
+    "attach": "ldenv -d localhost pnpm onchain:export @@MODE ~~ pnpm run zellij-attach ~~ @@",
     "---------------------- FULL AGAINST AN EXISTING NETWORK WITH LOCAL SERVICES ----------------------": "",
     "zellij-remote-chain": "zellij-launcher a $npm_package_name-remote-chain-$MODE || zellij -n dev/zellij-remote-chain.kdl -s $npm_package_name-remote-chain-$MODE",
     "remote-chain": "ldenv -d localhost pnpm run zellij-remote-chain @@",
