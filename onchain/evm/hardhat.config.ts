@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
 					},
 					evmVersion: 'prague',
 				},
-			}
+			},
 		},
 	},
 	// this add automatic fork configuration

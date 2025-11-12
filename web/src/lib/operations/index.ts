@@ -7,6 +7,7 @@ import { epochInfo } from '$lib/time';
 import { viewState, type Position, type ViewState } from '$lib/view';
 import { areaAt, Areas, zoneLocalCoord } from 'dgame-contracts';
 import deployments from '$lib/deployments';
+import { camera } from '$lib/render/camera';
 
 type ReadyState = {
 	step: 'Ready';
@@ -78,7 +79,7 @@ function addMove(dx: number, dy: number) {
 		const areaLocalY = zoneLocalCoord(toY);
 		const area = areaAt(toX, toY);
 		const cellIndex = areaLocalX + areaLocalY * area.size;
-	
+
 		const numMovesSoFar = currentState.$localState.avatar.actions.filter(
 			(v) => v.type === 'move'
 		).length;
@@ -92,6 +93,7 @@ function addMove(dx: number, dy: number) {
 				x: toX,
 				y: toY
 			});
+			camera.follow(toX, toY);
 		}
 	}
 }
@@ -132,7 +134,7 @@ export function startListening() {
 				// console.log(`adding exit`);
 				addExit(currentState);
 			} else {
-				console.log(`no action to do`)
+				console.log(`no action to do`);
 			}
 		}
 	});
@@ -140,7 +142,7 @@ export function startListening() {
 	eventEmitter.on('action-2', () => {
 		const currentState = gatherState();
 		if (currentState.step === 'Ready') {
-			console.log(`no action to do`)
+			console.log(`no action to do`);
 		}
 	});
 

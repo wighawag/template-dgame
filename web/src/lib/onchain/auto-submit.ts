@@ -5,7 +5,7 @@ export function createAutoSubmitter() {
 	let highFreqInterval: NodeJS.Timeout | null = null;
 	let startTimeout: NodeJS.Timeout | null = null;
 
-	const interval = (timeConfig.REVEAL_PHASE_DURATION * 1000) / 20;
+	const interval = (timeConfig.REVEAL_PHASE_DURATION * 1000) / 30;
 
 	// Named function for high-frequency commit checking
 	function performHighFrequencyCommitCheck() {

@@ -105,6 +105,23 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 		return unsubscribeFromOptionalSigner;
 	}
 
+	function reset() {
+		if (!$state.signer) {
+			return;
+		}
+		if (!$state.avatar) {
+			return;
+		}
+		console.log(`reseting actions`);
+		$state.avatar = {
+			avatarID: $state.avatar.avatarID,
+			actions: [],
+			epoch: $state.avatar.epoch,
+			submission: undefined,
+			exiting: $state.avatar.exiting
+		};
+	}
+
 	function updateLocalState(epoch: number) {
 		if (!$state.signer) {
 			return;
@@ -113,6 +130,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			return;
 		}
 		if (epoch > $state.avatar.epoch) {
+			console.log(`new epoch, we reset actions`);
 			$state.avatar = {
 				avatarID: $state.avatar.avatarID,
 				actions: [],
@@ -153,6 +171,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			set($state);
 		},
 		update: updateLocalState,
+		reset,
 		enter(avatarID: bigint, epoch: number, position: Position) {
 			updateLocalState(epoch);
 			if (!$state.signer) {

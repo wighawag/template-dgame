@@ -88,7 +88,7 @@ export class AvatarObject extends GameObject {
 			// TODO move that elsewhere and remove the need to delete all and reconstruct
 			// Make sure to destroy all children first to prevent memory leaks
 			this.world.pathDisplayObject.removeChildren();
-			
+
 			const actions = entity.actions;
 			if (actions) {
 				for (const action of actions) {

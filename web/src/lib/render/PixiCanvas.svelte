@@ -115,6 +115,8 @@
 				events: app.renderer.events, // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
 				allowPreserveDragOutside: true
 			});
+			camera.setViewPort(viewport);
+			(globalThis as any).viewport = viewport;
 			viewport.moveCenter(0, 0);
 
 			renderer.onAppStarted(viewport);

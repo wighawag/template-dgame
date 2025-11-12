@@ -7,7 +7,6 @@ export const config = {
 	chains: {
 		31337: {
 			properties: {
-				blockTime: 1, // TODO use same value from hardhat config
 				expectedWorstGasPrice: parseEther('1', 'gwei'), // TODO use same value from hardhat config
 			},
 			tags: ['local', 'memory', 'testnet'],
@@ -15,21 +14,18 @@ export const config = {
 		6342: {
 			properties: {
 				// mega-eth testnet
-				blockTime: 1,
 				expectedWorstGasPrice: parseEther('0.003', 'gwei'),
 			},
 		},
 		50312: {
 			properties: {
 				// somnia testnet
-				blockTime: 1,
 				expectedWorstGasPrice: parseEther('3', 'gwei'),
 			},
 		},
 		11142220: {
 			properties: {
 				// celo sepolia testnet
-				blockTime: 1,
 				expectedWorstGasPrice: parseEther('25', 'gwei'),
 			},
 		},
@@ -45,7 +41,6 @@ export const config = {
 	},
 	defaultChainProperties: {
 		// if not specified, fallback on:
-		blockTime: 1,
 		expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
 	},
 	accounts: {
@@ -69,7 +64,7 @@ export const config = {
 			},
 			default: {
 				commitPhaseDuration: 20n,
-				revealPhaseDuration: 2n,
+				revealPhaseDuration: 3n,
 			},
 		},
 	},

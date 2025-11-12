@@ -1,3 +1,4 @@
+import { version } from '$app/environment';
 import deployments from './deployments';
 import { gasFee } from './onchain/gasFee';
 
@@ -27,3 +28,5 @@ export const price = BigInt(deployments.contracts.AvatarsSale.linkedData.payment
 export const creditsDivider = getBigIntPowerOf10(maxActionCost);
 
 gasFee.subscribe(() => {});
+
+console.log(`VERSION: ${version}`);

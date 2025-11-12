@@ -23,10 +23,13 @@ function defaultState() {
 	};
 }
 
+class TimeNotSyncedError extends Error {}
+
 export function createDirectReadStore(camera: Readable<Camera>) {
 	let $state: OnchainState = defaultState();
 	let lastCamera: Camera = get(camera);
-	let lastEpoch = get(epochInfo).currentEpoch;
+	let now = get(time);
+	let lastEpoch = epochInfo.fromTime(now.value).currentEpoch;
 	let lastZones: bigint[] | undefined;
 
 	const _store = writable<OnchainState>($state, start);
@@ -67,6 +70,12 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 	}
 
 	async function fetchState(camera: Camera, fromCameraUpdate: boolean) {
+		const now = get(time);
+
+		if (!now.lastSync) {
+			throw new TimeNotSyncedError(`time not synced yet`);
+		}
+
 		const zones = calculateVisibleZones(camera);
 
 		if (fromCameraUpdate && !hasZonesChanged(lastZones, zones)) {
@@ -100,16 +109,19 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			lastEpoch = Number(epoch);
 		}
 
-		const blockTime = BigInt(deployments.chain.properties.blockTime);
-		const currentBlockNumber = await publicClient.getBlockNumber();
-		let fromBlock =
-			(currentBlockNumber -
-				2n * // we multiply by 2 as we fetch for 2 epochs
-					(BigInt(deployments.contracts.Game.linkedData.commitPhaseDuration) +
-						BigInt(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
-			blockTime;
-		if (fromBlock < 0n) {
-			fromBlock = 0n;
+		const currentBlockNumber = Number(await publicClient.getBlockNumber());
+		const avarageBlockTime = now.lastSync.averageBlockTime;
+
+		const blockDistanceToFetchFrom = Math.floor(
+			(4 * // we multiply by 4 as we fetch for 2 epochs and we double it to ensure we get all the events even in case of late blocks, etc...
+				(Number(deployments.contracts.Game.linkedData.commitPhaseDuration) +
+					Number(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
+				avarageBlockTime
+		);
+
+		let fromBlock = currentBlockNumber - blockDistanceToFetchFrom;
+		if (fromBlock < 0) {
+			fromBlock = 0;
 		}
 
 		const events = await publicClient.getContractEvents({
@@ -120,12 +132,11 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 				zone: zones
 			},
 			strict: true,
-			fromBlock,
-			toBlock: currentBlockNumber
+			fromBlock: BigInt(fromBlock),
+			toBlock: BigInt(currentBlockNumber)
 		});
 		// console.debug(allEvents);
 
-	
 		const avatarEvents: Map<
 			bigint,
 			GetContractEventsReturnType<typeof Game.abi, 'CommitmentRevealed', true>[0]
@@ -148,12 +159,7 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 				actions = event.args.actions.map((v) => {
 					const coords = bigIntIDToXY(v.data);
 					return {
-						type:
-							v.actionType === 0
-								? 'enter'
-								: v.actionType === 1
-									? 'move'
-									: 'exit',
+						type: v.actionType === 0 ? 'enter' : v.actionType === 1 ? 'move' : 'exit',
 						x: coords.x,
 						y: coords.y
 					};
@@ -191,7 +197,16 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 		try {
 			await fetchState(lastCamera, fromCameraUpdate || false);
 		} catch (err) {
-			console.error(`failed to fetch state`, err);
+			if (err instanceof TimeNotSyncedError) {
+				const timeElapsed = performance.now() / 1000;
+				const maxExpectedSyncDelay = 2;
+				if (timeElapsed > maxExpectedSyncDelay) {
+					console.error(`time not synced, even after ${timeElapsed} seconds`, err);
+				}
+			} else {
+				console.error(`failed to fetch state`, err);
+			}
+
 			retryIn = 1000;
 		} finally {
 			if (!timeout) {

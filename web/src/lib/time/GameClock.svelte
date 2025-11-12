@@ -60,7 +60,7 @@
 
 {#if $twoPhase.phase === 'wait' && $twoPhase.timeLeft > 0.1 && !!$localState.signer && !!$localState.avatar}
 	<div
-		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-red-600 px-4 text-black text-white shadow-md"
+		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-red-600 px-4 text-white shadow-md"
 	>
 		<span>Please wait for Action Resolution...</span>
 		<div>{ms($twoPhase.timeLeft * 1000)} left</div>
@@ -82,15 +82,6 @@
 		height: 100px;
 		position: relative;
 		display: inline-block;
-		float: left;
-	}
-
-	.progress-svg {
-		/* Removed transform - path calculation handles correct starting position */
-	}
-
-	.progress-background {
-		/* Removed opacity to restore original colors */
 	}
 
 	.progress-bar {

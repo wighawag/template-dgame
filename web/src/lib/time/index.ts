@@ -2,8 +2,9 @@ import { connection } from '$lib/connection';
 import deployments from '$lib/deployments';
 import { derived, writable, type Readable } from 'svelte/store';
 
+export type LastSync = { timestampMS: number; blockNumber: number; averageBlockTime: number };
 export type SyncedTime = {
-	lastSync?: { timestampMS: number; blockNumber: number };
+	lastSync?: LastSync;
 	value: number;
 };
 
@@ -15,9 +16,8 @@ function formatTime(timestamp: number): string {
 	})},${(timestamp * 1000) % 1000}`;
 }
 
-export function createTime(chainInfo: { averageBlockTime: number; minPollingInterval?: number }) {
-	let expectedBlockTime = chainInfo.averageBlockTime;
-	let minPollingInterval = 200;
+export function createTime(chainInfo?: { minPollingInterval?: number }) {
+	let minPollingInterval = chainInfo?.minPollingInterval || 200;
 
 	let last_time = Math.floor(Date.now() / 1000);
 	let last_fetch_time_ms = Date.now();
@@ -56,51 +56,57 @@ export function createTime(chainInfo: { averageBlockTime: number; minPollingInte
 	}
 
 	async function initialSync() {
-		// Use the existing updateTimeFromProvider function for initial sync
 		const synced = await updateTimeFromProvider();
 		if (synced) {
 			// Initial sync successful, now start polling to catch the next block
 			// for maximum accuracy, then we'll stop polling
-			startBlockPolling();
+			startBlockPolling(synced);
 		} else {
 			console.error('Initial sync failed, retrying...');
 			setTimeout(initialSync, 1000);
 		}
 	}
 
-	function startBlockPolling() {
+	function startBlockPolling(lastSync: LastSync) {
 		// Only start polling if we don't have accurate time yet
 		if (hasAccurateTime) return;
 
 		// Poll more frequently for faster networks, less for slower ones
 		// Aim for roughly 1/10th of expected block time
-		const pollInterval = Math.max(Math.floor((expectedBlockTime * 1000) / 100), minPollingInterval);
+		const pollInterval = Math.max(
+			Math.floor((lastSync.averageBlockTime * 1000) / 100),
+			minPollingInterval
+		);
 
 		pollingInterval = setInterval(async () => {
 			try {
 				const before_fetch = Date.now();
-				const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
+				const latestBlockResponse = await connection.provider.call('eth_getBlockByNumber')([
 					'latest',
 					false as true // TODO fix eip-1193 Methods
 				]);
 
-				if (blockResponse.success && blockResponse.value) {
-					const currentBlockNumber = Number(blockResponse.value.number);
-					const currentBlockTime = Number(blockResponse.value.timestamp);
+				if (latestBlockResponse.success && latestBlockResponse.value) {
+					const latestBlockNumber = Number(latestBlockResponse.value.number);
+					const latestBlockTime = Number(latestBlockResponse.value.timestamp);
 
 					console.debug(
-						`got ${currentBlockNumber} at ${formatTime(currentBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
+						`got ${latestBlockNumber} at ${formatTime(latestBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
 					);
 
 					// If we have a new block, we now have the most accurate blockchain time
-					if (last_fetch_block_number === null || currentBlockNumber > last_fetch_block_number) {
+					if (last_fetch_block_number === null || latestBlockNumber > last_fetch_block_number) {
 						const after_fetch = Date.now();
 						const predicted_fetch_time = (before_fetch + after_fetch) / 2;
 
-						updateTimeFromBlock(predicted_fetch_time, {
-							blockTime: currentBlockTime,
-							blockNumber: currentBlockNumber
-						});
+						updateTimeFromBlock(
+							predicted_fetch_time,
+							{
+								blockTime: latestBlockTime,
+								blockNumber: latestBlockNumber
+							},
+							lastSync.averageBlockTime
+						);
 
 						// We now have the most accurate blockchain time, stop polling
 						hasAccurateTime = true;
@@ -119,7 +125,8 @@ export function createTime(chainInfo: { averageBlockTime: number; minPollingInte
 
 	function updateTimeFromBlock(
 		fetchTimeMS: number,
-		block: { blockTime: number; blockNumber: number }
+		block: { blockTime: number; blockNumber: number },
+		averageBlockTime: number
 	) {
 		last_time = block.blockTime;
 		last_fetch_time_ms = fetchTimeMS;
@@ -129,43 +136,72 @@ export function createTime(chainInfo: { averageBlockTime: number; minPollingInte
 		const timePassedMS = nowMS - last_fetch_time_ms;
 		console.debug(`timePassed: ${timePassedMS / 1000}`);
 		console.debug(`time is ${formatTime(last_time + timePassedMS / 1000)}`);
+		const lastSync = {
+			timestampMS: last_fetch_time_ms,
+			blockNumber: block.blockNumber,
+			averageBlockTime
+		};
 		set({
 			value: last_time + timePassedMS / 1000,
-			lastSync: {
-				timestampMS: last_fetch_time_ms,
-				blockNumber: block.blockNumber
-			}
+			lastSync
 		});
+		return lastSync;
 	}
 
-	async function updateTimeFromProvider() {
+	async function updateTimeFromProvider(): Promise<LastSync | undefined> {
 		const before_fetch = Date.now();
 		try {
-			const blockResponse = await connection.provider.call('eth_getBlockByNumber')([
+			const latestBlockResponse = await connection.provider.call('eth_getBlockByNumber')([
 				'latest',
 				false as true // TODO fix eip-1193 Methods
 			]);
 
-			if (blockResponse.success && blockResponse.value) {
-				const lastBlockTime = Number(blockResponse.value.timestamp);
-				const currentBlockNumber = Number(blockResponse.value.number);
+			if (latestBlockResponse.success && latestBlockResponse.value) {
+				const latestBlockTime = Number(latestBlockResponse.value.timestamp);
+				const latestBlockNumber = Number(latestBlockResponse.value.number);
 				const after_fetch = Date.now();
 				const predicted_fetch_time = (before_fetch + after_fetch) / 2;
 
 				console.debug(
-					`our first block (${currentBlockNumber}) at ${formatTime(lastBlockTime)} / ${formatTime(predicted_fetch_time)}`
+					`our first block (${latestBlockNumber}) at ${formatTime(latestBlockTime)} / ${formatTime(predicted_fetch_time)}`
 				);
 
-				updateTimeFromBlock(predicted_fetch_time, {
-					blockTime: lastBlockTime,
-					blockNumber: currentBlockNumber
-				});
-				return true;
+				const distance = 64;
+				const sampleSize = latestBlockNumber > distance ? distance : latestBlockNumber;
+				const fromBlock = latestBlockNumber - sampleSize;
+
+				const olderBlockResponse = await connection.provider.call('eth_getBlockByNumber')([
+					`0x${fromBlock.toString(16)}`,
+					false as true // TODO fix eip-1193 Methods
+				]);
+
+				let averageBlockTime: number;
+				if (olderBlockResponse.success && olderBlockResponse.value) {
+					const olderBlockTime = Number(olderBlockResponse.value.timestamp);
+
+					// Calculate the time difference in seconds
+					const timeDiff = latestBlockTime - olderBlockTime;
+
+					// Calculate average block time (time difference / number of blocks)
+					const blockCount = latestBlockNumber - fromBlock;
+					averageBlockTime = timeDiff / blockCount;
+				} else {
+					return $time.lastSync;
+				}
+
+				return updateTimeFromBlock(
+					predicted_fetch_time,
+					{
+						blockTime: latestBlockTime,
+						blockNumber: latestBlockNumber
+					},
+					averageBlockTime
+				);
 			}
-			return !!$time.lastSync;
+			return $time.lastSync;
 		} catch (err) {
 			console.error(`failed to fetch from block time`, err);
-			return false;
+			return undefined;
 		}
 	}
 
@@ -182,7 +218,6 @@ export function createTime(chainInfo: { averageBlockTime: number; minPollingInte
 }
 
 export const time = createTime({
-	averageBlockTime: deployments.chain.properties.blockTime,
 	minPollingInterval: 100
 });
 

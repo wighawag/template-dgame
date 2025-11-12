@@ -142,7 +142,12 @@ abstract contract SaleViaNativePayment is Proxied {
         uint256 paymentAmount = msg.value;
         if (extraNativeTokenRecipient != address(0)) {
             paymentAmount -= extraNativeTokenAmount;
-            extraNativeTokenRecipient.transfer(extraNativeTokenAmount);
+            (bool success, ) = extraNativeTokenRecipient.call{
+                value: extraNativeTokenAmount
+            }("");
+            if (!success) {
+                revert FailedToTransferNativeToken(extraNativeTokenRecipient);
+            }
         }
         if (!freemap[msg.sender]) {
             if (paymentAmount != PAYMENT_AMOUNT) {
