@@ -51,6 +51,22 @@ This monorepo contains three main components:
 
 ### Installation
 
+You can use this repository in two ways:
+
+#### Option 1: Use as GitHub Template
+
+1. Click the **"Use this template"** button on the GitHub repository page
+2. Give your new repository a name and description
+3. Clone your new repository:
+
+```bash
+git clone <your-new-repository-url>
+cd <your-project-name>
+pnpm install
+```
+
+#### Option 2: Clone Directly
+
 ```bash
 # Clone and setup
 git clone <repository-url>
