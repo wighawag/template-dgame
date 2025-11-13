@@ -66,21 +66,12 @@
 			<span>Choose a location to spawn in</span>
 		</div>
 	{/if}
-{:else if $localState.signer ? !!$localState.avatar?.actions.find((v) => v.type === 'enter') && $localState.avatar.epoch === $epochInfo.currentEpoch : false}
+{:else if $localState.signer ? !!$localState.avatar?.actions.find((v) => v.type === 'enter') && $localState.avatar.epoch >= $epochInfo.currentEpoch : false}
 	<div
-		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-red-600 px-4 text-black text-white shadow-md"
+		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-red-600 px-4 text-white shadow-md"
 	>
 		<span>Please wait your avatar spawn in the world</span>
 	</div>
-
-	<div
-		transition:fade
-		class="full-screen-border border-red-600"
-		style="
-      border-width: 10px; 
-      border-radius: 0px;
-    "
-	></div>
 {:else if $twoPhase.phase === 'play' || ($twoPhase.timeLeft < 0.1 && !!$localState.signer && !!$localState.avatar)}
 	<div
 		class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-green-400 px-4 text-black shadow-md"

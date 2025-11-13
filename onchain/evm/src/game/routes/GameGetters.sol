@@ -38,7 +38,8 @@ contract GameGetters is IGameGetters, UsingGameInternal {
     function getAvatar(
         uint256 avatarID
     ) external view returns (PublicAvatar memory) {
-        return _getPublicAvatar(avatarID);
+        (uint64 epoch, ) = _epoch();
+        return _getPublicAvatar(avatarID, epoch);
         (avatarID);
     }
 

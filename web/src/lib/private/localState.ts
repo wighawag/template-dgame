@@ -42,10 +42,12 @@ export type LocalAvatar = {
 export type LocalSignedInState = {
 	signer: Signer;
 	avatar?: LocalAvatar;
+	tutorialSeen: boolean;
 };
 export type LocalReadyState = {
 	signer: Signer;
 	avatar: LocalAvatar;
+	tutorialSeen: boolean;
 };
 export type LocalState = { signer: undefined } | LocalSignedInState | LocalReadyState;
 
@@ -92,10 +94,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 							const fromStorage = JSON.parse(fromStorageStr);
 							set(fromStorage);
 						} else {
-							set({ signer: $signer });
+							set({ signer: $signer, tutorialSeen: false });
 						}
 					} catch (err) {
-						set({ signer: $signer });
+						set({ signer: $signer, tutorialSeen: false });
 					}
 				} else {
 					set({ signer: undefined });
@@ -103,6 +105,14 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 		});
 		return unsubscribeFromOptionalSigner;
+	}
+
+	function markTutorialAsSeen() {
+		if (!$state.signer) {
+			return;
+		}
+		$state.tutorialSeen = true;
+		set($state);
 	}
 
 	function reset() {
@@ -148,6 +158,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			return $state;
 		},
 		subscribe: _localState.subscribe,
+		markTutorialAsSeen,
 		addAction(epoch: number, action: LocalAction) {
 			updateLocalState(epoch);
 
@@ -170,7 +181,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			$state.avatar.actions.push(action);
 			set($state);
 		},
-		update: updateLocalState,
+		update(epoch: number) {
+			updateLocalState(epoch);
+			set($state);
+		},
 		reset,
 		enter(avatarID: bigint, epoch: number, position: Position) {
 			updateLocalState(epoch);
@@ -221,10 +235,6 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 			}
 
 			updateLocalState(epoch);
-
-			if ($state.avatar.actions.length == 0) {
-				return;
-			}
 
 			console.log(`commiting for epoch ${epoch}...`);
 
@@ -392,4 +402,5 @@ export const localState = createLocalState(signer);
 export const autoSubmitter = createAutoSubmitter();
 autoSubmitter.start();
 
+(globalThis as any).autoSubmitter = autoSubmitter;
 (globalThis as any).localState = localState;

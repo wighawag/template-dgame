@@ -61,10 +61,12 @@ export const config = {
 			'celos-epolia': {
 				commitPhaseDuration: 35n,
 				revealPhaseDuration: 10n,
+				numMoves: 10n,
 			},
 			default: {
 				commitPhaseDuration: 20n,
 				revealPhaseDuration: 3n,
+				numMoves: 10n,
 			},
 		},
 	},

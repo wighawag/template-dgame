@@ -54,6 +54,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 			function onEntityRemoved(id: string, gameObject: GameObject) {
 				// console.log(`entity removed ${id}`);
 				// TODO removal type ?
+				gameObject.onRemoved();
 				container.removeChild(gameObject);
 				delete gameObjects[id];
 			}

@@ -21,6 +21,7 @@ export const onchainState = createDirectReadStore(camera);
 export const viewState = derived(
 	[onchainState, localState],
 	([$onchainState, $localState]): ViewState => {
+		const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
 		const entities = { ...$onchainState.entities } as { [id: string]: ViewEntity };
 		let avatarID: string | undefined;
 		if ($localState.signer && $localState.avatar) {
@@ -28,7 +29,7 @@ export const viewState = derived(
 			let avatarEntity = $onchainState.entities[currentAvatarID] as AvatarEntity | undefined;
 			if (avatarEntity || !$localState.avatar.exiting) {
 				avatarID = currentAvatarID;
-				const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
+
 				if ($localState.avatar.actions[0]?.type === 'enter') {
 					avatarEntity = {
 						owner: $localState.signer.owner,
@@ -58,6 +59,16 @@ export const viewState = derived(
 						position: current_action,
 						actions
 					};
+				}
+			}
+		}
+
+		for (const entityID of Object.keys(entities)) {
+			const entity = entities[entityID];
+			if (entity.type === 'avatar' && entityID != avatarID) {
+				// TODO
+				if (entity.life == 0 && entity.lastEpoch + 1 < epoch) {
+					delete entities[entityID];
 				}
 			}
 		}

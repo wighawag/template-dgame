@@ -3,8 +3,10 @@
 	import Modal from '$lib/ui/modal/Modal.svelte';
 	import { epochInfo, time, threePhase, twoPhase } from '$lib/time/index.js';
 	import { viewState, type AvatarViewEntity } from '$lib/view';
+	import { avatars } from '$lib/onchain/avatars';
 
 	function clear() {
+		avatars.update();
 		localState.removeAvatar();
 	}
 

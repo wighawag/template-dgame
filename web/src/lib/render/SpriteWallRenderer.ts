@@ -1,7 +1,7 @@
 import { Container, Sprite } from 'pixi.js';
 import type { Camera } from './camera';
-import { areaAt, Areas, ZONE_SIZE } from 'bomber-world-contracts';
-import { zoneLocalCoord } from 'bomber-world-contracts';
+import { areaAt, Areas, ZONE_SIZE } from 'dgame-contracts';
+import { zoneLocalCoord } from 'dgame-contracts';
 import { TileSpritesheet, TileType } from './TileSpritesheet';
 import { TileSpritePool } from './SpritePool';
 import { CellType, type AreaData } from './WallRenderer';

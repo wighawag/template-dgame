@@ -69,6 +69,7 @@ function createEnterFlow() {
 	let unsubscribeFromConnection: (() => void) | undefined;
 	let unsubscribeFromAvatars: (() => void) | undefined;
 	function start(pos?: Position) {
+		// console.log(`start`, pos);
 		const $connection = get(connection);
 		unsubscribeFromConnection = connection.subscribe(onConnectionChanged);
 		unsubscribeFromAvatars = avatars.subscribe(onAvatarsChanged);

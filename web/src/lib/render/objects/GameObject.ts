@@ -7,4 +7,6 @@ export abstract class GameObject extends Container {
 	}
 
 	abstract update(entity: ViewEntity, epoch: number): void;
+
+	abstract onRemoved(): void;
 }

@@ -4,8 +4,11 @@
 	import { fade } from 'svelte/transition';
 	import { epochInfo, time, threePhase, twoPhase } from './index';
 	import ms from 'pretty-ms';
+	import deployments from '$lib/deployments';
 
-	let percentage = $derived(100 - Math.floor(($twoPhase.timeLeft * 100) / $twoPhase.duration));
+	let percentage = $derived(
+		Math.min(100, Math.max(0, 100 - Math.floor(($twoPhase.timeLeft * 100) / $twoPhase.duration)))
+	);
 
 	let color = $derived(
 		$twoPhase.phase == 'play' ? 'oklch(57.7% 0.245 27.325)' : 'oklch(85.2% 0.199 91.936)'
@@ -65,10 +68,21 @@
 		<span>Please wait for Action Resolution...</span>
 		<div>{ms($twoPhase.timeLeft * 1000)} left</div>
 	</div>
+{/if}
 
+{#if ($twoPhase.phase === 'wait' && $twoPhase.timeLeft > 0.1 && !!$localState.signer && !!$localState.avatar) || ($localState.signer ? !!$localState.avatar?.actions.find((v) => v.type === 'enter') && $localState.avatar.epoch >= $epochInfo.currentEpoch : false)}
 	<div
 		transition:fade
 		class="full-screen-border border-red-600"
+		style="
+      border-width: 10px; 
+      border-radius: 0px;
+    "
+	></div>
+{:else if $localState.signer && $localState.avatar && Number(deployments.contracts.Game.linkedData.numMoves) - $localState.avatar.actions.filter((v) => v.type === 'move').length <= 0}
+	<div
+		transition:fade
+		class="full-screen-border border-yellow-600"
 		style="
       border-width: 10px; 
       border-radius: 0px;

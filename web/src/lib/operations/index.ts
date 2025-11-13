@@ -3,11 +3,12 @@ import { localState, type LocalReadyState, type LocalState } from '$lib/private/
 import { get } from 'svelte/store';
 import { avatars } from '$lib/onchain/avatars';
 import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
-import { epochInfo } from '$lib/time';
+import { epochInfo, timeConfig, type EpochInfo } from '$lib/time';
 import { viewState, type Position, type ViewState } from '$lib/view';
 import { areaAt, Areas, zoneLocalCoord } from 'dgame-contracts';
 import deployments from '$lib/deployments';
 import { camera } from '$lib/render/camera';
+import { warning } from '$lib/ui/modal/warning';
 
 type ReadyState = {
 	step: 'Ready';
@@ -17,12 +18,26 @@ type ReadyState = {
 	epoch: number;
 	$viewState: ViewState;
 	$localState: LocalReadyState;
+	$epochInfo: EpochInfo;
+	timeup: boolean;
 };
-type CurrentState = { step: 'Idle'; $viewState: ViewState; $localState: LocalState } | ReadyState;
+type CurrentState =
+	| {
+			step: 'Idle';
+			$viewState: ViewState;
+			$localState: LocalState;
+			$epochInfo: EpochInfo;
+			timeup: boolean;
+	  }
+	| ReadyState;
 
 function gatherState(): CurrentState {
 	const $epochInfo = epochInfo.now();
 	const { currentEpoch: epoch } = $epochInfo;
+
+	const timeup =
+		!$epochInfo.isCommitPhase ||
+		$epochInfo.timeLeftInPhase < timeConfig.COMMIT_TIME_ALLOWANCE - 0.2;
 
 	localState.update(epoch);
 	const $localState = get(localState);
@@ -57,19 +72,26 @@ function gatherState(): CurrentState {
 			exited,
 			epoch,
 			$viewState,
-			$localState: $localState as LocalReadyState
+			$localState: $localState as LocalReadyState,
+			$epochInfo,
+			timeup
 		};
 	} else {
 		return {
 			step: 'Idle',
 			$viewState,
-			$localState
+			$localState,
+			$epochInfo,
+			timeup
 		};
 	}
 }
 
 function addMove(dx: number, dy: number) {
 	const currentState = gatherState();
+	if (currentState.timeup) {
+		return;
+	}
 
 	if (currentState.step === 'Ready' && !currentState.exited) {
 		const toX = currentState.currentPosition.x + dx;
@@ -99,6 +121,10 @@ function addMove(dx: number, dy: number) {
 }
 
 function addExit(currentState: ReadyState) {
+	if (currentState.timeup) {
+		return;
+	}
+
 	if (!currentState.exited) {
 		if (currentState.currentCellType == 3) {
 			localState.addAction(currentState.epoch, {
@@ -129,6 +155,9 @@ export function startListening() {
 
 	eventEmitter.on('action', () => {
 		const currentState = gatherState();
+		if (currentState.timeup) {
+			return;
+		}
 		if (currentState.step === 'Ready') {
 			if (currentState.currentCellType === 3) {
 				// console.log(`adding exit`);
@@ -141,8 +170,14 @@ export function startListening() {
 
 	eventEmitter.on('action-2', () => {
 		const currentState = gatherState();
+		if (currentState.timeup) {
+			return;
+		}
 		if (currentState.step === 'Ready') {
-			console.log(`no action to do`);
+			if (currentState.currentCellType === 3) {
+			} else {
+				console.log(`no action to do`);
+			}
 		}
 	});
 
@@ -164,9 +199,11 @@ export function startListening() {
 	});
 
 	eventEmitter.on('backspace', () => {
-		const $epochInfo = epochInfo.now();
-		const { currentEpoch: epoch } = $epochInfo;
-		localState.rewind(epoch);
+		const currentState = gatherState();
+		if (currentState.timeup) {
+			return;
+		}
+		localState.rewind(currentState.$epochInfo.currentEpoch);
 	});
 }
 

@@ -11,6 +11,7 @@
 	import { paymentConnection, connection } from '$lib/connection';
 	import WalletOnlyConnectionFlow from '$lib/connection/WalletOnlyConnectionFlow.svelte';
 	import GameInfo from '$lib/ui/GameInfo.svelte';
+	import Tutorial from '$lib/ui/tutorial/Tutorial.svelte';
 </script>
 
 <main>
@@ -36,6 +37,7 @@
 <div class="navigation">
 	<div class="actions">
 		<button onclick={() => eventEmitter.emit('backspace')}>&lt;</button>
+		<!-- <button class="invisible" onclick={() => eventEmitter.emit('backspace')}>&lt;&lt;</button> -->
 	</div>
 	<div class="line"></div>
 
@@ -48,6 +50,18 @@
 		<button onclick={() => eventEmitter.emit('right')}>E</button>
 	</div>
 </div>
+
+<!-- <footer>
+	
+	<div class="actions">
+		<div class="rewind">
+			<button onclick={() => eventEmitter.emit('reset')}>&lt;&lt;</button>
+			<button onclick={() => eventEmitter.emit('backspace')}>&lt;</button>
+		</div>
+	</div>
+</footer> -->
+
+<Tutorial />
 
 <style>
 	main {

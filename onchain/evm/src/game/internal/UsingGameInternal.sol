@@ -89,7 +89,7 @@ abstract contract UsingGameInternal is
             );
         }
 
-        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, 0);
+        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, epoch);
         if (avatar.life == 0) {
             revert AvatarIsDead(avatarID);
         }
@@ -371,29 +371,36 @@ abstract contract UsingGameInternal is
     ) internal view returns (AvatarResolved memory) {
         Avatar memory avatar = _avatars[avatarID];
 
-        if (epoch == 0) {
-            epoch = avatar.lastEpoch + 1;
-        }
-
+        uint64 lastEpoch = avatar.lastEpoch;
         uint8 life = avatar.life;
         if (!avatar.inGame) {
             life = 1;
+        } else if (life > 0) {
+            (int32 x, int32 y) = PositionUtils.toXY(avatar.position);
+
+            // we force character to continuously commit+reveal
+            uint64 numMissesAllowed = 3;
+            if (epoch > lastEpoch + 1 + numMissesAllowed) {
+                life = 0;
+                lastEpoch = lastEpoch + 1 + numMissesAllowed; // we fake lastEpoch so we can know when the character died
+            }
         }
 
         return
             AvatarResolved({
                 position: avatar.position,
                 inGame: avatar.inGame,
-                lastEpoch: avatar.lastEpoch,
+                lastEpoch: lastEpoch,
                 avatarID: avatarID,
                 life: life
             });
     }
 
     function _getPublicAvatar(
-        uint256 avatarID
+        uint256 avatarID,
+        uint64 epoch
     ) internal view returns (PublicAvatar memory) {
-        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, 0);
+        AvatarResolved memory avatar = _getResolvedAvatar(avatarID, epoch);
         Player memory player = _players[avatarID];
 
         return
@@ -428,7 +435,8 @@ abstract contract UsingGameInternal is
             avatars = new PublicAvatar[](limit);
             for (uint256 i = 0; i < limit; i++) {
                 avatars[i] = _getPublicAvatar(
-                    _zones[zone].avatars[fromIndex + i]
+                    _zones[zone].avatars[fromIndex + i],
+                    epoch
                 );
             }
         }
@@ -460,7 +468,7 @@ abstract contract UsingGameInternal is
             avatars = new PublicAvatar[](limit);
 
             // Fill the result array by traversing zones
-            _fillAvatarResults(zones, fromIndex, limit, state, avatars);
+            _fillAvatarResults(zones, fromIndex, limit, state, avatars, epoch);
         } else {
             // No avatars to return
             avatars = new PublicAvatar[](0);
@@ -510,7 +518,8 @@ abstract contract UsingGameInternal is
         uint64 fromIndex,
         uint64 limit,
         AvatarFetchState memory state,
-        PublicAvatar[] memory avatars
+        PublicAvatar[] memory avatars,
+        uint64 epoch
     ) private view {
         uint64 avatarsReturned = 0;
         uint64 currentFromIndex = fromIndex;
@@ -533,7 +542,10 @@ abstract contract UsingGameInternal is
             for (uint64 i = 0; i < toTake; i++) {
                 uint64 zoneId = zones[currentZone];
                 uint256 avatarId = _zones[zoneId].avatars[inZoneIndex + i];
-                avatars[avatarsReturned + i] = _getPublicAvatar(avatarId);
+                avatars[avatarsReturned + i] = _getPublicAvatar(
+                    avatarId,
+                    epoch
+                );
             }
 
             avatarsReturned += toTake;

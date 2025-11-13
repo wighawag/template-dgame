@@ -1,5 +1,6 @@
 import { epochInfo, time, timeConfig } from '$lib/time';
 import { localState } from '$lib/private/localState';
+import type { Unsubscriber } from 'svelte/store';
 
 export function createAutoSubmitter() {
 	let highFreqInterval: NodeJS.Timeout | null = null;
@@ -22,8 +23,8 @@ export function createAutoSubmitter() {
 		if (
 			currentEpochInfo.isCommitPhase &&
 			!currentLocalData.avatar.submission &&
-			currentLocalData.avatar.epoch == currentEpochInfo.currentEpoch &&
-			currentLocalData.avatar.actions.length > 0
+			!(currentLocalData.avatar.exiting && currentLocalData.avatar.actions.length == 0) &&
+			currentLocalData.avatar.epoch == currentEpochInfo.currentEpoch
 		) {
 			localState.commit({ pollingInterval: interval });
 			clearTimers();
@@ -105,9 +106,14 @@ export function createAutoSubmitter() {
 		}, delayMs);
 	}
 
+	let unsubscribe: Unsubscriber;
 	function start() {
 		// Use the existing time subscription with high-frequency checking
-		const unsubscribe = time.subscribe(($time) => {
+		unsubscribe = time.subscribe(($time) => {
+			const $epochInfo = epochInfo.fromTime($time.value);
+
+			localState.update($epochInfo.currentEpoch);
+
 			const localData = localState.value;
 			if (!localData.signer) {
 				clearTimers();
@@ -118,13 +124,6 @@ export function createAutoSubmitter() {
 				return;
 			}
 
-			if (localData.avatar.actions.length == 0) {
-				clearTimers();
-				return;
-			}
-
-			const $epochInfo = epochInfo.fromTime($time.value);
-
 			// For commit: check if we need to start high-frequency checking 1 second before commit time
 			const timeToCommit = $epochInfo.timeLeftForCommitEnd - timeConfig.COMMIT_TIME_ALLOWANCE;
 
@@ -132,7 +131,6 @@ export function createAutoSubmitter() {
 				$epochInfo.isCommitPhase &&
 				!localData.avatar.submission &&
 				localData.avatar.epoch == $epochInfo.currentEpoch &&
-				localData.avatar.actions.length > 0 &&
 				timeToCommit <= 1.0; // Within 1 second of commit time
 
 			// For reveal: check if we need to start high-frequency checking 1 second before reveal time
@@ -168,6 +166,11 @@ export function createAutoSubmitter() {
 		};
 	}
 
+	function stop() {
+		unsubscribe();
+		clearTimers();
+	}
+
 	function clearTimers() {
 		if (highFreqInterval) {
 			clearInterval(highFreqInterval);
@@ -180,6 +183,7 @@ export function createAutoSubmitter() {
 	}
 
 	return {
-		start
+		start,
+		stop
 	};
 }

@@ -121,16 +121,20 @@ export class AvatarObject extends GameObject {
 				y: 10 * entity.position.y
 			};
 
+			// console.log(`destination`, { x: entity.position.x, y: entity.position.y });
+
+			const moveActions = entity.actions.filter((v) => v.type === 'move');
 			if (
-				entity.actions.length > 0 &&
+				moveActions.length > 0 &&
 				!(this.position.x == destination.x && this.position.y == destination.y) &&
 				(!this.epochAnim || this.epochAnim.epoch !== epoch)
 			) {
 				// TODO ignore non-move actions ? or deal with them differently
-				const duration = entity.actions.length > 10 ? 1.2 / entity.actions.length : 0.1;
+				const duration = moveActions.length > 10 ? 1.2 / moveActions.length : 0.1;
 				const tl = gsap.timeline();
-				for (const p of entity.actions) {
+				for (const p of moveActions) {
 					tl.to(this.position, { x: 10 * p.x, y: 10 * p.y, duration });
+					// console.log(`step`, { x: p.x, y: p.y });
 				}
 				this.epochAnim = {
 					epoch,
@@ -144,6 +148,15 @@ export class AvatarObject extends GameObject {
 	}
 
 	markAsPlayerControlled(isPlayerControlled: boolean) {
+		if (!isPlayerControlled && this.playerControlled) {
+			this.world.pathDisplayObject.removeChildren();
+		}
 		this.playerControlled = isPlayerControlled;
+	}
+
+	onRemoved() {
+		if (this.playerControlled) {
+			this.world.pathDisplayObject.removeChildren();
+		}
 	}
 }

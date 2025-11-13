@@ -15,7 +15,7 @@ export default deployScript(
 			revealPhaseDuration: data.Game.revealPhaseDuration,
 			time: zeroAddress,
 			avatars: Avatars.address,
-			numMoves: 20n,
+			numMoves: data.Game.numMoves,
 		};
 
 		const routes = [
