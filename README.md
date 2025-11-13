@@ -1,5 +1,8 @@
 # Reveal or Die - Decentralized Game Template
 
+![RoD](./rod-white.svg#gh-dark-mode-only)
+![RoD](./rod-black.svg#gh-light-mode-only)
+
 A comprehensive template for building decentralized games that use commit+reveal mechanics and run on blockchain networks. This project demonstrates a fully functional on-chain game with a modern web interface, providing a foundation for building trustless, verifiable multiplayer games.
 
 ## 🎮 What is this?
