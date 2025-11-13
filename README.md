@@ -14,7 +14,7 @@ A comprehensive template for building decentralized games that use commit+reveal
 
 ## 🏗️ Architecture
 
-This monorepo contains three main components:
+This monorepo contains two main components:
 
 ### 🌐 Web Application (`/web`)
 
@@ -35,11 +35,22 @@ This monorepo contains three main components:
   - Epoch-based time management
   - Multi-network deployment support
 
-### 🔧 Services (`/services`)
+### 🛡️ No Server Required
 
-- **Bot**: Automated game interactions
-- **Missiv**: Messaging service
-- **Push Notifications**: Real-time updates
+The game runs entirely in the browser without requiring any centralized servers or indexers. All game state is stored and verified directly on the blockchain, ensuring:
+
+- **True Decentralization**: No single point of failure
+- **Trustless Gameplay**: All moves are cryptographically verifiable
+- **Direct Blockchain Interaction**: Players interact directly with smart contracts
+- **No Backend Dependencies**: The game works as long as blockchain networks are operational
+
+## 🎯 Philosophy
+
+**Reveal or Die** is designed with two core principles in mind:
+
+- **No Server**: Everything operates on-chain. No centralized servers, no API dependencies, no indexers required. The game runs entirely in the browser and communicates directly with blockchain networks.
+
+- **Not a Framework or Engine, but a Template**: This is not a rigid framework that constrains your design or forces you into specific patterns. Instead, it's a template where you modify what you want and keep what you want. Start with a working, complete game and customize every aspect - the game mechanics, visual style, user interface, blockchain interactions, or any other component to match your vision.
 
 ## 🚀 Quick Start
 
@@ -146,7 +157,6 @@ reveal-or-die/
 │   │   └── utils/        # Utility contracts
 │   ├── deploy/           # Deployment scripts
 │   └── deployments/      # Network deployments
-├── services/             # Additional services
 └── dev/                 # Development configuration
 ```
 
