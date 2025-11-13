@@ -37,6 +37,7 @@
 <div class="navigation">
 	<div class="actions">
 		<button onclick={() => eventEmitter.emit('backspace')}>&lt;</button>
+		<button onclick={() => eventEmitter.emit('action')}> exit</button>
 		<!-- <button class="invisible" onclick={() => eventEmitter.emit('backspace')}>&lt;&lt;</button> -->
 	</div>
 	<div class="line"></div>
