@@ -205,7 +205,7 @@ This template serves as a foundation for building various types of decentralized
 
 ## 📄 License
 
-This project template is provided as-is for educational and development purposes. Modify and use according to your needs.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
