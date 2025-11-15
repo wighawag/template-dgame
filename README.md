@@ -1,4 +1,3 @@
-# Reveal or Die - Decentralized Game Template
 
 ![RoD](./rod-white.svg#gh-dark-mode-only)
 ![RoD](./rod-black.svg#gh-light-mode-only)
