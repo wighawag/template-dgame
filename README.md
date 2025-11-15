@@ -1,12 +1,11 @@
-
 ![RoD](./rod-white.svg#gh-dark-mode-only)
 ![RoD](./rod-black.svg#gh-light-mode-only)
 
-A comprehensive template for building decentralized games that use commit+reveal mechanics and run on blockchain networks. This project demonstrates a fully functional on-chain game with a modern web interface, providing a foundation for building trustless, verifiable multiplayer games.
+A comprehensive template for building decentralized games that use commit+reveal mechanics. This project demonstrates a fully functional on-chain game using zer0 backend, providing a foundation for building trustless, verifiable multiplayer games.
 
 ## 🎮 What is this?
 
-**Reveal or Die** is both a working game and a development template. It showcases how to build decentralized games using commit+reveal mechanics to prevent front-running and ensure fair gameplay. The game features:
+**Reveal or Die** is both a working demo and a development template. It showcases how to build decentralized games using commit+reveal mechanics to prevent front-running and ensure fair gameplay. The game features:
 
 - **Avatar-based gameplay** where players control digital avatars
 - **Multi-zone world** exploration and interaction
@@ -32,7 +31,7 @@ This monorepo contains two main components:
 - **Language**: Solidity ^0.8.0
 - **Features**:
   - Commit-reveal game mechanics
-  - Avatar management system
+  - Avatar system
   - Zone-based world system
   - Epoch-based time management
   - Multi-network deployment support
@@ -58,7 +57,7 @@ The game runs entirely in the browser without requiring any centralized servers 
 
 ### Prerequisites
 
-- **Node.js** (v18 or higher)
+- **Node.js** (v10 or higher)
 - **pnpm** package manager
 - **Zellij** (recommended for development workflow)
 
