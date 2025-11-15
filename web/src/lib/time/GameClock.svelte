@@ -44,7 +44,7 @@
 	const piePath = $derived(calculatePiePath(percentage));
 </script>
 
-<div class="progress-container" style={`--color: ${color}; --background: ${background}`}>
+<div id="game-clock" class="progress-container" style={`--color: ${color}; --background: ${background}`}>
 	<svg width={size} height={size} class="progress-svg" viewBox={`0 0 ${size} ${size}`}>
 		<!-- Background circle (full pie) -->
 		<circle

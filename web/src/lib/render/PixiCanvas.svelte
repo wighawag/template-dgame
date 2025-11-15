@@ -248,7 +248,7 @@
 	});
 </script>
 
-<canvas bind:this={canvas}></canvas>
+<canvas id="arena" bind:this={canvas}></canvas>
 
 <style>
 	canvas {

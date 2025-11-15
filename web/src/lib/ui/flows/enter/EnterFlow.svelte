@@ -57,7 +57,7 @@
 			class="fixed bottom-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-yellow-400 px-4 text-black shadow-md"
 		>
 			<span>Get an avatar first</span>
-			<Button onclick={() => purchaseFlow.start()}>avatars</Button>
+			<Button id="avatars" onclick={() => purchaseFlow.start()}>avatars</Button>
 		</div>
 	{:else}
 		<div
