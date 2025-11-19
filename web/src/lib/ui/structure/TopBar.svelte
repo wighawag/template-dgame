@@ -78,7 +78,7 @@
 	</div>
 	{#if showMenu}
 		<div
-			class="absolute right-4 top-12 z-[100] mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
+			class="absolute right-4 top-12 z-100 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
 			onclick={closeMenu}
 			onkeydown={(event) => {
 				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
