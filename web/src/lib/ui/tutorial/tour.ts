@@ -22,7 +22,7 @@ export function startTour(callback?: () => void) {
 				popover: {
 					title: 'Your timer',
 					description:
-						'Bomber.world is a simultaneous turn based game with 2 phases, commit and reveal. The clock shows you the countdown of each phase. Once green you can play, once red you have to wait for the resolution to finish'
+						'"Reveal Or Die" is a template for simultaneous turn based game with 2 phases, commit and reveal. The clock shows you the countdown of each phase. Once green you can play, once red you have to wait for the resolution to finish'
 				}
 			},
 			{
@@ -36,7 +36,7 @@ export function startTour(callback?: () => void) {
 				element: '#navigation',
 				popover: {
 					title: 'Controls',
-					description: `You can control your character using either these button or the keyboard using arrow keys or WASD for movement, and SPACE for Instant Bomb (which explode on resolution), and ENTER for Delayed Bomb (which exploded one turn later and block movement), and BACKSPACE to undo your last move.`
+					description: `You can control your character using either these button or the keyboard using arrow keys or WASD for movement, and BACKSPACE to undo your last move.`
 				}
 			},
 			{

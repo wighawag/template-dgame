@@ -22,7 +22,7 @@ layout {
 			args "--filter" "./onchain/evm" "compile:watch"
 		}
 		pane name="watch and deploy 2 " command="pnpm"  {
-			args "--filter" "./onchain/evm" "deploy:watch" "localhost" "--ts" "../../web/src/lib/deployments.ts,../../services/bot/src/deployments.ts"
+			args "--filter" "./onchain/evm" "deploy:watch" "localhost" "--ts" "../../web/src/lib/deployments.ts"
 		}
 		pane name="watch and build typescript" command="pnpm"  {
 			args "--filter" "./onchain/evm" "typescript:watch"
