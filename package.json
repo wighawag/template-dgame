@@ -23,7 +23,7 @@
     "web:dev": "ldenv pnpm --filter ./web dev",
     "web:build": "ldenv pnpm --filter ./web build",
     "---------------------- DEPLOY ----------------------": "",
-    "build": "pnpm build",
+    "build": "pnpm web:build",
     "serve": "pnpm run --filter ./web serve",
     "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
     "stop": "zellij kill-session $npm_package_name",
