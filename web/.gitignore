@@ -1,16 +1,8 @@
 node_modules
 
 # Output
-.output
-.vercel
-.netlify
-.wrangler
 /.svelte-kit
 /build
-
-# OS
-.DS_Store
-Thumbs.db
 
 # pwag
 static/pwa
@@ -18,10 +10,6 @@ src/app.html
 
 # En
 *.local
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
 
 src/lib/deployments.ts
 

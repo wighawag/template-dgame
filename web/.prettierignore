@@ -1,4 +1,25 @@
-# Package Managers
-package-lock.json
+############################################
+# .gitignore
+#############################################
+node_modules
+
+# Output
+/.svelte-kit
+/build
+
+# pwag
+static/pwa
+src/app.html
+
+# En
+*.local
+
+src/lib/deployments.ts
+
+# assets
+static/assets
+.assetpack
+src/lib/manifest.json
+############################################
+
 pnpm-lock.yaml
-yarn.lock
