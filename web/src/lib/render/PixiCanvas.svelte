@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Viewport } from 'pixi-viewport';
-	import { Application, Container, FederatedPointerEvent, Graphics, Sprite } from 'pixi.js';
+	import { Application, Container, FederatedPointerEvent, Graphics, Sprite, Assets } from 'pixi.js';
 	import { initDevtools } from '@pixi/devtools';
 	import { onMount } from 'svelte';
 	import { type Writable } from 'svelte/store';
@@ -101,14 +101,19 @@
 		sizeObserver.observe(canvas);
 		console.log(`Mounting PixiCanvas......`);
 		const app = new Application();
-		initDevtools({ app });
+		(globalThis as any).app = app;
+		initDevtools({ app }); // does not seem to work anymore
+		(globalThis as any).__PIXI_APP__ = app;
 
 		let initialised = false;
 		const appInitialising = app.init({
 			resizeTo: canvas,
 			canvas,
 			backgroundAlpha: 1,
-			backgroundColor: 'black'
+			backgroundColor: 'black',
+			roundPixels: true,
+			resolution: 1,
+			antialias: false
 		});
 		appInitialising.then(() => {
 			initialised = true;
@@ -121,7 +126,10 @@
 			(globalThis as any).viewport = viewport;
 			viewport.moveCenter(0, 0);
 
-			renderer.onAppStarted(viewport);
+			Assets.loadBundle('default').then(() => {
+				renderer.onAppStarted(viewport);
+			})
+			
 			keyboardController.start();
 			gamepadController.start();
 			// TODO move this from here
@@ -149,7 +157,7 @@
 			});
 			viewport.moveCenter(0, 0);
 
-			viewport.addChild(gridPixel);
+			// viewport.addChild(gridPixel);
 
 			// Register pointer events for proper click/drag handling
 			viewport.on('pointerdown', onPointerDown);
@@ -217,6 +225,9 @@
 				gridPixel.y = -offsetY - cellSize - cellSize / 2 + (offsetY % cellSize);
 
 				gridPixel.alpha = viewport.scaled / 48;
+
+				// Call tick() on the renderer for per-frame updates
+				renderer.tick();
 			});
 		});
 
@@ -257,5 +268,6 @@
 		width: 100%;
 		height: 100%;
 		pointer-events: auto;
+		image-rendering: pixelated; /* crisp-edge  ?*/
 	}
 </style>

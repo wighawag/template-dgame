@@ -5,7 +5,7 @@ import { avatars } from '$lib/onchain/avatars';
 import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
 import { epochInfo, timeConfig, type EpochInfo } from '$lib/time';
 import { viewState, type Position, type ViewState } from '$lib/view';
-import { areaAt, Areas, zoneLocalCoord } from 'dgame-contracts';
+import { areaAt, Areas, zoneLocalCoord } from 'reveal-or-die-contracts';
 import deployments from '$lib/deployments';
 import { camera } from '$lib/render/camera';
 import { warning } from '$lib/ui/modal/warning';
@@ -23,12 +23,12 @@ type ReadyState = {
 };
 type CurrentState =
 	| {
-			step: 'Idle';
-			$viewState: ViewState;
-			$localState: LocalState;
-			$epochInfo: EpochInfo;
-			timeup: boolean;
-	  }
+		step: 'Idle';
+		$viewState: ViewState;
+		$localState: LocalState;
+		$epochInfo: EpochInfo;
+		timeup: boolean;
+	}
 	| ReadyState;
 
 function gatherState(): CurrentState {

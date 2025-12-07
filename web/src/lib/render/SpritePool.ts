@@ -1,4 +1,4 @@
-import { Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Sprite, Texture } from 'pixi.js';
 import { TileType, TileSpritesheet } from './TileSpritesheet';
 
 export class TileSpritePool {
@@ -7,14 +7,7 @@ export class TileSpritePool {
 
 	constructor() {
 		// Initialize pools for each tile type
-		const tileTypes = [
-			TileType.Wall,
-			TileType.Box,
-			TileType.Exit,
-			TileType.WallDepth,
-			TileType.BoxDepth,
-			TileType.ExitDepth
-		];
+		const tileTypes = [TileType.Empty, TileType.Wall, TileType.Box, TileType.Exit];
 
 		for (const type of tileTypes) {
 			this.pools.set(type, []);
@@ -30,11 +23,30 @@ export class TileSpritePool {
 			if (!texture) {
 				throw new Error(`Texture not found for tile type: ${type}`);
 			}
-			sprite = new Sprite(texture);
-			sprite.anchor.set(0); // Top-left anchor for grid positioning
+			if (Array.isArray(texture)) {
+				sprite = new AnimatedSprite({ textures: texture, roundPixels: true, animationSpeed: 0.2 });
+				// (sprite as AnimatedSprite).play();
+			} else {
+				sprite = new Sprite({ texture, roundPixels: true });
+
+			}
+			sprite.width = 10;
+			sprite.height = 10;
+			sprite.anchor.set(0, 0); // Top-left anchor for grid positioning
+			if (type == TileType.Wall) {
+				sprite.anchor.set(0, 16 / 48);
+
+				sprite.height = 10 * 48 / 32;
+			} else if (type == TileType.Box) {
+				sprite.anchor.set(0, 14 / 46);
+				sprite.height = 10 * 46 / 32;
+			}
+
 		}
 
 		sprite.visible = true;
+		(sprite as any).type = type;
+
 		this.activeSprites.add(sprite);
 		return sprite;
 	}
@@ -46,24 +58,12 @@ export class TileSpritePool {
 			sprite.parent?.removeChild(sprite);
 
 			// Determine the sprite type based on its texture
-			const type = this.getSpriteTypeFromTexture(sprite.texture);
+			const type = (sprite as any).type;
 			if (type !== undefined) {
 				const pool = this.pools.get(type)!;
 				pool.push(sprite);
 			}
 		}
-	}
-
-	private getSpriteTypeFromTexture(texture: Texture): TileType | undefined {
-		// This is a simple implementation - in a more complex scenario,
-		// you might want to store type metadata with each sprite
-		for (const [type, sprites] of this.pools.entries()) {
-			const texture_ref = TileSpritesheet.getTexture(type);
-			if (texture_ref === texture) {
-				return type;
-			}
-		}
-		return undefined;
 	}
 
 	returnAll(): void {

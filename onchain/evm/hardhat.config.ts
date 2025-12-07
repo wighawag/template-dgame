@@ -25,7 +25,7 @@ const config: HardhatUserConfig = {
 			default: {
 				version: '0.8.28',
 				settings: {
-					evmVersion: 'prague',
+					evmVersion: 'london',
 				},
 			},
 			production: {
@@ -35,7 +35,17 @@ const config: HardhatUserConfig = {
 						enabled: true,
 						runs: 999999,
 					},
-					evmVersion: 'prague',
+					evmVersion: 'london',
+				},
+			},
+			london: {
+				version: '0.8.28',
+				settings: {
+					optimizer: {
+						enabled: true,
+						runs: 999999,
+					},
+					evmVersion: 'london',
 				},
 			},
 		},

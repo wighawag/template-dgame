@@ -1,5 +1,5 @@
 {
-  "name": "dgame-monorepo",
+  "name": "reveal-or-die-monorepo",
   "version": "0.0.0",
   "description": "A Game",
   "private": true,
@@ -27,6 +27,7 @@
     "---------------------- WEB ----------------------": "",
     "web:dev": "ldenv pnpm --filter ./web dev",
     "web:build": "ldenv pnpm --filter ./web build",
+    "web:serve": "ldenv pnpm --filter ./web serve",
     "---------------------- ONCHAIN ----------------------": "",
     "onchain:deploy": "ldenv pnpm run --filter ./onchain/evm deploy @@MODE @@",
     "onchain:verify": "ldenv pnpm run --filter ./onchain/evm verify @@MODE @@",

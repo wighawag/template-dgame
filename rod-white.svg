@@ -7,8 +7,11 @@
    viewBox="0 0 200.80609 200.80609"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    sodipodi:docname="rod-white.svg"
+   inkscape:export-filename="icon.png"
+   inkscape:export-xdpi="64.762978"
+   inkscape:export-ydpi="64.762978"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -25,14 +28,15 @@
      inkscape:document-units="mm"
      showguides="false"
      inkscape:zoom="0.54614775"
-     inkscape:cx="518.1748"
-     inkscape:cy="167.53708"
-     inkscape:window-width="1914"
-     inkscape:window-height="1111"
-     inkscape:window-x="3"
-     inkscape:window-y="3"
+     inkscape:cx="517.25929"
+     inkscape:cy="166.62158"
+     inkscape:window-width="1536"
+     inkscape:window-height="891"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g2-9" />
+     inkscape:current-layer="g2-9"
+     inkscape:export-bgcolor="#000000ff" />
   <defs
      id="defs1" />
   <g

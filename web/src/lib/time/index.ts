@@ -1,6 +1,11 @@
 import { connection } from '$lib/connection';
 import deployments from '$lib/deployments';
 import { derived, writable, type Readable } from 'svelte/store';
+import { logs } from 'named-logs';
+
+const console = logs('time', {
+	decoration: 'background: #222; padding: 0.2rem; color: #bada55'
+});
 
 export type LastSync = { timestampMS: number; blockNumber: number; averageBlockTime: number };
 export type SyncedTime = {

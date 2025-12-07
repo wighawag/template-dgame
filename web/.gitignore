@@ -12,6 +12,10 @@ node_modules
 .DS_Store
 Thumbs.db
 
+# pwag
+static/pwa
+src/app.html
+
 # En
 *.local
 
@@ -21,4 +25,7 @@ vite.config.ts.timestamp-*
 
 src/lib/deployments.ts
 
-static/tiles
+# assets
+static/assets
+.assetpack
+src/lib/manifest.json

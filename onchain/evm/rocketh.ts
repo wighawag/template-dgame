@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------------------------------------
 // Typed Config
 // ------------------------------------------------------------------------------------------------
-import type {UserConfig} from 'rocketh';
+import type { UserConfig } from 'rocketh';
 
 export const config = {
 	chains: {
@@ -20,7 +20,7 @@ export const config = {
 		50312: {
 			properties: {
 				// somnia testnet
-				expectedWorstGasPrice: parseEther('3', 'gwei'),
+				expectedWorstGasPrice: parseEther('8', 'gwei'),
 			},
 		},
 		11142220: {
@@ -59,13 +59,18 @@ export const config = {
 		},
 		Game: {
 			'celos-epolia': {
-				commitPhaseDuration: 35n,
+				commitPhaseDuration: 50n,
 				revealPhaseDuration: 10n,
 				numMoves: 10n,
 			},
-			default: {
-				commitPhaseDuration: 20n,
+			localhost: {
+				commitPhaseDuration: 40n,
 				revealPhaseDuration: 3n,
+				numMoves: 10n,
+			},
+			default: {
+				commitPhaseDuration: 40n,
+				revealPhaseDuration: 4n,
 				numMoves: 10n,
 			},
 		},
@@ -95,23 +100,23 @@ const extensions = {
 // ------------------------------------------------------------------------------------------------
 // we re-export the artifacts, so they are easily available from the alias
 import * as artifacts from './generated/artifacts/index.js';
-export {artifacts};
+export { artifacts };
 // ------------------------------------------------------------------------------------------------
 // we create the rocketh functions we need by passing the extensions to the setup function
-import {setup} from 'rocketh';
-const {deployScript, loadAndExecuteDeployments} = setup<
+import { setup } from 'rocketh';
+const { deployScript, loadAndExecuteDeployments } = setup<
 	typeof extensions,
 	typeof config.accounts,
 	typeof config.data
 >(extensions);
 // ------------------------------------------------------------------------------------------------
 // we do the same for hardhat-deploy
-import {setupHardhatDeploy} from 'hardhat-deploy/helpers';
-import {parseEther} from 'viem';
-const {loadEnvironmentFromHardhat} = setupHardhatDeploy(extensions);
+import { setupHardhatDeploy } from 'hardhat-deploy/helpers';
+import { parseEther } from 'viem';
+const { loadEnvironmentFromHardhat } = setupHardhatDeploy(extensions);
 // ------------------------------------------------------------------------------------------------
 // finally we export them
 // - loadAndExecuteDeployments can be used in tests to ensure deployed contracts are available there
 // - deployScript is the function used to create deploy script, see deploy/ folder
 // - loadEnvironmentFromHardhat can be used in scripts and reuse hardhat network handling without deploying the contracts
-export {loadAndExecuteDeployments, deployScript, loadEnvironmentFromHardhat};
+export { loadAndExecuteDeployments, deployScript, loadEnvironmentFromHardhat };

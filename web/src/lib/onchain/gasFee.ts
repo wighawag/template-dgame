@@ -1,24 +1,25 @@
-import { get, writable, type Readable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { publicClient } from '$lib/connection';
-import { creditsDivider } from '$lib/config';
 import type { GetFeeHistoryReturnType } from 'viem';
+import deployments from '$lib/deployments';
 
 export type GasPrice = { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint };
 export type EstimateGasPriceResult = GasPrice[];
 
 export type GasFee = { error?: { message: string } } & (
 	| {
-			step: 'Idle';
-	  }
+		step: 'Idle';
+	}
 	| {
-			step: 'Loading';
-	  }
+		step: 'Loading';
+	}
 	| {
-			step: 'Loaded';
-			slow: GasPrice;
-			average: GasPrice;
-			fast: GasPrice;
-	  }
+		step: 'Loaded';
+		slow: GasPrice;
+		average: GasPrice;
+		fast: GasPrice;
+		higherThanExpected: boolean
+	}
 );
 
 function defaultState() {
@@ -109,7 +110,8 @@ export function createGasFeeStore(options?: { fetchInterval?: number }) {
 			step: 'Loaded',
 			slow: result[0],
 			average: result[1],
-			fast: result[2]
+			fast: result[2],
+			higherThanExpected: result[2].maxFeePerGas > BigInt(deployments.chain.properties.expectedWorstGasPrice),
 		});
 		return true;
 	}

@@ -1,37 +1,36 @@
 import { connection } from '$lib/connection';
 import { avatars, type AvatarCollection } from '$lib/onchain/avatars';
-import { writes } from '$lib/onchain/writes';
 import type { Connection, UnderlyingEthereumProvider } from '@etherplay/connect';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
-import { onchainState, viewState } from '$lib/view';
+import { viewState } from '$lib/view';
 import { localState } from '$lib/private/localState';
 import { epochInfo, twoPhase } from '$lib/time';
-import type { Position } from 'dgame-contracts';
+import type { Position } from 'reveal-or-die-contracts';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
-			step: 'Idle';
-	  }
+		step: 'Idle';
+	}
 	| ({ position: Position } & (
-			| {
-					step: 'Loading';
-			  }
-			| {
-					step: 'RequireSignIn';
-			  }
-			| {
-					step: 'RequireAvatars';
-			  }
-			| {
-					step: 'RequireDeposit';
-			  }
-			| {
-					step: 'Ready';
-					avatars: readonly bigint[];
-					pendingTransaction?: `0x${string}`;
-			  }
-	  ))
+		| {
+			step: 'Loading';
+		}
+		| {
+			step: 'RequireSignIn';
+		}
+		| {
+			step: 'RequireAvatars';
+		}
+		| {
+			step: 'RequireDeposit';
+		}
+		| {
+			step: 'Ready';
+			avatars: readonly bigint[];
+			pendingTransaction?: `0x${string}`;
+		}
+	))
 );
 
 function createEnterFlow() {
@@ -90,8 +89,8 @@ function createEnterFlow() {
 		}
 
 		const $viewState = get(viewState);
-		if ($viewState.avatarID) {
-			throw new Error(`avatar already in game : ${$viewState.avatarID}`);
+		if ($viewState.avatar) {
+			throw new Error(`avatar already in game : ${$viewState.avatar.id}`);
 		}
 
 		// TODO let use with avatars join in

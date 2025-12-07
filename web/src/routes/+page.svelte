@@ -12,6 +12,7 @@
 	import WalletOnlyConnectionFlow from '$lib/connection/WalletOnlyConnectionFlow.svelte';
 	import GameInfo from '$lib/ui/GameInfo.svelte';
 	import Tutorial from '$lib/ui/tutorial/Tutorial.svelte';
+	// import { browser } from '$app/environment';
 </script>
 
 <main>
@@ -29,7 +30,9 @@
 <WalletOnlyConnectionFlow connection={paymentConnection} />
 
 <div class="canvas">
+	<!-- {#if browser} -->
 	<PixiCanvas {camera} {renderer} {eventEmitter} />
+	<!-- {/if} -->
 </div>
 
 <GameInfo />
@@ -71,7 +74,6 @@
 		height: 100%;
 		width: 100%;
 	}
-
 
 	.navigation {
 		display: flex;

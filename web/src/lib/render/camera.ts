@@ -1,5 +1,5 @@
 import { writable, type Readable } from 'svelte/store';
-import { Viewport } from 'pixi-viewport';
+import { type Viewport } from 'pixi-viewport';
 
 export type Camera = {
 	x: number;
@@ -12,6 +12,7 @@ export type CameraWatcher = Readable<Camera> & {
 	setViewPort(p: Viewport): void;
 	update(values: Camera): void;
 	follow(x: number, y: number): void;
+	move(x: number, y: number): void;
 };
 
 let $camera = {
@@ -33,6 +34,11 @@ export const camera: CameraWatcher = {
 			viewport.moveCenter(x * 10, y * 10);
 		}
 	},
+	move(x: number, y: number) {
+		if (viewport) {
+			viewport.moveCenter(($camera.x + x) * 10, ($camera.y + y || 0) * 10);
+		}
+	},
 	update(values: Camera) {
 		if (
 			$camera.x != values.x ||
@@ -45,3 +51,5 @@ export const camera: CameraWatcher = {
 		}
 	}
 };
+
+(globalThis as any).camera = camera;

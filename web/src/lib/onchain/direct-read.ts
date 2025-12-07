@@ -1,13 +1,11 @@
 import { get, writable, type Readable } from 'svelte/store';
-import type { AvatarEntity, OnchainState } from './types';
 import { epochInfo, time } from '$lib/time';
-import { bigIntIDToXY, calculateVisibleZones, type Position } from 'dgame-contracts';
+import { calculateVisibleZones } from 'reveal-or-die-contracts';
+import { logs } from 'named-logs';
 import { publicClient } from '$lib/connection';
 import deployments from '$lib/deployments';
-import { type GetContractEventsReturnType } from 'viem';
-import type { LocalAction } from '$lib/private/localState';
 
-const Game = deployments.contracts.Game;
+const console = logs('onchain:read');
 
 type Camera = {
 	x: number;
@@ -16,36 +14,52 @@ type Camera = {
 	height: number;
 };
 
-function defaultState() {
-	return {
-		entities: {},
-		epoch: 0
-	};
-}
+class TimeNotSyncedError extends Error { }
 
-class TimeNotSyncedError extends Error {}
-
-export function createDirectReadStore(camera: Readable<Camera>) {
-	let $state: OnchainState = defaultState();
-	let lastCamera: Camera = get(camera);
+/**
+ * Creates a reactive store that manages direct blockchain data fetching based on camera position.
+ *
+ * This function sets up an automatic data fetching system that:
+ * - Monitors camera position changes to determine which blockchain zones are visible
+ * - Fetches data for those zones when they change
+ * - Handles epoch synchronization to ensure data freshness (epochs represent discrete time units)
+ * - Automatically fetches new data when the epoch changes (indicating time progression and requiring fresh state)
+ * - Automatically retries failed fetches
+ *
+ * The returned store provides a reactive interface to the fetched data and includes
+ * an update method to force refresh the current data.
+ *
+ * @template T The type of data managed by this store
+ * @param camera A readable store containing camera position and dimensions
+ * @param defaultState Function that returns the initial/default state value
+ * @param fetchFunction Function that fetches data for given zones and epoch.
+ *                     Should return the data (T) or undefined if the request is obsolete
+ *                     (e.g., due to epoch desynchronization and should be discarded).
+ *                     The function receives:
+ *                     - zones: Array of zone identifiers currently visible in the camera
+ *                     - expectedEpoch: The epoch that was active when the request was initiated
+ * @returns Object with subscribe method (for reactive data access) and update method (for manual refresh)
+ */
+export function createDirectReadStore<T>(
+	camera: Readable<Camera>,
+	defaultState: () => T,
+	fetchFunction: (
+		zones: bigint[],
+		fromBlock: number,
+		toBlock: number,
+		expectedEpoch: number
+	) => Promise<T | undefined>
+) {
+	let $state: T = defaultState();
 	let now = get(time);
-	let lastEpoch = epochInfo.fromTime(now.value).currentEpoch;
+	let currentPredictedEpoch = epochInfo.fromTime(now.value).currentEpoch;
 	let lastZones: bigint[] | undefined;
 
-	const _store = writable<OnchainState>($state, start);
-	function set(state: OnchainState) {
+	const _store = writable<T>($state, start);
+	function set(state: T) {
 		$state = state;
 		_store.set($state);
 		return $state;
-	}
-
-	function hasCameraChanged(oldCamera: Camera, newCamera: Camera) {
-		return (
-			oldCamera.x !== newCamera.x ||
-			oldCamera.y !== newCamera.y ||
-			oldCamera.width !== newCamera.width ||
-			oldCamera.height !== newCamera.height
-		);
 	}
 
 	function hasZonesChanged(zonesA?: bigint[], zonesB?: bigint[]) {
@@ -69,54 +83,21 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 		return false;
 	}
 
-	async function fetchState(camera: Camera, fromCameraUpdate: boolean) {
+	async function fetchState(zones: bigint[], expectedEpoch: number) {
 		const now = get(time);
 
 		if (!now.lastSync) {
+			console.debug(`time not synced yet`);
 			throw new TimeNotSyncedError(`time not synced yet`);
-		}
-
-		const zones = calculateVisibleZones(camera);
-
-		if (fromCameraUpdate && !hasZonesChanged(lastZones, zones)) {
-			return;
-		}
-
-		// TODO has epcoh changed ?
-		// if (!fromCameraUpdate && ) {
-		// 	return;
-		// }
-
-		const result = await publicClient.readContract({
-			...Game,
-			functionName: 'getAvatarsInMultipleZones',
-			args: [zones, 0n, 100n] // TODO use pagination
-		});
-		if (fromCameraUpdate) {
-			const newZones = calculateVisibleZones(lastCamera);
-			if (hasZonesChanged(zones, newZones)) {
-				// if changed while fetching, we stop right here
-				return;
-			}
-		}
-
-		const epoch = result[2];
-
-		console.debug(`fetched state from epoch: ${epoch}`);
-
-		if (Number(epoch) < lastEpoch) {
-			// we consider for refetch
-			lastEpoch = Number(epoch);
 		}
 
 		const currentBlockNumber = Number(await publicClient.getBlockNumber());
 		const avarageBlockTime = now.lastSync.averageBlockTime;
-
 		const blockDistanceToFetchFrom = Math.floor(
 			(4 * // we multiply by 4 as we fetch for 2 epochs and we double it to ensure we get all the events even in case of late blocks, etc...
 				(Number(deployments.contracts.Game.linkedData.commitPhaseDuration) +
 					Number(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
-				avarageBlockTime
+			avarageBlockTime
 		);
 
 		let fromBlock = currentBlockNumber - blockDistanceToFetchFrom;
@@ -124,78 +105,31 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			fromBlock = 0;
 		}
 
-		const events = await publicClient.getContractEvents({
-			...Game,
-			eventName: 'CommitmentRevealed',
-			args: {
-				epoch: [epoch - 1n],
-				zone: zones
-			},
-			strict: true,
-			fromBlock: BigInt(fromBlock),
-			toBlock: BigInt(currentBlockNumber)
-		});
-		// console.debug(allEvents);
+		// Call the provided fetch function to get the data
+		const state = await fetchFunction(zones, fromBlock, currentBlockNumber, expectedEpoch);
 
-		const avatarEvents: Map<
-			bigint,
-			GetContractEventsReturnType<typeof Game.abi, 'CommitmentRevealed', true>[0]
-		> = new Map();
-		for (const event of events) {
-			avatarEvents.set(event.args.avatarID, event);
+		if (!state) {
+			// undefined state indicate that the request has been dismissed
+			return;
 		}
 
-		const state: OnchainState = defaultState();
-
-		state.epoch = Number(epoch);
-
-		for (const entityFetched of result[0]) {
-			const id = entityFetched.avatarID.toString();
-
-			let actions: LocalAction[] = [];
-
-			const event = avatarEvents.get(entityFetched.avatarID);
-			if (event) {
-				actions = event.args.actions.map((v) => {
-					const coords = bigIntIDToXY(v.data);
-					return {
-						type: v.actionType === 0 ? 'enter' : v.actionType === 1 ? 'move' : 'exit',
-						x: coords.x,
-						y: coords.y
-					};
-				});
-			}
-
-			const { x, y } = bigIntIDToXY(entityFetched.position);
-			const entity: AvatarEntity = {
-				id,
-				owner: entityFetched.owner,
-				type: 'avatar',
-				position: {
-					x: Number(x),
-					y: Number(y)
-				},
-				life: entityFetched.life,
-				lastEpoch: Number(entityFetched.lastEpoch),
-				actions
-			};
-			state.entities[id] = entity;
+		// Check if this request is still valid (not superseded by a newer request)
+		if (currentPredictedEpoch > expectedEpoch) {
+			console.debug(
+				`old request using epoch ${expectedEpoch} while we are now at epoch ${currentPredictedEpoch}, discarding...`
+			);
+			return;
+		} else if (currentPredictedEpoch < expectedEpoch) {
+			throw new Error(`not possible, request is for a future epoch`);
 		}
 
-		lastZones = zones;
 		set(state);
 	}
 
 	let timeout: NodeJS.Timeout | undefined;
-	async function fetchContinuously(fromCameraUpdate?: boolean) {
-		if (timeout) {
-			clearTimeout(timeout);
-			timeout = undefined;
-		}
-
-		let retryIn = 15000;
+	async function fetchUntilSuccess(zones: bigint[], expectedEpoch: number) {
 		try {
-			await fetchState(lastCamera, fromCameraUpdate || false);
+			await fetchState(zones, expectedEpoch);
 		} catch (err) {
 			if (err instanceof TimeNotSyncedError) {
 				const timeElapsed = performance.now() / 1000;
@@ -206,12 +140,9 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 			} else {
 				console.error(`failed to fetch state`, err);
 			}
-
-			retryIn = 1000;
-		} finally {
-			if (!timeout) {
-				timeout = setTimeout(fetchContinuously, retryIn);
-			}
+			const retryIn = 200; // TODO configure ?
+			console.debug(`retrying in ${retryIn}`);
+			timeout = setTimeout(fetchUntilSuccess, retryIn, zones, expectedEpoch);
 		}
 	}
 
@@ -220,27 +151,40 @@ export function createDirectReadStore(camera: Readable<Camera>) {
 
 	function start() {
 		unsubscribeFromCamera = camera.subscribe((camera) => {
-			const cameraChanged = hasCameraChanged(lastCamera, camera);
-			if (cameraChanged) {
-				lastCamera = { ...camera };
-				fetchContinuously(true);
+			if (camera.width > 0 && camera.height > 0) {
+				const newZones = calculateVisibleZones(camera);
+				const zonesChanged = hasZonesChanged(lastZones, newZones);
+				lastZones = newZones;
+				if (zonesChanged) {
+					// console.debug(`zones changed`, camera);
+					fetchUntilSuccess(lastZones, currentPredictedEpoch);
+				}
 			}
 		});
 
 		unsubscribeFromEpochInfo = epochInfo.subscribe((epochInfo) => {
-			if (epochInfo.currentEpoch != lastEpoch || $state.epoch != epochInfo.currentEpoch) {
-				lastEpoch = epochInfo.currentEpoch;
-				fetchContinuously(false);
+			if (epochInfo.currentEpoch != currentPredictedEpoch) {
+				// console.debug(`epoch changed: ${epochInfo.currentEpoch} !== ${currentPredictedEpoch}`);
+				currentPredictedEpoch = epochInfo.currentEpoch;
+				if (lastZones) {
+					fetchUntilSuccess(lastZones, currentPredictedEpoch);
+				} else {
+					console.debug(`camera not ready yet`);
+				}
 			}
 		});
-
-		fetchContinuously(false);
 
 		return stop;
 	}
 
 	async function update() {
-		await fetchContinuously();
+		console.debug(`force fetch`);
+		if (lastZones) {
+			await fetchUntilSuccess(lastZones, currentPredictedEpoch);
+		} else {
+			console.error(`camera not ready yet`);
+		}
+
 		return $state;
 	}
 

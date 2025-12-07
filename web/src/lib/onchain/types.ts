@@ -8,9 +8,8 @@ export type AvatarEntity = BaseEntity & {
 	type: 'avatar';
 	life: number;
 	lastEpoch: number;
-	actions: LocalAction[];
+	previousActions: LocalAction[];
 };
-
 export type Entity = AvatarEntity;
 export type OnchainState = {
 	entities: { [id: string]: Entity };

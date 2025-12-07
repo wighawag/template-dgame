@@ -11,6 +11,7 @@
 	import Spinner from '../generic/Spinner.svelte';
 	import deployments from '$lib/deployments';
 	import { localState } from '$lib/private/localState';
+	import { viewState } from '$lib/view';
 
 	let showMenu = $state(false);
 
@@ -31,7 +32,7 @@
 >
 	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
-		<span class="text-lg font-bold">dgame</span>
+		<span class="text-lg font-bold">reveal-or-die</span>
 		<!-- <span
 			>{#if $avatars.step == 'Loaded'}
 				{$avatars.avatarsInWallet.length} / {$avatars.avatarsOnBench.length} / {$avatars
@@ -78,7 +79,7 @@
 	</div>
 	{#if showMenu}
 		<div
-			class="absolute right-4 top-12 z-100 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
+			class="z-100 absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
 			onclick={closeMenu}
 			onkeydown={(event) => {
 				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
@@ -119,12 +120,14 @@
 </nav>
 
 {#if $localState.signer}
-	<div  class="fixed right-0 top-12 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70">
+	<div class="fixed right-0 top-12 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70">
 		<div id="stats">
 			<div>
-				Moves: {Number(deployments.contracts.Game.linkedData.numMoves) -
-					($localState.avatar ? $localState.avatar.actions.filter((v) => v.type === 'move').length : 0)}
+				Moves: {$viewState.avatar
+					? $viewState.avatar.numMoves
+					: deployments.contracts.Game.linkedData.numMoves}
 			</div>
+			<div></div>
 		</div>
 	</div>
 {/if}

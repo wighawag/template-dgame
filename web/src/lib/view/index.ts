@@ -1,45 +1,64 @@
-import { createDirectReadStore } from '$lib/onchain/direct-read';
 import type { AvatarEntity } from '$lib/onchain/types';
-import { camera } from '$lib/render/camera';
-import { derived, get, writable } from 'svelte/store';
-import { localState, type LocalAction } from '../private/localState';
-import { epochInfo, time } from '$lib/time';
+import { derived, get } from 'svelte/store';
+import { computeUpdatedLocalState, localState, type LocalAction } from '../private/localState';
+import deployments from '$lib/deployments';
+import { onchainState } from '$lib/onchain/state';
 
 export type Position = { x: number; y: number };
 
-export type AvatarViewEntity = AvatarEntity;
-
+export type AvatarViewEntity = AvatarEntity & {
+	plannedActions?: LocalAction[];
+	entering: boolean;
+};
 export type ViewEntity = AvatarViewEntity;
+export type ViewEntities = { [id: string]: ViewEntity };
 export type ViewState = {
-	avatarID?: string;
-	entities: { [id: string]: ViewEntity };
+	avatar?: { id: string; numMoves: number; };
+	entities: ViewEntities;
 	epoch: number;
 };
 
-export const onchainState = createDirectReadStore(camera);
-
 export const viewState = derived(
 	[onchainState, localState],
-	([$onchainState, $localState]): ViewState => {
-		const { currentEpoch: epoch } = epochInfo.now(); // we use now  instead of deriving from time
-		const entities = { ...$onchainState.entities } as { [id: string]: ViewEntity };
-		let avatarID: string | undefined;
+	([$onchainState, localStateFromStore]): ViewState => {
+		const epoch = $onchainState.epoch;
+		const $localState = computeUpdatedLocalState(localStateFromStore, epoch);
+
+		const entities: ViewEntities = {};
+		for (const entityID of Object.keys($onchainState.entities)) {
+			const onchainEntity = $onchainState.entities[entityID];
+			if (onchainEntity.type === 'avatar') {
+				entities[entityID] = {
+					...onchainEntity,
+					entering: false
+				}
+			}
+
+		}
+		let avatarData: { id: string; numMoves: number; } | undefined;
 		if ($localState.signer && $localState.avatar) {
 			const currentAvatarID = $localState.avatar.avatarID;
-			let avatarEntity = $onchainState.entities[currentAvatarID] as AvatarEntity | undefined;
+			let avatarEntity = entities[currentAvatarID] as AvatarViewEntity | undefined;
 			if (avatarEntity || !$localState.avatar.exiting) {
-				avatarID = currentAvatarID;
+				let numMoves = Number(deployments.contracts.Game.linkedData.numMoves);
+
+				avatarData = {
+					id: currentAvatarID,
+					numMoves: numMoves - $localState.avatar.actions.filter((v) => v.type === 'move').length,
+				};
 
 				if ($localState.avatar.actions[0]?.type === 'enter') {
 					avatarEntity = {
 						owner: $localState.signer.owner,
 						type: 'avatar',
-						id: avatarID,
+						id: avatarData.id,
 						life: 1,
 						position: $localState.avatar.actions[0],
 						lastEpoch: epoch,
-						actions: []
+						previousActions: [],
+						entering: true
 					};
+					entities[avatarData.id] = avatarEntity;
 				}
 
 				if (avatarEntity) {
@@ -54,18 +73,14 @@ export const viewState = derived(
 							actions.push(current_action);
 						}
 					}
-					entities[avatarID] = {
-						...avatarEntity,
-						position: current_action,
-						actions
-					};
+					avatarEntity.plannedActions = actions
 				}
 			}
 		}
 
 		for (const entityID of Object.keys(entities)) {
 			const entity = entities[entityID];
-			if (entity.type === 'avatar' && entityID != avatarID) {
+			if (entity.type === 'avatar' && entityID != avatarData?.id) {
 				// TODO
 				if (entity.life == 0 && entity.lastEpoch + 1 < epoch) {
 					delete entities[entityID];
@@ -74,7 +89,7 @@ export const viewState = derived(
 		}
 
 		return {
-			avatarID,
+			avatar: avatarData,
 			entities,
 			epoch: $onchainState.epoch
 		};

@@ -11,7 +11,7 @@ import {
 import deployments from '$lib/deployments';
 import type { LocalAction } from '$lib/private/localState';
 import { generateRandom96BitBigInt } from '$lib/utils/data';
-import { xyToBigIntID } from 'dgame-contracts';
+import { xyToBigIntID } from 'reveal-or-die-contracts';
 import { encodeAbiParameters, formatEther, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { gasFee } from './gasFee';
@@ -44,7 +44,7 @@ export class Writes {
 		const hash = await walletClient.sendTransaction({
 			account: faucetAccount,
 			to: $connection.account.signer.address,
-			value: price + stippend
+			value: price + stippend,
 		});
 		return {
 			transactionID: hash,
@@ -80,7 +80,8 @@ export class Writes {
 				const account_creation_hash = await walletClient.sendTransaction({
 					to: $connection.account.signer.address,
 					value: 1n,
-					account: faucetAccount
+					account: faucetAccount,
+					maxFeePerGas: BigInt(deployments.chain.properties.expectedWorstGasPrice)
 				});
 				await publicClient.waitForTransactionReceipt({ hash: account_creation_hash });
 			}
@@ -163,7 +164,8 @@ export class Writes {
 				stippend,
 				zeroAddress
 			],
-			value
+			value,
+			maxFeePerGas: BigInt(deployments.chain.properties.expectedWorstGasPrice)
 		});
 		return {
 			avatarID,

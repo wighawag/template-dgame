@@ -1,6 +1,15 @@
 import { version } from '$app/environment';
 import deployments from './deployments';
 import { gasFee } from './onchain/gasFee';
+import { createServiceWorker } from './service-worker';
+import { getHashParamsFromLocation, getParamsFromLocation } from './utils/web/url';
+
+export const serviceWorker = createServiceWorker();
+
+export const hashParams = getHashParamsFromLocation();
+export const { params } = getParamsFromLocation();
+
+export const globalQueryParams = ['debug', 'debugLevel', 'traceLevel', 'debugLabel', 'eruda'];
 
 function getBigIntPowerOf10(n: bigint) {
 	if (n === 0n) return 1n; // Edge case: log10(0) is undefined, default to 10^0=1
@@ -27,6 +36,8 @@ export const stippend = maxActionCost * 100n; // 100 turn, we need to show
 export const price = BigInt(deployments.contracts.AvatarsSale.linkedData.paymentAmount);
 export const creditsDivider = getBigIntPowerOf10(maxActionCost);
 
-gasFee.subscribe(() => {});
+gasFee.subscribe(() => { });
 
 console.log(`VERSION: ${version}`);
+
+(globalThis as any).deployments = deployments;

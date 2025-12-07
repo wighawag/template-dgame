@@ -9,4 +9,7 @@ export abstract class GameObject extends Container {
 	abstract update(entity: ViewEntity, epoch: number): void;
 
 	abstract onRemoved(): void;
+
+	// Optional method called every frame for animations and timing
+	tick?(): void;
 }

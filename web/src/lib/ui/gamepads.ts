@@ -8,6 +8,31 @@ interface GamepadController {
 export function createGamepadController(eventEmitter: EventEnitter): GamepadController {
 	let running = false;
 
+	function onUp() {
+		eventEmitter.emit('up');
+	}
+	function onDown() {
+		eventEmitter.emit('down');
+	}
+	function onLeft() {
+		eventEmitter.emit('left');
+	}
+	function onRight() {
+		eventEmitter.emit('right');
+	}
+
+	function onSpace() {
+		eventEmitter.emit('action');
+	}
+
+	function onEnter() {
+		eventEmitter.emit('action-2');
+	}
+
+	function onBackspace() {
+		eventEmitter.emit('backspace');
+	}
+
 	function gamepadconnected(e: Event) {}
 
 	function gamepaddisconnected(e: Event) {}

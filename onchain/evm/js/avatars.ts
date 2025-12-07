@@ -44,10 +44,10 @@ export function calculateVisibleZones(camera: {
 	}
 
 	// Calculate the min/max coordinates of the camera view
-	const minX = camera.x;
-	const maxX = camera.x + camera.width;
-	const minY = camera.y;
-	const maxY = camera.y + camera.height;
+	const minX = Math.floor(camera.x - camera.width / 2);
+	const maxX = Math.ceil(camera.x + camera.width / 2);
+	const minY = Math.floor(camera.y - camera.height / 2);
+	const maxY = Math.ceil(camera.y + camera.height / 2);
 
 	// Convert to zone coordinates with a buffer of 1 zone in each direction
 	const minZoneX = zoneCoord(minX) - 1;

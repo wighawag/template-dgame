@@ -7,11 +7,12 @@
 
 	function clear() {
 		avatars.update();
+		localState.markTutorialAsUnSeen();
 		localState.removeAvatar();
 	}
 
 	let avatar = $derived(
-		$viewState.avatarID ? ($viewState.entities[$viewState.avatarID] as AvatarViewEntity) : undefined
+		$viewState.avatar ? ($viewState.entities[$viewState.avatar.id] as AvatarViewEntity) : undefined
 	);
 </script>
 
