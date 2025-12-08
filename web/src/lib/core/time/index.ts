@@ -23,7 +23,7 @@ function formatTime(timestamp: number): string {
 
 export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	let minPollingInterval = chainInfo?.minPollingInterval || 200;
-
+	let syncing: Promise<LastSync | undefined> | undefined;
 	let last_time = Math.floor(Date.now() / 1000);
 	let last_fetch_time_ms = Date.now();
 	let last_fetch_block_number: number | null = null;
@@ -41,6 +41,7 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	}
 
 	function start() {
+		// console.log(`start`);
 		// Main time update interval (updates every second)
 		const timeUpdateInterval = setInterval(() => {
 			const now = Date.now();
@@ -52,6 +53,8 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 		initialSync();
 
 		return () => {
+			// console.log(`stop`);
+			hasAccurateTime = false; // Track if we have the most accurate
 			clearInterval(timeUpdateInterval);
 			if (pollingInterval) {
 				clearInterval(pollingInterval);
@@ -61,7 +64,19 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	}
 
 	async function initialSync() {
-		const synced = await updateTimeFromProvider();
+		let synced = $time.lastSync;
+		if (!synced) {
+			if (!syncing) {
+				console.log(`not synced, syncing....`);
+				syncing = updateTimeFromProvider();
+			} else {
+				console.log(`waiting for previous syncing....`);
+				// we return as the previous will get into the next loop
+				return;
+			}
+			synced = await syncing;
+		}
+
 		if (synced) {
 			// Initial sync successful, now start polling to catch the next block
 			// for maximum accuracy, then we'll stop polling
@@ -99,8 +114,12 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 						`got ${latestBlockNumber} at ${formatTime(latestBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
 					);
 
+					if (!last_fetch_block_number) {
+						throw new Error(`last_fetch_block_number not set`);
+					}
+
 					// If we have a new block, we now have the most accurate blockchain time
-					if (last_fetch_block_number === null || latestBlockNumber > last_fetch_block_number) {
+					if (latestBlockNumber > last_fetch_block_number) {
 						const after_fetch = Date.now();
 						const predicted_fetch_time = (before_fetch + after_fetch) / 2;
 

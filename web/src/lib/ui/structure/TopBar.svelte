@@ -113,16 +113,3 @@
 		</div>
 	{/if}
 </nav>
-
-{#if $localState.signer}
-	<div class="fixed top-12 right-0 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70">
-		<div id="stats">
-			<div>
-				Moves: {$viewState.avatar
-					? $viewState.avatar.numMoves
-					: deployments.contracts.Game.linkedData.numMoves}
-			</div>
-			<div></div>
-		</div>
-	</div>
-{/if}

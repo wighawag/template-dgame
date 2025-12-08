@@ -118,10 +118,12 @@ export function createSplashStore(loadingStore?: Readable<number> | undefined) {
 let progress = 0;
 const assetLoading = writable(progress);
 if (browser) {
+	console.log(`loading assets...`);
 	Assets.init({ manifest }).then(() => {
 		Assets.loadBundle('default', (progress) => {
 			assetLoading.set(progress);
 		}).then((assets) => {
+			assetLoading.set(1);
 			console.log(`Assets Loaded`, assets);
 		});
 	});
