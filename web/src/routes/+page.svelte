@@ -12,7 +12,7 @@
 	import EnterFlow from '$lib/ui/flows/enter/EnterFlow.svelte';
 	import PurchaseFlow from '$lib/ui/flows/purchase/PurchaseFlow.svelte';
 	import Tutorial from '$lib/ui/tutorial/Tutorial.svelte';
-	// import { browser } from '$app/environment';
+	import { browser } from '$app/environment';
 </script>
 
 <main>
@@ -30,9 +30,9 @@
 <WalletOnlyConnectionFlow connection={paymentConnection} />
 
 <div class="canvas">
-	<!-- {#if browser} -->
-	<PixiCanvas {cameraControl} {renderer} {eventEmitter} cellSize={10} showGrid={false} />
-	<!-- {/if} -->
+	{#if browser}
+		<PixiCanvas {cameraControl} {renderer} {eventEmitter} cellSize={10} showGrid={false} />
+	{/if}
 </div>
 
 <GameInfo />

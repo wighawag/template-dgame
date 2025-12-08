@@ -5,13 +5,14 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { AssetPack, type AssetPackConfig } from '@assetpack/core';
 import { pixiPipes } from '@assetpack/core/pixi';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 
+const assetsFolder = '../assets';
 const manifestSrcPath = './src/lib/manifest.json';
 
 function assetpackPlugin(): Plugin {
 	const apConfig: AssetPackConfig = {
-		entry: '../assets',
+		entry: assetsFolder,
 		logLevel: 'verbose',
 		strict: true,
 		pipes: [
@@ -24,17 +25,17 @@ function assetpackPlugin(): Plugin {
 					includeMetaData: true,
 					trimExtensions: true
 				}
-			}),
+			})
 		],
 		assetSettings: [
 			{
 				files: ['**/sprites'],
 				metaData: {
-					tps: true,
+					tps: true
 					// other tags can be added here
-				},
+				}
 			}
-		],
+		]
 	};
 	let mode: ResolvedConfig['command'];
 	let ap: AssetPack | undefined;
@@ -51,18 +52,17 @@ function assetpackPlugin(): Plugin {
 					return value;
 				}
 				const newValue = `/assets/${value}`;
-				console.log(`transforming ${value} into ${newValue}`)
-				return newValue
+				console.log(`transforming ${value} into ${newValue}`);
+				return newValue;
 			} else {
 				if (value.src.startsWith('/')) {
 					return value;
 				}
 				const newSrcValue = `/assets/${value.src}`;
-				console.log(`transforming ${value.src} into ${newSrcValue}`)
+				console.log(`transforming ${value.src} into ${newSrcValue}`);
 				value.src = newSrcValue;
 				return value;
 			}
-
 		}
 		for (const bundle of jsonContent.bundles) {
 			for (const asset of bundle.assets) {
@@ -72,18 +72,16 @@ function assetpackPlugin(): Plugin {
 							asset.src[i] = transform(asset.src[i]);
 						}
 					} else {
-						throw new Error(`src object not supported yet`)
+						throw new Error(`src object not supported yet`);
 					}
 				} else {
 					asset.src = transform(asset.src);
 				}
-
 			}
 		}
 		writeFileSync(manifestSrcPath, JSON.stringify(jsonContent, null, 2));
 		// ------------------------------------------------------------------
 	}
-
 
 	return {
 		name: 'vite-plugin-assetpack',
@@ -111,19 +109,28 @@ function assetpackPlugin(): Plugin {
 				await ap.stop();
 				ap = undefined;
 			}
-		},
+		}
 	};
 }
-
 
 const env = process.env;
 
 const plugins = [
 	devtoolsJson({ uuid: '612d0dc7-ecc1-4ebd-8daf-7201d2a8a133' }),
 	tailwindcss(),
-	sveltekit(),
-	assetpackPlugin(),
+	sveltekit()
 ];
+
+if (existsSync(assetsFolder)) {
+	plugins.push(assetpackPlugin());
+} else {
+	writeFileSync(
+		manifestSrcPath,
+		JSON.stringify({
+			bundles: [{ name: 'default', assets: [] }]
+		})
+	);
+}
 
 if (env.USE_LOCALHOST_SSL) {
 	plugins.push(
@@ -149,8 +156,6 @@ export default defineConfig({
 		sourcemap: true
 	},
 	ssr: {
-		noExternal: [
-			'pixi-viewport'
-		]
+		noExternal: ['pixi-viewport']
 	}
 });
