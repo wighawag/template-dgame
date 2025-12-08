@@ -1,10 +1,8 @@
-import { publicClient } from '$lib/connection';
+import { publicClient } from '$lib/core/connection';
+import { PerZoneCachedFetcher } from '$lib/core/utils/fetcher/per-zone-cached-fetcher';
 import deployments from '$lib/deployments';
-import { type GetContractEventsReturnType } from 'viem';
 import { logs } from 'named-logs';
-import { PerZoneCachedFetcher } from '$lib/utils/fetcher/per-zone-cached-fetcher';
-import { get } from 'svelte/store';
-import { time } from '$lib/time';
+import { type GetContractEventsReturnType } from 'viem';
 
 const console = logs('zones-fetcher');
 

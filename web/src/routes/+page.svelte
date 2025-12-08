@@ -1,16 +1,16 @@
 <script lang="ts">
-	import ConnectionFlow from '$lib/connection/ConnectionFlow.svelte';
+	import { connection, paymentConnection } from '$lib/core/connection';
+	import ConnectionFlow from '$lib/core/connection/ConnectionFlow.svelte';
+	import WalletOnlyConnectionFlow from '$lib/core/connection/WalletOnlyConnectionFlow.svelte';
+	import PixiCanvas from '$lib/core/render/PixiCanvas.svelte';
+	import { cameraControl } from '$lib/core/render/camera.js';
+	import GameClock from '$lib/ui/GameClock.svelte';
 	import TopBar from '$lib/ui/structure/TopBar.svelte';
-	import PixiCanvas from '$lib/render/PixiCanvas.svelte';
-	import { camera } from '$lib/render/camera.js';
-	import { renderer } from '$lib/render/renderer.js';
 	import { eventEmitter } from '$lib/render/eventEmitter.js';
+	import { renderer } from '$lib/render/renderer.js';
+	import GameInfo from '$lib/ui/GameInfo.svelte';
 	import EnterFlow from '$lib/ui/flows/enter/EnterFlow.svelte';
 	import PurchaseFlow from '$lib/ui/flows/purchase/PurchaseFlow.svelte';
-	import GameClock from '$lib/time/GameClock.svelte';
-	import { paymentConnection, connection } from '$lib/connection';
-	import WalletOnlyConnectionFlow from '$lib/connection/WalletOnlyConnectionFlow.svelte';
-	import GameInfo from '$lib/ui/GameInfo.svelte';
 	import Tutorial from '$lib/ui/tutorial/Tutorial.svelte';
 	// import { browser } from '$app/environment';
 </script>
@@ -19,7 +19,7 @@
 	<div class="pointer-events-auto">
 		<TopBar />
 	</div>
-	<div class="ml-2 mt-16"><GameClock /></div>
+	<div class="mt-16 ml-2"><GameClock /></div>
 </main>
 
 <EnterFlow />
@@ -31,7 +31,7 @@
 
 <div class="canvas">
 	<!-- {#if browser} -->
-	<PixiCanvas {camera} {renderer} {eventEmitter} />
+	<PixiCanvas {cameraControl} {renderer} {eventEmitter} cellSize={10} showGrid={false} />
 	<!-- {/if} -->
 </div>
 
@@ -40,8 +40,9 @@
 <div id="navigation" class="navigation">
 	<div class="actions">
 		<button onclick={() => eventEmitter.emit('backspace')}>&lt;</button>
-		<button onclick={() => eventEmitter.emit('action')}> exit</button>
 		<!-- <button class="invisible" onclick={() => eventEmitter.emit('backspace')}>&lt;&lt;</button> -->
+		<button onclick={() => eventEmitter.emit('action')}>instant / exit</button>
+		<button onclick={() => eventEmitter.emit('action-2')}>delayed</button>
 	</div>
 	<div class="line"></div>
 

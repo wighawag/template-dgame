@@ -1,7 +1,7 @@
 import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
+import { extractedPromise } from '$lib/core/utils/promise';
 import { avatars } from '$lib/onchain/avatars';
 import { writes } from '$lib/onchain/writes';
-import { extractedPromise } from '$lib/utils/promise';
 import { writable } from 'svelte/store';
 
 export type PurchaseFlow = { error?: { message: string } } & (

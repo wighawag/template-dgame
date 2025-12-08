@@ -1,5 +1,5 @@
-import { AnimatedSprite, Sprite, Texture } from 'pixi.js';
-import { TileType, TileSpritesheet } from './TileSpritesheet';
+import { AnimatedSprite, Sprite } from 'pixi.js';
+import { TileSpritesheet, TileType } from './TileSpritesheet';
 
 export class TileSpritePool {
 	private pools: Map<TileType, Sprite[]> = new Map();
@@ -28,7 +28,6 @@ export class TileSpritePool {
 				// (sprite as AnimatedSprite).play();
 			} else {
 				sprite = new Sprite({ texture, roundPixels: true });
-
 			}
 			sprite.width = 10;
 			sprite.height = 10;
@@ -36,12 +35,11 @@ export class TileSpritePool {
 			if (type == TileType.Wall) {
 				sprite.anchor.set(0, 16 / 48);
 
-				sprite.height = 10 * 48 / 32;
+				sprite.height = (10 * 48) / 32;
 			} else if (type == TileType.Box) {
 				sprite.anchor.set(0, 14 / 46);
-				sprite.height = 10 * 46 / 32;
+				sprite.height = (10 * 46) / 32;
 			}
-
 		}
 
 		sprite.visible = true;

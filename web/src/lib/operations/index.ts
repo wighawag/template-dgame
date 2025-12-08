@@ -1,14 +1,13 @@
-import { eventEmitter } from '$lib/render/eventEmitter';
-import { localState, type LocalReadyState, type LocalState } from '$lib/private/localState';
-import { get } from 'svelte/store';
-import { avatars } from '$lib/onchain/avatars';
-import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
-import { epochInfo, timeConfig, type EpochInfo } from '$lib/time';
-import { viewState, type Position, type ViewState } from '$lib/view';
-import { areaAt, Areas, zoneLocalCoord } from 'reveal-or-die-contracts';
+import { cameraControl } from '$lib/core/render/camera';
+import { epochInfo, timeConfig, type EpochInfo } from '$lib/core/time';
 import deployments from '$lib/deployments';
-import { camera } from '$lib/render/camera';
-import { warning } from '$lib/ui/modal/warning';
+import { avatars } from '$lib/onchain/avatars';
+import { localState, type LocalReadyState, type LocalState } from '$lib/private/localState';
+import { eventEmitter } from '$lib/render/eventEmitter';
+import { enterFlow } from '$lib/ui/flows/enter/enterFlow';
+import { viewState, type Position, type ViewState } from '$lib/view';
+import { areaAt, zoneLocalCoord } from 'reveal-or-die-contracts';
+import { get } from 'svelte/store';
 
 type ReadyState = {
 	step: 'Ready';
@@ -23,12 +22,12 @@ type ReadyState = {
 };
 type CurrentState =
 	| {
-		step: 'Idle';
-		$viewState: ViewState;
-		$localState: LocalState;
-		$epochInfo: EpochInfo;
-		timeup: boolean;
-	}
+			step: 'Idle';
+			$viewState: ViewState;
+			$localState: LocalState;
+			$epochInfo: EpochInfo;
+			timeup: boolean;
+	  }
 	| ReadyState;
 
 function gatherState(): CurrentState {
@@ -115,7 +114,7 @@ function addMove(dx: number, dy: number) {
 				x: toX,
 				y: toY
 			});
-			camera.follow(toX, toY);
+			cameraControl.follow(toX, toY);
 		}
 	}
 }

@@ -1,19 +1,13 @@
-import { get, writable, type Readable } from 'svelte/store';
-import { createAutoSubmitter, type AutoSubmitConfig } from '$lib/onchain/auto-submit';
-import { epochInfo, localComputer, time, timeConfig } from '$lib/time';
-import {
-	connection,
-	publicClient,
-	signer,
-	type OptionalSigner,
-	type Signer
-} from '$lib/connection';
-import { writes } from '$lib/onchain/writes';
-import { keccak256 } from 'viem';
+import { signer, type OptionalSigner, type Signer } from '$lib/core/connection';
+import { epochInfo, timeConfig } from '$lib/core/time';
 import deployments from '$lib/deployments';
-import { privateKeyToAccount } from 'viem/accounts';
+import { createAutoSubmitter, type AutoSubmitConfig } from '$lib/core/utils/operations/auto-submit';
+import { writes } from '$lib/onchain/writes';
 import type { Position } from 'reveal-or-die-contracts';
 import { logs } from 'named-logs';
+import { writable, type Readable } from 'svelte/store';
+import { keccak256 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 const console = logs('localState');
 
@@ -307,10 +301,10 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					set($state);
 				} else {
 					if ($state.avatar.submission.commit) {
-						$state.avatar.submission.commit.includedInBlock = Number(receipt.blockNumber)
+						$state.avatar.submission.commit.includedInBlock = Number(receipt.blockNumber);
 						set($state);
 					} else {
-						console.error(`commit data has disapeared!`)
+						console.error(`commit data has disapeared!`);
 					}
 				}
 			} catch (err) {
@@ -424,13 +418,12 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 					set($state);
 				} else {
 					if ($state.avatar.submission.reveal) {
-						$state.avatar.submission.reveal.includedInBlock = Number(receipt.blockNumber)
+						$state.avatar.submission.reveal.includedInBlock = Number(receipt.blockNumber);
 						set($state);
 					} else {
-						console.error(`reveal data has disapeared!`)
+						console.error(`reveal data has disapeared!`);
 					}
 				}
-
 			} catch (err) {
 				if ($state.avatar.submission) {
 					$state.avatar.submission.reveal = undefined;
@@ -454,7 +447,6 @@ const commitConfig: AutoSubmitConfig = {
 		localState.commit({ pollingInterval: highFrequencyInterval });
 	},
 	shouldExecute: ({ currentEpochInfo }) => {
-
 		const currentLocalData = computeUpdatedLocalState(
 			localState.value,
 			currentEpochInfo.currentEpoch
@@ -514,9 +506,7 @@ const revealConfig: AutoSubmitConfig = {
 			return false;
 		}
 
-
 		if (!currentEpochInfo.isCommitPhase) {
-
 			// TODO ?
 			// if (!currentLocalData.avatar.submission.commit.includedInBlock) {
 			// 	const receipt = await publicClient.getTransactionReceipt({ hash: currentLocalData.avatar.submission.commit.txHash as `0x${string}` });
@@ -525,32 +515,29 @@ const revealConfig: AutoSubmitConfig = {
 
 			if (
 				currentLocalData.avatar.submission &&
-				currentLocalData.avatar.submission.commit.epoch == currentEpochInfo.currentEpoch
-				&& currentLocalData.avatar.submission.commit.includedInBlock
+				currentLocalData.avatar.submission.commit.epoch == currentEpochInfo.currentEpoch &&
+				currentLocalData.avatar.submission.commit.includedInBlock
 			) {
-
-
 				if (
 					!currentLocalData.avatar.submission.reveal ||
 					currentLocalData.avatar.submission.reveal.epoch < currentEpochInfo.currentEpoch
 				) {
-
 					return true;
 				} else {
-					console.log(`already reveal, retrying`)
-					// try resubmission 
+					console.log(`already reveal, retrying`);
+					// try resubmission
 					return true;
 				}
 			} else {
-				console.log(`no commit found`)
+				console.log(`no commit found`);
 				// Handle avatar removal if commit was not performed
 				if (
 					currentLocalData.avatar.epoch == currentEpochInfo.currentEpoch &&
 					currentLocalData.avatar.actions.length > 0 &&
 					currentLocalData.avatar.actions[currentLocalData.avatar.actions.length - 1].type ==
-					'enter'
+						'enter'
 				) {
-					console.log(`deleting avatar...`)
+					console.log(`deleting avatar...`);
 					localState.removeAvatar();
 				}
 				// Stop checking if conditions no longer met
@@ -558,7 +545,7 @@ const revealConfig: AutoSubmitConfig = {
 				return false;
 			}
 		} else {
-			console.log(`not in reveal phase anymore`)
+			console.log(`not in reveal phase anymore`);
 			// Stop checking if not in reveal phase anymore
 			return false;
 		}
@@ -571,8 +558,6 @@ const revealConfig: AutoSubmitConfig = {
 		if (!currentLocalData.signer || !currentLocalData.avatar) {
 			return { shouldStart: false, delayMs: 0, highFrequencyInterval };
 		}
-
-
 
 		// For reveal: check if we need to start high-frequency checking 1 second before reveal time
 		const shouldStartRevealCheck =

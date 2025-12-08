@@ -11,4 +11,4 @@ export const eventEmitter = new EventEmitter<{
 	backspace: () => void;
 }>();
 
-export type EventEnitter = typeof eventEmitter;
+export type MyEventEmitter = typeof eventEmitter;

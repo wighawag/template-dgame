@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { localState } from '$lib/private/localState';
-	import Modal from '$lib/ui/modal/Modal.svelte';
-	import { epochInfo, time, threePhase, twoPhase } from '$lib/time/index.js';
-	import { viewState, type AvatarViewEntity } from '$lib/view';
+	import { epochInfo } from '$lib/core/time/index.js';
+	import Modal from '$lib/core/ui/modal/Modal.svelte';
 	import { avatars } from '$lib/onchain/avatars';
+	import { localState } from '$lib/private/localState';
+	import { viewState, type AvatarViewEntity } from '$lib/view';
 
 	function clear() {
 		avatars.update();

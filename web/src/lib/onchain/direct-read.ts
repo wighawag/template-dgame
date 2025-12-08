@@ -1,9 +1,9 @@
-import { get, writable, type Readable } from 'svelte/store';
-import { epochInfo, time } from '$lib/time';
+import { publicClient } from '$lib/core/connection';
+import { epochInfo, time } from '$lib/core/time';
+import deployments from '$lib/deployments';
 import { calculateVisibleZones } from 'reveal-or-die-contracts';
 import { logs } from 'named-logs';
-import { publicClient } from '$lib/connection';
-import deployments from '$lib/deployments';
+import { get, writable, type Readable } from 'svelte/store';
 
 const console = logs('onchain:read');
 
@@ -14,7 +14,7 @@ type Camera = {
 	height: number;
 };
 
-class TimeNotSyncedError extends Error { }
+class TimeNotSyncedError extends Error {}
 
 /**
  * Creates a reactive store that manages direct blockchain data fetching based on camera position.
@@ -97,7 +97,7 @@ export function createDirectReadStore<T>(
 			(4 * // we multiply by 4 as we fetch for 2 epochs and we double it to ensure we get all the events even in case of late blocks, etc...
 				(Number(deployments.contracts.Game.linkedData.commitPhaseDuration) +
 					Number(deployments.contracts.Game.linkedData.revealPhaseDuration))) /
-			avarageBlockTime
+				avarageBlockTime
 		);
 
 		let fromBlock = currentBlockNumber - blockDistanceToFetchFrom;

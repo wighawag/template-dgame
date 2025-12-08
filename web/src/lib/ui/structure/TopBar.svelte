@@ -1,15 +1,10 @@
 <script lang="ts">
-	import { creditsDivider, maxActionCost } from '$lib/config';
-	import { connection } from '$lib/connection';
-	import { avatars } from '$lib/onchain/avatars';
-	import { balance } from '$lib/onchain/balance';
-	import { gasFee } from '$lib/onchain/gasFee';
-	import { epochInfo } from '$lib/time';
-	import ImgBlockie from '$lib/ui/ethereum/ImgBlockie.svelte';
-	import { formatEther } from 'viem';
-	import Button from '../generic/Button.svelte';
-	import Spinner from '../generic/Spinner.svelte';
+	import { connection } from '$lib/core/connection';
+	import Button from '$lib/core/ui/ethereum/generic/Button.svelte';
+	import Spinner from '$lib/core/ui/ethereum/generic/Spinner.svelte';
+	import ImgBlockie from '$lib/core/ui/ethereum/ImgBlockie.svelte';
 	import deployments from '$lib/deployments';
+	import { balance } from '$lib/core/connection/balance';
 	import { localState } from '$lib/private/localState';
 	import { viewState } from '$lib/view';
 
@@ -28,7 +23,7 @@
 </script>
 
 <nav
-	class="fixed left-0 top-0 z-50 flex h-12 w-full items-center justify-between bg-gray-900 px-4 text-white shadow-md"
+	class="fixed top-0 left-0 z-50 flex h-12 w-full items-center justify-between bg-gray-900 px-4 text-white shadow-md"
 >
 	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
@@ -79,7 +74,7 @@
 	</div>
 	{#if showMenu}
 		<div
-			class="z-100 absolute right-4 top-12 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
+			class="absolute top-12 right-4 z-100 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-lg transition-transform duration-200"
 			onclick={closeMenu}
 			onkeydown={(event) => {
 				if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
@@ -93,11 +88,11 @@
 			{#if $connection.step === 'SignedIn'}
 				<div class="p-4">
 					<div class="mb-2 text-xs text-gray-400">Connected as:</div>
-					<div class="mb-4 break-all font-mono text-sm text-white">
+					<div class="mb-4 font-mono text-sm break-all text-white">
 						{$connection.account.address}
 					</div>
 					<div class="mb-2 text-xs text-gray-400">Controller:</div>
-					<div class="mb-4 break-all font-mono text-sm text-white">
+					<div class="mb-4 font-mono text-sm break-all text-white">
 						{$connection.account.signer.address}
 					</div>
 					<Button
@@ -120,7 +115,7 @@
 </nav>
 
 {#if $localState.signer}
-	<div class="fixed right-0 top-12 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70">
+	<div class="fixed top-12 right-0 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70">
 		<div id="stats">
 			<div>
 				Moves: {$viewState.avatar

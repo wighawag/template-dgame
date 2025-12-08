@@ -1,6 +1,6 @@
-import { get, writable, type Readable } from 'svelte/store';
-import { account, publicClient, type Account } from '$lib/connection';
+import { account, publicClient, type Account } from '$lib/core/connection';
 import deployments from '$lib/deployments';
+import { get, writable, type Readable } from 'svelte/store';
 
 export type AvatarCollection = { error?: { message: string } } & (
 	| {

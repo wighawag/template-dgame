@@ -11,7 +11,6 @@ export class TileSpritesheet {
 	private static textures: Map<TileType, Texture> = new Map();
 	private static loaded = false;
 
-
 	public static async load(): Promise<void> {
 		if (this.loaded) return;
 
@@ -30,11 +29,11 @@ export class TileSpritesheet {
 				return this.cachedExit;
 			}
 			const textures: Texture[] = [];
-			for (let i = 1; i <= 1; i++) {
+			for (let i = 1; i <= 21; i++) {
 				if (i < 10) {
-					textures.push(Assets.get('sprites').textures[`exit_00${i}.png`])
+					textures.push(Assets.get('sprites').textures[`exit_00${i}.png`]);
 				} else {
-					textures.push(Assets.get('sprites').textures[`exit_0${i}.png`])
+					textures.push(Assets.get('sprites').textures[`exit_0${i}.png`]);
 				}
 			}
 			this.cachedExit = textures;

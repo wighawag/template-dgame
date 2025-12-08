@@ -1,12 +1,17 @@
+import { camera, type Camera } from '$lib/core/render/camera';
+import { startListening, stopListening } from '$lib/operations';
+import { eventEmitter, type MyEventEmitter } from '$lib/render/eventEmitter';
+import { createGamepadController } from '$lib/render/gamepads';
+import { createKeyboardController } from '$lib/render/keyboard-controller';
 import { viewState, type Position, type ViewEntity, type ViewState } from '$lib/view';
+import { areaAt, ZONE_SIZE, zoneLocalCoord } from 'reveal-or-die-contracts';
 import { AnimatedSprite, Container, Sprite } from 'pixi.js';
 import type { Readable } from 'svelte/store';
 import { AvatarObject } from './objects/AvatarObject';
-import { camera, type Camera } from './camera';
 import type { GameObject } from './objects/GameObject';
-import { areaAt, ZONE_SIZE, zoneLocalCoord } from 'reveal-or-die-contracts';
 import { TileSpritePool } from './SpritePool';
 import { TileType } from './TileSpritesheet';
+import type { LocalAction } from '$lib/private/localState';
 
 const CELL_SIZE = 10;
 
@@ -25,14 +30,15 @@ interface TileInfo {
 	type: CellType;
 }
 
-
-export function createRenderer(viewState: Readable<ViewState>) {
+export function createRenderer(viewState: Readable<ViewState>, eventEmitter: MyEventEmitter) {
 	let gameObjects: { [id: string]: GameObject } = {};
 	let unsubscribe: (() => void) | undefined = undefined;
 	let cameraUnsubscribe: (() => void) | undefined = undefined;
 	const spritePool = new TileSpritePool();
 	const visibleTiles: Map<string, Sprite> = new Map();
 
+	let keyboardController = createKeyboardController(eventEmitter);
+	let gamepadController = createGamepadController(eventEmitter);
 
 	function removeTileSprite(key: string): void {
 		const sprite = visibleTiles.get(key);
@@ -52,11 +58,9 @@ export function createRenderer(viewState: Readable<ViewState>) {
 		return area.cells[cellIndex] as CellType;
 	}
 
-
 	function getKey(x: number, y: number, cellType: CellType): string {
 		return `${x},${y},${cellType}`;
 	}
-
 
 	function getVisibleBounds(camera: Camera): {
 		startX: number;
@@ -95,11 +99,12 @@ export function createRenderer(viewState: Readable<ViewState>) {
 		};
 	}
 
-
-
-
-
 	async function onAppStarted(container: Container) {
+		console.log(`renderer has started!`);
+		keyboardController.start();
+		gamepadController.start();
+		startListening();
+
 		let pathDisplayObject = new Container();
 		container.addChild(pathDisplayObject);
 		pathDisplayObject.zIndex = 1;
@@ -162,13 +167,11 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				} else {
 					sprite.zIndex = 10 * tileInfo.y;
 				}
-
 			}
 		}
 
-
 		const world = {
-			pathDisplayObject,
+			pathDisplayObject
 		};
 
 		// Subscribe to camera changes for wall rendering
@@ -176,7 +179,7 @@ export function createRenderer(viewState: Readable<ViewState>) {
 			updateFromCamera($camera);
 		});
 
-		let animateExit: Position | undefined
+		let animateExit: Position | undefined;
 
 		unsubscribe = viewState.subscribe(($viewState) => {
 			const processed = new Set();
@@ -187,7 +190,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				container.addChild(avatarObject);
 				gameObjects[id] = avatarObject;
 				return avatarObject;
-
 			}
 
 			function onEntityRemoved(id: string, gameObject: GameObject) {
@@ -203,24 +205,19 @@ export function createRenderer(viewState: Readable<ViewState>) {
 
 				if (entity.type == 'avatar') {
 					gameObject.zIndex = 10 * entity.position.y + 2;
-
 				} else {
 					gameObject.zIndex = 10 * entity.position.y + 1;
-
 				}
-
 			}
-
 
 			let newAnimatedExit: Position | undefined;
 			if ($viewState.avatar?.id) {
 				const entity = $viewState.entities[$viewState.avatar.id];
 				if (entity && entity.type === 'avatar') {
-					const action = entity.plannedActions?.find((v) => v.type === 'exit');
+					const action = entity.plannedActions?.find((v: LocalAction) => v.type === 'exit');
 					newAnimatedExit = action;
 					// console.log(`animatedExit`, animateExit)
 				}
-
 			}
 
 			if (!animateExit) {
@@ -236,7 +233,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 								sprite.play();
 							}
 						}
-
 					}
 				}
 			} else {
@@ -254,13 +250,9 @@ export function createRenderer(viewState: Readable<ViewState>) {
 								sprite.currentFrame = 0;
 							}
 						}
-
 					}
 				}
 			}
-
-
-
 
 			const entityIDs = Object.keys($viewState.entities);
 			for (const entityID of entityIDs) {
@@ -277,7 +269,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 				if (gameObject instanceof AvatarObject) {
 					if (entityID == $viewState.avatar?.id) {
 						gameObject.markAsPlayerControlled(true);
-
 					} else {
 						gameObject.markAsPlayerControlled(false);
 					}
@@ -298,6 +289,10 @@ export function createRenderer(viewState: Readable<ViewState>) {
 	}
 
 	function onAppStopped() {
+		keyboardController.stop();
+		gamepadController.stop();
+		stopListening();
+
 		unsubscribe?.();
 		cameraUnsubscribe?.();
 	}
@@ -319,6 +314,6 @@ export function createRenderer(viewState: Readable<ViewState>) {
 	};
 }
 
-export const renderer = createRenderer(viewState);
+export const renderer = createRenderer(viewState, eventEmitter);
 
 export type Renderer = ReturnType<typeof createRenderer>;

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { connection } from '$lib/connection/index.js';
-	import Button from '$lib/ui/generic/Button.svelte';
-	import Modal from '$lib/ui/modal/Modal.svelte';
+	import { connection } from '$lib/core/connection/index.js';
+	import Button from '$lib/core/ui/ethereum/generic/Button.svelte';
+	import Modal from '$lib/core/ui/modal/Modal.svelte';
 	import { purchaseFlow } from './purchaseFlow.js';
 </script>
 

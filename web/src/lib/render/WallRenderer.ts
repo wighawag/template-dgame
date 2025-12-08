@@ -1,5 +1,5 @@
+import type { Camera } from '$lib/core/render/camera';
 import { Container } from 'pixi.js';
-import type { Camera } from './camera';
 
 // Cell types based on the ASCII parsing
 export enum CellType {

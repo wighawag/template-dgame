@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { connection } from '$lib/connection/index.js';
+	import { connection } from '$lib/core/connection/index.js';
+	import { epochInfo, twoPhase } from '$lib/core/time/index.js';
+	import Button from '$lib/core/ui/ethereum/generic/Button.svelte';
+	import Modal from '$lib/core/ui/modal/Modal.svelte';
 	import { avatars } from '$lib/onchain/avatars.js';
 	import { localState } from '$lib/private/localState.js';
-	import { epochInfo, twoPhase } from '$lib/time/index.js';
-	import Button from '$lib/ui/generic/Button.svelte';
-	import Modal from '$lib/ui/modal/Modal.svelte';
-	import { fade } from 'svelte/transition';
 	import { purchaseFlow } from '../purchase/purchaseFlow.js';
 	import { enterFlow } from './enterFlow.js';
 </script>

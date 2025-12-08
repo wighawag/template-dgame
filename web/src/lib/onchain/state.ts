@@ -1,10 +1,10 @@
+import { camera } from '$lib/core/render/camera';
+import deployments from '$lib/deployments';
 import { createDirectReadStore } from '$lib/onchain/direct-read';
 import type { AvatarEntity } from '$lib/onchain/types';
-import { camera } from '$lib/render/camera';
-import { type LocalAction } from '../private/localState';
-import deployments from '$lib/deployments';
 import { zonesFetcher } from '$lib/onchain/zones-fetcher';
 import { bigIntIDToXY } from 'reveal-or-die-contracts';
+import { type LocalAction } from '../private/localState';
 
 // Define the state type that the store will use
 type OnchainState = {
@@ -58,12 +58,7 @@ export const onchainState = createDirectReadStore<OnchainState>(
 				actions = event.args.actions.map((v) => {
 					const coords = bigIntIDToXY(v.data);
 					return {
-						type:
-							v.actionType === 0
-								? 'enter'
-								: v.actionType === 1
-									? 'move'
-									: 'exit',
+						type: v.actionType === 0 ? 'enter' : v.actionType === 1 ? 'move' : 'exit',
 						x: coords.x,
 						y: coords.y
 					};
@@ -85,7 +80,6 @@ export const onchainState = createDirectReadStore<OnchainState>(
 			};
 			state.entities[id] = entity;
 		}
-
 
 		return state;
 	}

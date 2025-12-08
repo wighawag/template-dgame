@@ -1,5 +1,5 @@
 import { PUBLIC_FAUCET_PRIVATE_KEY } from '$env/static/public';
-import { maxActionCost, price, stippend } from '$lib/config';
+import { maxActionCost, price, stippend } from '$lib/core/config';
 import {
 	connection,
 	paymentConnection,
@@ -7,14 +7,14 @@ import {
 	paymentWalletClient,
 	publicClient,
 	walletClient
-} from '$lib/connection';
+} from '$lib/core/connection';
+import { generateRandom96BitBigInt } from '$lib/core/utils/data';
 import deployments from '$lib/deployments';
 import type { LocalAction } from '$lib/private/localState';
-import { generateRandom96BitBigInt } from '$lib/utils/data';
 import { xyToBigIntID } from 'reveal-or-die-contracts';
 import { encodeAbiParameters, formatEther, keccak256, zeroAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { gasFee } from './gasFee';
+import { gasFee } from '../core/connection/gasFee';
 export type TransactionExecution = { transactionID: string; wait(): Promise<void> };
 
 function actionTypeNameToEnum(actionType: string): number {
@@ -44,7 +44,7 @@ export class Writes {
 		const hash = await walletClient.sendTransaction({
 			account: faucetAccount,
 			to: $connection.account.signer.address,
-			value: price + stippend,
+			value: price + stippend
 		});
 		return {
 			transactionID: hash,

@@ -1,7 +1,7 @@
-import 'driver.js/dist/driver.css';
-import { driver } from 'driver.js';
-import { writable } from 'svelte/store';
 import deployments from '$lib/deployments';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
+import { writable } from 'svelte/store';
 
 const _tour = writable({ running: false });
 export const tour = {

@@ -1,21 +1,18 @@
+import { AnimatedSprite, Assets, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { GameObject } from './GameObject';
-import { AnimatedSprite, Assets, Container, Graphics, Sprite, Texture, TextureSource } from 'pixi.js';
 
-import gsap from 'gsap';
 import type { AvatarViewEntity } from '$lib/view';
-import { Blockie } from '$lib/utils/ethereum/blockie';
-import { LoadingSprite } from '../LoadingSprite';
+import gsap from 'gsap';
 
 export class AvatarObject extends GameObject {
 	protected playerControlled: boolean = false;
 	protected epochAnim:
 		| {
-			timeline: gsap.core.Timeline;
-			epoch: number;
-		}
+				timeline: gsap.core.Timeline;
+				epoch: number;
+		  }
 		| undefined;
-
-	protected sprite: Container;
+	protected sprite: Sprite;
 	protected greenSquare: Graphics;
 	protected redSquare: Graphics;
 	protected deadCross: Graphics;
@@ -28,17 +25,28 @@ export class AvatarObject extends GameObject {
 		protected entity: AvatarViewEntity
 	) {
 		super();
-
-
-		this.sprite = new LoadingSprite(Blockie.getURI(entity.owner));
+		const textures = [
+			Assets.get('sprites').textures['Cat_idle_bottom_1.png'],
+			Assets.get('sprites').textures['Cat_idle_bottom_2.png'],
+			Assets.get('sprites').textures['Cat_idle_bottom_3.png'],
+			Assets.get('sprites').textures['Cat_idle_bottom_4.png'],
+			Assets.get('sprites').textures['Cat_idle_bottom_5.png'],
+			Assets.get('sprites').textures['Cat_idle_bottom_6.png']
+		];
+		this.sprite = new AnimatedSprite({
+			textures,
+			animationSpeed: 0.15,
+			loop: true,
+			autoPlay: true
+		});
+		this.sprite.zIndex = 1;
 		this.addChild(this.sprite);
-		this.sprite.x = -5 + 2;
-		this.sprite.y = -5 + 2;
-		this.sprite.scale = 6 / 8;
+		this.sprite.scale = 10 / 28;
+		this.sprite.anchor.set(0.5, 0.7);
 
 		{
 			const textures: Texture[] = [];
-			for (let i = 1; i <= 1; i++) {
+			for (let i = 1; i <= 21; i++) {
 				if (i < 10) {
 					textures.push(Assets.get('sprites').textures[`entry_00${i}.png`]);
 				} else {
@@ -46,17 +54,18 @@ export class AvatarObject extends GameObject {
 				}
 			}
 
-			this.enteringSprite = new AnimatedSprite({ textures, animationSpeed: 0.15, loop: true, autoPlay: true });
+			this.enteringSprite = new AnimatedSprite({
+				textures,
+				animationSpeed: 0.15,
+				loop: true,
+				autoPlay: true
+			});
 			this.enteringSprite.zIndex = 0;
 			this.addChild(this.enteringSprite);
-			this.enteringSprite.scale = 10 / 64
+			this.enteringSprite.scale = 10 / 64;
 			this.enteringSprite.anchor.set(0.5, 0.7);
 			this.enteringSprite.visible = false;
 		}
-
-
-
-
 
 		this.greenSquare = new Graphics().rect(-5, -5, 10, 10).stroke({ width: 1, color: 0x00ff00 });
 		this.addChild(this.greenSquare);
@@ -65,7 +74,6 @@ export class AvatarObject extends GameObject {
 		this.redSquare = new Graphics().rect(-5, -5, 10, 10).stroke({ width: 1, color: 0xff0000 });
 		this.addChild(this.redSquare);
 		this.redSquare.visible = false;
-
 
 		this.deadCross = new Graphics()
 			.moveTo(-5, -5)
@@ -76,14 +84,10 @@ export class AvatarObject extends GameObject {
 		this.addChild(this.deadCross);
 		this.deadCross.zIndex = 2;
 		this.deadCross.visible = false;
-
 	}
 
 	update(entity: AvatarViewEntity, epoch: number) {
 		this.entity = entity;
-
-
-
 
 		if (entity.life == 0) {
 			this.deadCross.visible = true;
@@ -161,7 +165,6 @@ export class AvatarObject extends GameObject {
 		} else {
 			this.enteringSprite.visible = false;
 			this.sprite.visible = true;
-
 		}
 	}
 

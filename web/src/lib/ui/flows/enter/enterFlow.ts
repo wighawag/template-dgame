@@ -1,36 +1,36 @@
-import { connection } from '$lib/connection';
+import { connection } from '$lib/core/connection';
+import { epochInfo, twoPhase } from '$lib/core/time';
 import { avatars, type AvatarCollection } from '$lib/onchain/avatars';
+import { localState } from '$lib/private/localState';
+import { viewState } from '$lib/view';
 import type { Connection, UnderlyingEthereumProvider } from '@etherplay/connect';
+import type { Position } from 'reveal-or-die-contracts';
 import { get, writable } from 'svelte/store';
 import { purchaseFlow } from '../purchase/purchaseFlow';
-import { viewState } from '$lib/view';
-import { localState } from '$lib/private/localState';
-import { epochInfo, twoPhase } from '$lib/time';
-import type { Position } from 'reveal-or-die-contracts';
 
 export type EnterFlow = { error?: { message: string } } & (
 	| {
-		step: 'Idle';
-	}
+			step: 'Idle';
+	  }
 	| ({ position: Position } & (
-		| {
-			step: 'Loading';
-		}
-		| {
-			step: 'RequireSignIn';
-		}
-		| {
-			step: 'RequireAvatars';
-		}
-		| {
-			step: 'RequireDeposit';
-		}
-		| {
-			step: 'Ready';
-			avatars: readonly bigint[];
-			pendingTransaction?: `0x${string}`;
-		}
-	))
+			| {
+					step: 'Loading';
+			  }
+			| {
+					step: 'RequireSignIn';
+			  }
+			| {
+					step: 'RequireAvatars';
+			  }
+			| {
+					step: 'RequireDeposit';
+			  }
+			| {
+					step: 'Ready';
+					avatars: readonly bigint[];
+					pendingTransaction?: `0x${string}`;
+			  }
+	  ))
 );
 
 function createEnterFlow() {

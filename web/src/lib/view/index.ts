@@ -1,8 +1,8 @@
+import deployments from '$lib/deployments';
+import { onchainState } from '$lib/onchain/state';
 import type { AvatarEntity } from '$lib/onchain/types';
 import { derived, get } from 'svelte/store';
 import { computeUpdatedLocalState, localState, type LocalAction } from '../private/localState';
-import deployments from '$lib/deployments';
-import { onchainState } from '$lib/onchain/state';
 
 export type Position = { x: number; y: number };
 
@@ -13,7 +13,7 @@ export type AvatarViewEntity = AvatarEntity & {
 export type ViewEntity = AvatarViewEntity;
 export type ViewEntities = { [id: string]: ViewEntity };
 export type ViewState = {
-	avatar?: { id: string; numMoves: number; };
+	avatar?: { id: string; numMoves: number };
 	entities: ViewEntities;
 	epoch: number;
 };
@@ -31,11 +31,10 @@ export const viewState = derived(
 				entities[entityID] = {
 					...onchainEntity,
 					entering: false
-				}
+				};
 			}
-
 		}
-		let avatarData: { id: string; numMoves: number; } | undefined;
+		let avatarData: { id: string; numMoves: number } | undefined;
 		if ($localState.signer && $localState.avatar) {
 			const currentAvatarID = $localState.avatar.avatarID;
 			let avatarEntity = entities[currentAvatarID] as AvatarViewEntity | undefined;
@@ -44,7 +43,7 @@ export const viewState = derived(
 
 				avatarData = {
 					id: currentAvatarID,
-					numMoves: numMoves - $localState.avatar.actions.filter((v) => v.type === 'move').length,
+					numMoves: numMoves - $localState.avatar.actions.filter((v) => v.type === 'move').length
 				};
 
 				if ($localState.avatar.actions[0]?.type === 'enter') {
@@ -73,7 +72,7 @@ export const viewState = derived(
 							actions.push(current_action);
 						}
 					}
-					avatarEntity.plannedActions = actions
+					avatarEntity.plannedActions = actions;
 				}
 			}
 		}
