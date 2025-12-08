@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { connection } from '$lib/core/connection';
 import deployments from '$lib/deployments';
 import { logs } from 'named-logs';
@@ -27,6 +28,7 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	let last_time = Math.floor(Date.now() / 1000);
 	let last_fetch_time_ms = Date.now();
 	let last_fetch_block_number: number | null = null;
+	let started = false;
 
 	let pollingInterval: NodeJS.Timeout | null = null;
 	let hasAccurateTime = false; // Track if we have the most accurate blockchain time
@@ -41,6 +43,8 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	}
 
 	function start() {
+		// console.log(`starting..`);
+		started = true;
 		// console.log(`start`);
 		// Main time update interval (updates every second)
 		const timeUpdateInterval = setInterval(() => {
@@ -53,10 +57,13 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 		initialSync();
 
 		return () => {
+			// console.log(`stopped`);
+			started = false;
 			// console.log(`stop`);
 			hasAccurateTime = false; // Track if we have the most accurate
 			clearInterval(timeUpdateInterval);
 			if (pollingInterval) {
+				// console.log(`interuptring polling...`);
 				clearInterval(pollingInterval);
 				pollingInterval = null;
 			}
@@ -64,32 +71,44 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 	}
 
 	async function initialSync() {
+		if (!browser) {
+			// we do not sync time on SSR
+			return;
+		}
 		let synced = $time.lastSync;
 		if (!synced) {
 			if (!syncing) {
-				console.log(`not synced, syncing....`);
+				// console.log(`not synced, syncing....`);
 				syncing = updateTimeFromProvider();
 			} else {
-				console.log(`waiting for previous syncing....`);
+				// console.log(`waiting for previous syncing....`);
 				// we return as the previous will get into the next loop
 				return;
 			}
 			synced = await syncing;
-		}
 
-		if (synced) {
-			// Initial sync successful, now start polling to catch the next block
-			// for maximum accuracy, then we'll stop polling
+			if (!started) {
+				syncing = undefined;
+				return;
+			}
+
+			if (synced) {
+				// Initial sync successful, now start polling to catch the next block
+				// for maximum accuracy, then we'll stop polling
+				startBlockPolling(synced);
+			} else {
+				console.error('Initial sync failed, retrying...');
+				setTimeout(initialSync, 1000);
+			}
+		} else if (!hasAccurateTime) {
 			startBlockPolling(synced);
-		} else {
-			console.error('Initial sync failed, retrying...');
-			setTimeout(initialSync, 1000);
 		}
 	}
 
 	function startBlockPolling(lastSync: LastSync) {
 		// Only start polling if we don't have accurate time yet
 		if (hasAccurateTime) return;
+		// console.log(`polling for accurate block time...`);
 
 		// Poll more frequently for faster networks, less for slower ones
 		// Aim for roughly 1/10th of expected block time
@@ -97,6 +116,13 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 			Math.floor((lastSync.averageBlockTime * 1000) / 100),
 			minPollingInterval
 		);
+
+		if (pollingInterval) {
+			// console.log(`polling already running`);
+			return;
+			// clearInterval(pollingInterval);
+			// pollingInterval = null;
+		}
 
 		pollingInterval = setInterval(async () => {
 			try {
@@ -106,13 +132,27 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 					false as true // TODO fix eip-1193 Methods
 				]);
 
+				if (!started) {
+					// console.log(`stoped while polling`);
+					return;
+				}
+
+				if (hasAccurateTime) {
+					// console.log(`accurate time already found`);
+					if (pollingInterval) {
+						clearInterval(pollingInterval);
+						pollingInterval = null;
+					}
+					return;
+				}
+
 				if (latestBlockResponse.success && latestBlockResponse.value) {
 					const latestBlockNumber = Number(latestBlockResponse.value.number);
 					const latestBlockTime = Number(latestBlockResponse.value.timestamp);
 
-					console.debug(
-						`got ${latestBlockNumber} at ${formatTime(latestBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
-					);
+					// console.debug(
+					// 	`got ${latestBlockNumber} at ${formatTime(latestBlockTime)}, ${formatTime((before_fetch + Date.now()) / 2 / 1000)}`
+					// );
 
 					if (!last_fetch_block_number) {
 						throw new Error(`last_fetch_block_number not set`);
@@ -135,9 +175,15 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 						// We now have the most accurate blockchain time, stop polling
 						hasAccurateTime = true;
 						if (pollingInterval) {
+							// console.log(`done, stopping polling...`);
 							clearInterval(pollingInterval);
 							pollingInterval = null;
 						}
+					} else {
+						// console.log({
+						// 	latestBlockNumber,
+						// 	last_fetch_block_number
+						// });
 					}
 				}
 			} catch (err) {
@@ -158,7 +204,7 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 
 		const nowMS = Date.now();
 		const timePassedMS = nowMS - last_fetch_time_ms;
-		console.debug(`timePassed: ${timePassedMS / 1000}`);
+		// console.debug(`timePassed: ${timePassedMS / 1000}`);
 		console.debug(`time is ${formatTime(last_time + timePassedMS / 1000)}`);
 		const lastSync = {
 			timestampMS: last_fetch_time_ms,
@@ -180,6 +226,11 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 				false as true // TODO fix eip-1193 Methods
 			]);
 
+			if (!started) {
+				// console.log(`stoped 1`);
+				return;
+			}
+
 			if (latestBlockResponse.success && latestBlockResponse.value) {
 				const latestBlockTime = Number(latestBlockResponse.value.timestamp);
 				const latestBlockNumber = Number(latestBlockResponse.value.number);
@@ -198,6 +249,11 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 					`0x${fromBlock.toString(16)}`,
 					false as true // TODO fix eip-1193 Methods
 				]);
+
+				if (!started) {
+					// console.log(`stoped 2`);
+					return;
+				}
 
 				let averageBlockTime: number;
 				if (olderBlockResponse.success && olderBlockResponse.value) {

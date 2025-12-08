@@ -6,6 +6,9 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { AssetPack, type AssetPackConfig } from '@assetpack/core';
 import { pixiPipes } from '@assetpack/core/pixi';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { hookup } from 'named-logs-console';
+
+hookup();
 
 const assetsFolder = '../assets';
 const manifestSrcPath = './src/lib/manifest.json';
