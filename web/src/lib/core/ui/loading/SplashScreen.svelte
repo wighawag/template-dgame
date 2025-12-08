@@ -62,7 +62,7 @@
 	}
 
 	.overlay.game-logo {
-		background-color: #24243c;
+		background-color: #000000;
 	}
 
 	.game-logo .content {
