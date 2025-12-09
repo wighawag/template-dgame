@@ -15,6 +15,7 @@ interface UsingGameTypes {
         uint256 commitPhaseDuration;
         uint256 revealPhaseDuration;
         ITime time;
+        IERC721 avatars;
     }
 
     // ------------------------------------------------------------------------

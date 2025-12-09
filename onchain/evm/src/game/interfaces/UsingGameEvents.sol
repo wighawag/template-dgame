@@ -4,6 +4,16 @@ pragma solidity ^0.8.0;
 import "./UsingGameTypes.sol";
 
 interface UsingGameEvents is UsingGameTypes {
+    /// @notice An avatar has been deposited, ready to enter
+    /// @param avatarID the id of the NFT being deposited
+    /// @param owner the account authorized to get the avatar back
+    /// @param controller the account authorized to control the avatar in-game
+    event AvatarDeposited(
+        uint256 indexed avatarID,
+        address indexed owner,
+        address controller
+    );
+
     /// @notice A player has commited to make a move and reveal it on the reveal phase
     /// @param avatarID avatar whose commitment is made
     /// @param epoch epoch number on which this commit belongs to

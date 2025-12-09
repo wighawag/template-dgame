@@ -14,6 +14,19 @@ abstract contract UsingGameInternal is
 {
     constructor(Config memory config) UsingGameStore(config) {}
 
+    //-------------------------------------------------------------------------
+    // ENTRY POINTS
+    //-------------------------------------------------------------------------
+    function _deposit(
+        uint256 avatarID,
+        address owner,
+        address controller
+    ) internal {
+        _players[avatarID] = Player({owner: owner, controller: controller});
+
+        emit AvatarDeposited(avatarID, owner, controller);
+    }
+
     function _makeCommitment(
         address controller,
         uint256 avatarID,
@@ -124,6 +137,10 @@ abstract contract UsingGameInternal is
         // we just burn all tokens in reserve
         emit CommitmentVoid(avatarID, epoch);
     }
+
+    //-------------------------------------------------------------------------
+    // INTERNALS
+    //-------------------------------------------------------------------------
 
     function _epoch()
         internal

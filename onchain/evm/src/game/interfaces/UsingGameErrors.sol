@@ -42,4 +42,10 @@ interface UsingGameErrors is UsingGameTypes {
     /// @notice Player have to reveal if they can
     /// prevent player from acknowledging missed reveal if there is still time to reveal.
     error CanStillReveal(uint64 epoch);
+
+    /// @notice happen when attempting to send a non-avatar ERC721 to the game
+    error OnlyAvatarsAreAccepted();
+
+    /// @notice happen when transfering an avatar with invalid data
+    error InvalidData();
 }

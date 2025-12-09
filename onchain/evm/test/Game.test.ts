@@ -26,6 +26,7 @@ describe('Game', function () {
 
 		const subID = 0n;
 		const avatarID = (BigInt(unnamedAccounts[0]) << 96n) + subID;
+
 		await env.execute(AvatarsSale, {
 			account: env.unnamedAccounts[0],
 			functionName: 'purchase',

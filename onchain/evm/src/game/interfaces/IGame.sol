@@ -36,10 +36,19 @@ interface IGameGetters is UsingGameTypes {
     function getConfig() external view returns (Config memory config);
 }
 
+interface IGameDeposit is UsingGameTypes {
+    function deposit(
+        uint256 avatarID,
+        address controller,
+        address payable payee
+    ) external payable;
+}
+
 interface IGame is
     UsingGameEvents,
     UsingGameErrors,
     IGameCommit,
     IGameReveal,
-    IGameGetters
+    IGameGetters,
+    IGameDeposit
 {}
