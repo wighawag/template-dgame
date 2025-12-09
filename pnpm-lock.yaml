@@ -204,6 +204,9 @@ importers:
       ipfs-gateway-emulator:
         specifier: 4.2.1-ipfs.2
         version: 4.2.1-ipfs.2
+      named-logs-console:
+        specifier: ^0.4.5
+        version: 0.4.5
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
@@ -4233,6 +4236,9 @@ packages:
 
   named-logs-console@0.3.1:
     resolution: {integrity: sha512-qExLlmkSSrI/57Juvc94c0zlldI5IvreilyFeg7KfxMGGotTVER6xfk+KB7DZ5m18GYnFZn77z2kyigtcn2zHA==}
+
+  named-logs-console@0.4.5:
+    resolution: {integrity: sha512-57cjI034h2ly4XZ8qd/Sl7KoPQElPg2+FfUW7jnVGSDfFoIIiqt2XNNO7nr3y61raDSnSirvwWS/6ddCIZP67w==}
 
   named-logs@0.2.4:
     resolution: {integrity: sha512-QHlcLpK2Ij+u7ZYDYgaYkTIlC/NcOwEnFdqbY+PF9ewAMUjvBwRVUyqBUtVaJ3V2YKVy2HiloAgLUdOEVRRyBA==}
@@ -9696,6 +9702,10 @@ snapshots:
   named-logs-console@0.3.1:
     dependencies:
       named-logs: 0.2.4
+
+  named-logs-console@0.4.5:
+    dependencies:
+      named-logs: 0.4.1
 
   named-logs@0.2.4: {}
 

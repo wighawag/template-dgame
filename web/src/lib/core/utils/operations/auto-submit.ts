@@ -5,6 +5,7 @@ import { type Unsubscriber } from 'svelte/store';
 const console = logs('auto-submit');
 
 export type AutoSubmitConfig = {
+	name?: string;
 	/**
 	 * Function to execute the submission
 	 */
@@ -43,7 +44,9 @@ export function createAutoSubmitter(config: AutoSubmitConfig) {
 	}
 
 	function startHighFrequencyCheck(delayMs: number, interval: number) {
-		console.debug(`Starting high-frequency check in ${delayMs}ms`);
+		console.log(`${config.name || ''}: `, { delayMs, interval });
+
+		console.debug(`${config.name || ''}: Starting high-frequency check in ${delayMs}ms`);
 
 		startTimeout = setTimeout(() => {
 			// Execute immediately first

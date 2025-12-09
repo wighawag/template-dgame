@@ -37,10 +37,10 @@ interface UsingGameErrors is UsingGameTypes {
 
     /// @notice When in Reveal phase, it is not possible to commit new moves or cancel previous commitment
     ///  During Reveal phase, players have to reveal their commitment, if not already done.
-    error InRevealPhase();
+    error InRevealPhase(uint64 epoch);
 
     /// @notice When in Commit phase, player can make new commitment but they cannot reveal their move yet.
-    error InCommitmentPhase();
+    error InCommitmentPhase(uint64 epoch);
 
     /// @notice Previous commitment need to be revealed before making a new one. Even if the corresponding reveal phase has passed.\
     ///  It is also not possible to withdraw any amount from reserve until the commitment is revealed.\
@@ -59,11 +59,11 @@ interface UsingGameErrors is UsingGameTypes {
 
     /// @notice Player can only reveal their move in the same epoch they commited.abi
     ///  If a player reveal later it can only do to minimize the reserve burn cost by calling : `acknowledgeMissedReveal`
-    error InvalidEpoch();
+    error InvalidEpoch(uint64 expectedEpoch, uint64 epochGiven);
 
     /// @notice Player have to reveal if they can
     /// prevent player from acknowledging missed reveal if there is still time to reveal.
-    error CanStillReveal();
+    error CanStillReveal(uint64 epoch);
 
     /// @notice happen when attempting to move a dead avatar
     ///  The avatar is dead, no action possible
