@@ -155,7 +155,7 @@ export function createDirectReadStore<T>(
 				const newZones = calculateVisibleZones(camera);
 				const zonesChanged = hasZonesChanged(lastZones, newZones);
 				lastZones = newZones;
-				if (zonesChanged) {
+				if (zonesChanged && lastZones) {
 					// console.debug(`zones changed`, camera);
 					fetchUntilSuccess(lastZones, currentPredictedEpoch);
 				}
