@@ -9,7 +9,7 @@ contract GameReveal is IGameReveal, UsingGameInternal {
 
     function reveal(
         uint256 avatarID,
-        Action[] calldata actions,
+        bytes calldata actions,
         bytes32 secret,
         address payable payee
     ) external payable {

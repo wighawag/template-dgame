@@ -7,20 +7,15 @@ export default deployScript(
 	async ({get, deployViaProxy, deployViaRouter, namedAccounts, data}) => {
 		const {deployer, admin} = namedAccounts;
 
-		const Avatars = get<Abi_Avatars>('Avatars');
-
 		const config = {
 			startTime: 0n,
 			commitPhaseDuration: data.Game.commitPhaseDuration,
 			revealPhaseDuration: data.Game.revealPhaseDuration,
 			time: zeroAddress,
-			avatars: Avatars.address,
-			numMoves: data.Game.numMoves,
 		};
 
 		const routes = [
 			{name: 'Getters', artifact: artifacts.GameGetters, args: [config]},
-			{name: 'Deposit', artifact: artifacts.GameDeposit, args: [config]},
 			{name: 'Commit', artifact: artifacts.GameCommit, args: [config]},
 			{name: 'Reveal', artifact: artifacts.GameReveal, args: [config]},
 		];
@@ -54,5 +49,5 @@ export default deployScript(
 			},
 		);
 	},
-	{tags: ['Game', 'Game_deploy'], dependencies: ['Avatars_deploy']},
+	{tags: ['Game', 'Game_deploy']},
 );
