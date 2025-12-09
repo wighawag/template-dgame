@@ -6,7 +6,7 @@ import { writes } from '$lib/onchain/writes';
 import type { Position } from 'reveal-or-die-contracts';
 import { logs } from 'named-logs';
 import { writable, type Readable } from 'svelte/store';
-import { keccak256 } from 'viem';
+import { keccak256, parseEventLogs } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 const console = logs('localState');
@@ -296,9 +296,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				const receipt = await wait();
 				console.log(`... commit receipt received!`);
 				if (receipt.status === 'reverted') {
-					console.error(`commit reverted`, receipt);
-					$state.avatar.submission = undefined;
-					set($state);
+					throw new Error('commit revered', { cause: receipt });
 				} else {
 					if ($state.avatar.submission.commit) {
 						$state.avatar.submission.commit.includedInBlock = Number(receipt.blockNumber);
@@ -311,6 +309,7 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				$state.avatar.submission = undefined;
 				set($state);
 				console.error(err);
+				throw err;
 			} finally {
 				commiting = false;
 			}
@@ -411,11 +410,24 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 				console.log(`waiting for reveal tx...`);
 
 				const receipt = await wait();
+				if (receipt.logs) {
+					const parsedLogs = parseEventLogs({
+						abi: deployments.contracts.Game.abi,
+						logs: receipt.logs
+					});
+					let errorsFound: any[] = [];
+					for (const log of parsedLogs) {
+						if ((log as any).eventName === 'Error') {
+							errorsFound.push(log);
+						}
+					}
+					if (errorsFound.length > 0) {
+						throw new Error('reveal error', { cause: errorsFound });
+					}
+				}
 				console.log(`... reveal receipt received!`);
 				if (receipt.status === 'reverted') {
-					console.error(`reveal reverted`, receipt);
-					$state.avatar.submission.reveal = undefined;
-					set($state);
+					throw new Error('reveal reverted', { cause: receipt });
 				} else {
 					if ($state.avatar.submission.reveal) {
 						$state.avatar.submission.reveal.includedInBlock = Number(receipt.blockNumber);
@@ -424,12 +436,13 @@ export function createLocalState(signer: Readable<OptionalSigner>) {
 						console.error(`reveal data has disapeared!`);
 					}
 				}
-			} catch (err) {
+			} catch (err: any) {
 				if ($state.avatar.submission) {
 					$state.avatar.submission.reveal = undefined;
 				}
 				set($state);
-				console.error(err);
+				console.error(err, err.cause);
+				throw err;
 			} finally {
 				revealing = false;
 			}
@@ -443,6 +456,7 @@ const highFrequencyInterval = (timeConfig.REVEAL_PHASE_DURATION * 1000) / 30;
 
 // Commit auto-submitter configuration
 const commitConfig: AutoSubmitConfig = {
+	name: 'auto-commit',
 	execute: () => {
 		localState.commit({ pollingInterval: highFrequencyInterval });
 	},
@@ -494,8 +508,21 @@ commitAutoSubmitter.start();
 
 // Reveal auto-submitter configuration
 const revealConfig: AutoSubmitConfig = {
+	name: 'auto-reveal',
 	execute: () => {
-		localState.reveal({ pollingInterval: highFrequencyInterval });
+		localState.reveal({ pollingInterval: highFrequencyInterval }).catch((err) => {
+			const currentLocalData = localState.value;
+
+			if (
+				currentLocalData.signer &&
+				currentLocalData.avatar &&
+				currentLocalData.avatar.actions.length > 0 &&
+				currentLocalData.avatar.actions[currentLocalData.avatar.actions.length - 1].type == 'enter'
+			) {
+				console.log(`deleting avatar after reveal failure...`);
+				localState.removeAvatar();
+			}
+		});
 	},
 	shouldExecute: ({ currentEpochInfo }) => {
 		const currentLocalData = computeUpdatedLocalState(
@@ -515,8 +542,9 @@ const revealConfig: AutoSubmitConfig = {
 
 			if (
 				currentLocalData.avatar.submission &&
-				currentLocalData.avatar.submission.commit.epoch == currentEpochInfo.currentEpoch &&
-				currentLocalData.avatar.submission.commit.includedInBlock
+				currentLocalData.avatar.submission.commit.epoch == currentEpochInfo.currentEpoch
+				// &&
+				// currentLocalData.avatar.submission.commit.includedInBlock
 			) {
 				if (
 					!currentLocalData.avatar.submission.reveal ||
