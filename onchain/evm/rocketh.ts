@@ -10,7 +10,7 @@ export const config = {
 				expectedWorstGasPrice: parseEther('1', 'gwei'), // TODO use same value from hardhat config
 				supportsSendRawTransactionSync: false,
 			},
-			tags: ['local', 'memory', 'testnet'],
+			tags: ['local', 'memory', 'testnet', 'auto-mine'],
 		},
 		6342: {
 			properties: {
