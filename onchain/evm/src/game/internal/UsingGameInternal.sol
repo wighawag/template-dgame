@@ -73,7 +73,7 @@ abstract contract UsingGameInternal is
         (uint64 epoch, bool commiting) = _epoch();
 
         if (!commiting) {
-            revert InRevealPhase();
+            revert InRevealPhase(epoch);
         }
 
         Commitment storage commitment = _commitments[avatarID];
@@ -107,7 +107,7 @@ abstract contract UsingGameInternal is
 
         (uint64 epoch, bool commiting) = _epoch();
         if (!commiting) {
-            revert InRevealPhase();
+            revert InRevealPhase(epoch);
         }
 
         Commitment storage commitment = _commitments[avatarID];
@@ -134,7 +134,7 @@ abstract contract UsingGameInternal is
         (uint64 epoch, bool commiting) = _epoch();
 
         if (commiting) {
-            revert InCommitmentPhase();
+            revert InCommitmentPhase(epoch);
         }
         Commitment storage commitment = _commitments[avatarID];
 
@@ -143,7 +143,7 @@ abstract contract UsingGameInternal is
         }
 
         if (commitment.epoch != epoch) {
-            revert InvalidEpoch();
+            revert InvalidEpoch(epoch, commitment.epoch);
         }
 
         bytes24 hashRevealed = commitment.hash;
@@ -177,7 +177,7 @@ abstract contract UsingGameInternal is
         (uint64 epoch, ) = _epoch();
 
         if (commitment.epoch == epoch) {
-            revert CanStillReveal();
+            revert CanStillReveal(epoch);
         }
 
         commitment.epoch = 0;

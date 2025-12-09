@@ -1,13 +1,14 @@
 // ------------------------------------------------------------------------------------------------
 // Typed Config
 // ------------------------------------------------------------------------------------------------
-import type { UserConfig } from 'rocketh';
+import type {UserConfig} from 'rocketh';
 
 export const config = {
 	chains: {
 		31337: {
 			properties: {
 				expectedWorstGasPrice: parseEther('1', 'gwei'), // TODO use same value from hardhat config
+				supportsSendRawTransactionSync: false,
 			},
 			tags: ['local', 'memory', 'testnet'],
 		},
@@ -15,18 +16,27 @@ export const config = {
 			properties: {
 				// mega-eth testnet
 				expectedWorstGasPrice: parseEther('0.003', 'gwei'),
+				supportsSendRawTransactionSync: false,
 			},
 		},
 		50312: {
 			properties: {
 				// somnia testnet
 				expectedWorstGasPrice: parseEther('8', 'gwei'),
+				supportsSendRawTransactionSync: false,
 			},
 		},
 		11142220: {
 			properties: {
 				// celo sepolia testnet
 				expectedWorstGasPrice: parseEther('25', 'gwei'),
+				supportsSendRawTransactionSync: false,
+			},
+		},
+		['rise-testnet']: {
+			properties: {
+				supportsSendRawTransactionSync: true,
+				expectedWorstGasPrice: parseEther('0.00001', 'gwei'),
 			},
 		},
 		['cronos-testnet']: {
@@ -42,6 +52,7 @@ export const config = {
 	defaultChainProperties: {
 		// if not specified, fallback on:
 		expectedWorstGasPrice: parseEther('0.000001', 'gwei'),
+		supportsSendRawTransactionSync: false,
 	},
 	accounts: {
 		deployer: {
@@ -73,6 +84,11 @@ export const config = {
 				revealPhaseDuration: 4n,
 				numMoves: 10n,
 			},
+			'rise-testnet': {
+				commitPhaseDuration: 32n,
+				revealPhaseDuration: 5n,
+				numMoves: 10n,
+			},
 		},
 	},
 } as const satisfies UserConfig;
@@ -100,23 +116,23 @@ const extensions = {
 // ------------------------------------------------------------------------------------------------
 // we re-export the artifacts, so they are easily available from the alias
 import * as artifacts from './generated/artifacts/index.js';
-export { artifacts };
+export {artifacts};
 // ------------------------------------------------------------------------------------------------
 // we create the rocketh functions we need by passing the extensions to the setup function
-import { setup } from 'rocketh';
-const { deployScript, loadAndExecuteDeployments } = setup<
+import {setup} from 'rocketh';
+const {deployScript, loadAndExecuteDeployments} = setup<
 	typeof extensions,
 	typeof config.accounts,
 	typeof config.data
 >(extensions);
 // ------------------------------------------------------------------------------------------------
 // we do the same for hardhat-deploy
-import { setupHardhatDeploy } from 'hardhat-deploy/helpers';
-import { parseEther } from 'viem';
-const { loadEnvironmentFromHardhat } = setupHardhatDeploy(extensions);
+import {setupHardhatDeploy} from 'hardhat-deploy/helpers';
+import {parseEther} from 'viem';
+const {loadEnvironmentFromHardhat} = setupHardhatDeploy(extensions);
 // ------------------------------------------------------------------------------------------------
 // finally we export them
 // - loadAndExecuteDeployments can be used in tests to ensure deployed contracts are available there
 // - deployScript is the function used to create deploy script, see deploy/ folder
 // - loadEnvironmentFromHardhat can be used in scripts and reuse hardhat network handling without deploying the contracts
-export { loadAndExecuteDeployments, deployScript, loadEnvironmentFromHardhat };
+export {loadAndExecuteDeployments, deployScript, loadEnvironmentFromHardhat};

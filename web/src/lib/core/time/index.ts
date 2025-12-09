@@ -163,6 +163,10 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 						const after_fetch = Date.now();
 						const predicted_fetch_time = (before_fetch + after_fetch) / 2;
 
+						console.log(
+							`got ${latestBlockNumber} at local time: ${formatTime(predicted_fetch_time / 1000)} (block time: ${formatTime(latestBlockTime)})`
+						);
+
 						updateTimeFromBlock(
 							predicted_fetch_time,
 							{
@@ -205,7 +209,7 @@ export function createTime(chainInfo?: { minPollingInterval?: number }) {
 		const nowMS = Date.now();
 		const timePassedMS = nowMS - last_fetch_time_ms;
 		// console.debug(`timePassed: ${timePassedMS / 1000}`);
-		console.debug(`time is ${formatTime(last_time + timePassedMS / 1000)}`);
+		console.log(`time is ${formatTime(last_time + timePassedMS / 1000)}`);
 		const lastSync = {
 			timestampMS: last_fetch_time_ms,
 			blockNumber: block.blockNumber,

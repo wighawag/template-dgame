@@ -30,8 +30,11 @@ function getBigIntPowerOf10(n: bigint) {
 	}
 }
 
+export const maxCommitGas = 100_000n;
+export const maxRevealGas = 5_000_000n;
+export const maxActionGas = maxCommitGas + maxRevealGas;
 export const maxActionCost =
-	BigInt(deployments.chain.properties.expectedWorstGasPrice) * 1_000_000n; // 1_000_000 per action is our limit
+	BigInt(deployments.chain.properties.expectedWorstGasPrice) * maxActionGas;
 export const stippend = maxActionCost * 100n; // 100 turn, we need to show
 export const price = BigInt(deployments.contracts.AvatarsSale.linkedData.paymentAmount);
 export const creditsDivider = getBigIntPowerOf10(maxActionCost);

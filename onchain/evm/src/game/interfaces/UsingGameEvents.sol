@@ -81,4 +81,7 @@ interface UsingGameEvents is UsingGameTypes {
         uint64 epoch,
         bytes24 commitmentHash
     );
+
+    // allow to easily inspect errors, instead of revert
+    event Error(bytes4 selector, bytes data);
 }
