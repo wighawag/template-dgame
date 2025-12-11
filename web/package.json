@@ -26,7 +26,7 @@
 	},
 	"scripts": {
 		"prepare": "pnpm generate-pwa-icons-and-tags && svelte-kit sync || echo ''",
-		"generate-pwa-icons-and-tags": "pwag static/icon.png src/web-config.json --html src/app.template.html --html-output src/app.html --assets-prefix %sveltekit.assets%",
+		"generate-pwa-icons-and-tags": "pwag static/icon.png src/web-config.json",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",

@@ -14,7 +14,6 @@ Thumbs.db
 
 # pwag
 static/pwa
-src/app.html
 
 # Env
 .env
