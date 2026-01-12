@@ -1,6 +1,6 @@
 <script lang="ts">
 	import {fly} from 'svelte/transition';
-	import {serviceWorker} from '$lib/config';
+	import {serviceWorker} from '$lib/core/config';
 
 	// TODO
 	export let src: string;

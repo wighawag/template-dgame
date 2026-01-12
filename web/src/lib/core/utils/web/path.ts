@@ -1,4 +1,4 @@
-import {params, globalQueryParams} from '$lib/config';
+import {params, globalQueryParams} from '$lib/core/config';
 import {resolve} from '$app/paths';
 import {getParamsFromURL, queryStringifyNoArray} from './url.js';
 

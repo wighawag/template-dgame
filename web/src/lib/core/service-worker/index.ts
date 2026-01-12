@@ -3,7 +3,7 @@ import {get, writable} from 'svelte/store';
 import type {Logger} from 'named-logs';
 import {logs} from 'named-logs';
 import {handleAutomaticUpdate, listenForWaitingServiceWorker} from './utils';
-import {notifications} from '$lib/notifications';
+import {notifications} from '$lib/core/notifications';
 import {resolve} from '$app/paths';
 
 const logger = logs('service-worker') as Logger & {

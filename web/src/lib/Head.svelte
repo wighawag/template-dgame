@@ -10,7 +10,7 @@
 		appleStatusBarStyle,
 		ENSName,
 	} from '../web-config.json';
-	import {url} from '$lib/utils/web/path';
+	import {url} from '$lib/core/utils/web/path';
 
 	const host = canonicalURL.endsWith('/')
 		? canonicalURL.slice(0, -1)
