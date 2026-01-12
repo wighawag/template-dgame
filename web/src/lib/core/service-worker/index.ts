@@ -1,10 +1,10 @@
-import { dev } from '$app/environment';
-import { get, writable } from 'svelte/store';
-import type { Logger } from 'named-logs';
-import { logs } from 'named-logs';
-import { handleAutomaticUpdate, listenForWaitingServiceWorker } from './utils';
-import { notifications } from '$lib/notifications';
-import { resolve } from '$app/paths';
+import {dev} from '$app/environment';
+import {get, writable} from 'svelte/store';
+import type {Logger} from 'named-logs';
+import {logs} from 'named-logs';
+import {handleAutomaticUpdate, listenForWaitingServiceWorker} from './utils';
+import {notifications} from '$lib/notifications';
+import {resolve} from '$app/paths';
 
 const logger = logs('service-worker') as Logger & {
 	level: number;
@@ -14,14 +14,18 @@ const logger = logs('service-worker') as Logger & {
 function updateLoggingForWorker(worker: ServiceWorker | null) {
 	if (worker) {
 		if (logger.enabled) {
-			logger.debug(`enabling logging for service worker, level: ${logger.level}`);
+			logger.debug(
+				`enabling logging for service worker, level: ${logger.level}`,
+			);
 		} else {
-			logger.debug(`disabling logging for service worker, level: ${logger.level}`);
+			logger.debug(
+				`disabling logging for service worker, level: ${logger.level}`,
+			);
 		}
 		worker.postMessage({
 			type: 'debug',
 			level: logger.level,
-			enabled: logger.enabled
+			enabled: logger.enabled,
 		});
 	}
 }
@@ -41,7 +45,7 @@ export type ServiceWorkerState =
 	| {
 			notSupported: false;
 			registering: false;
-			error: { message: string; cause: any };
+			error: {message: string; cause: any};
 			registration: undefined;
 			updateAvailable: false;
 	  }
@@ -55,18 +59,20 @@ export type ServiceWorkerState =
 export function createServiceWorker() {
 	const store = writable<ServiceWorkerState>(undefined);
 
-	function pingServideWorker(state: 'installing' | 'waiting' | 'active' = 'active') {
+	function pingServideWorker(
+		state: 'installing' | 'waiting' | 'active' = 'active',
+	) {
 		sendMessage(
 			{
-				type: 'ping'
+				type: 'ping',
 			},
-			state
+			state,
 		);
 	}
 
 	function sendMessage(
 		message: string | object,
-		state: 'installing' | 'waiting' | 'active' = 'active'
+		state: 'installing' | 'waiting' | 'active' = 'active',
 	) {
 		const $serviceWorker = get(store);
 		if (!$serviceWorker) {
@@ -121,7 +127,7 @@ export function createServiceWorker() {
 					notSupported: false,
 					updateAvailable: false,
 					registration: $serviceWorker.registration,
-					registering: $serviceWorker.registering
+					registering: $serviceWorker.registering,
 				});
 			}
 		}
@@ -142,13 +148,13 @@ export function createServiceWorker() {
 			notSupported: false,
 			updateAvailable: false,
 			registration: $serviceWorker.registration,
-			registering: $serviceWorker.registering
+			registering: $serviceWorker.registering,
 		});
 	}
 
 	function register() {
 		if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-			store.set({ notSupported: false, registering: true });
+			store.set({notSupported: false, registering: true});
 
 			// ------------------------------------------------------------------------------------------------
 			// FORCE RELOAD ON CONTROLLER CHANGE
@@ -169,7 +175,7 @@ export function createServiceWorker() {
 					console.log(event);
 					notifications.add({
 						type: 'push-notification',
-						data: event.data.notification
+						data: event.data.notification,
 					});
 				}
 			};
@@ -178,18 +184,21 @@ export function createServiceWorker() {
 			//{scope: `${base}/`}
 			navigator.serviceWorker
 				.register(swLocation, {
-					type: dev ? 'module' : 'classic'
+					type: dev ? 'module' : 'classic',
 				})
 				.then((registration) => {
 					try {
-						handleAutomaticUpdate(registration, { idle: IDLE_DELAY_MS, checks: CHECK_DELAY_MS });
+						handleAutomaticUpdate(registration, {
+							idle: IDLE_DELAY_MS,
+							checks: CHECK_DELAY_MS,
+						});
 					} catch (e) {}
 
 					store.set({
 						notSupported: false,
 						updateAvailable: false,
 						registration: registration,
-						registering: false
+						registering: false,
 					});
 					updateLoggingForWorker(registration.installing);
 					updateLoggingForWorker(registration.waiting);
@@ -199,7 +208,7 @@ export function createServiceWorker() {
 							notSupported: false,
 							updateAvailable: true,
 							registration: registration,
-							registering: false
+							registering: false,
 						});
 					});
 				})
@@ -212,14 +221,14 @@ export function createServiceWorker() {
 						registration: undefined,
 						error: {
 							message: `failed to register service-worker`,
-							cause: e.message || e
-						}
+							cause: e.message || e,
+						},
 					});
 					logger.error('Failed to register service worker', e);
 				});
 		} else {
 			if (typeof window !== 'undefined') {
-				store.set({ notSupported: true });
+				store.set({notSupported: true});
 			}
 		}
 	}
@@ -247,6 +256,6 @@ export function createServiceWorker() {
 		pingServideWorker,
 		sendMessage,
 		skipWaiting,
-		skip
+		skip,
 	};
 }

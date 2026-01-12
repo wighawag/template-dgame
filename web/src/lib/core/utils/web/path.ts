@@ -1,6 +1,6 @@
-import { params, globalQueryParams } from '$lib/config';
-import { resolve } from '$app/paths';
-import { getParamsFromURL, queryStringifyNoArray } from './url.js';
+import {params, globalQueryParams} from '$lib/config';
+import {resolve} from '$app/paths';
+import {getParamsFromURL, queryStringifyNoArray} from './url.js';
 
 export function route(p: string, hash?: string) {
 	if (!p.endsWith('/')) {
@@ -13,7 +13,7 @@ export function route(p: string, hash?: string) {
 
 function getQueryStringToKeep(p: string): string {
 	if (globalQueryParams && globalQueryParams.length > 0) {
-		const { params: paramFromPath } = getParamsFromURL(p);
+		const {params: paramFromPath} = getParamsFromURL(p);
 		for (const queryParam of globalQueryParams) {
 			if (
 				typeof params[queryParam] != 'undefined' &&
@@ -29,7 +29,9 @@ function getQueryStringToKeep(p: string): string {
 }
 
 export function url(p: string, hash?: string) {
-	return resolve<any>(hash ? `${p}${hash.startsWith('#') ? hash : `#${hash}`}` : p);
+	return resolve<any>(
+		hash ? `${p}${hash.startsWith('#') ? hash : `#${hash}`}` : p,
+	);
 }
 
 export function isSameRoute(a: string, b: string): boolean {

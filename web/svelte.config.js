@@ -1,15 +1,17 @@
 import adapter from '@sveltejs/adapter-static';
-import { execSync } from 'node:child_process';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import {execSync} from 'node:child_process';
+import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 
 let VERSION = `timestamp_${Date.now()}`;
 try {
-	VERSION = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+	VERSION = execSync('git rev-parse --short HEAD', {
+		stdio: ['ignore', 'pipe', 'ignore'],
+	})
 		.toString()
 		.trim();
 	try {
 		// This command returns empty string if no changes
-		const output = execSync('git status --porcelain', { encoding: 'utf8' });
+		const output = execSync('git status --porcelain', {encoding: 'utf8'});
 		if (output.trim().length > 0) {
 			VERSION += '-dirty';
 			console.warn(`[!] repo has some uncommited changes...`);
@@ -30,11 +32,11 @@ const config = {
 
 	kit: {
 		version: {
-			name: VERSION
+			name: VERSION,
 		},
 		adapter: adapter({
 			assets: 'build',
-			pages: 'build'
+			pages: 'build',
 		}),
 		serviceWorker: {
 			// we handle it ourselves here : src/service-worker-handler.ts
@@ -44,7 +46,7 @@ const config = {
 			// this is to make it work on ipfs (on an unknown path)
 			relative: true,
 		},
-	}
+	},
 };
 
 export default config;

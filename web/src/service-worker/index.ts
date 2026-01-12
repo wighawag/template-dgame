@@ -4,7 +4,7 @@
 /// <reference lib="webworker" />
 /// <reference types="../../.svelte-kit/ambient.d.ts" />
 
-import { build, version, prerendered, files } from '$service-worker';
+import {build, version, prerendered, files} from '$service-worker';
 
 const ID = version; // + '-1';
 
@@ -17,7 +17,9 @@ const OFFLINE_CACHE = 'all';
 
 let ASSETS: string[] = [];
 if (OFFLINE_CACHE === 'all') {
-	ASSETS = build.concat(prerendered).concat(files.filter((v) => v.indexOf('pwa/') === -1));
+	ASSETS = build
+		.concat(prerendered)
+		.concat(files.filter((v) => v.indexOf('pwa/') === -1));
 } // TODO support more offline option
 
 let _logEnabled = true; // TODO false
@@ -42,7 +44,7 @@ const regexesCacheFirst = [
 	// 'https://rsms.me/inter/', // TODO remove, used if using font from there
 	'cdn',
 	'.*\\.png$',
-	'.*\\.svg$'
+	'.*\\.svg$',
 ];
 
 const regexesCacheOnly: string[] = [];
@@ -63,7 +65,7 @@ sw.addEventListener('install', (event) => {
 			.then(() => {
 				// sw.skipWaiting();
 				log(`cache fully fetched!`);
-			})
+			}),
 	);
 });
 
@@ -77,9 +79,9 @@ sw.addEventListener('activate', (event) => {
 						log(`Deleting: ${thisCacheName}`);
 						return caches.delete(thisCacheName);
 					}
-				})
+				}),
 			).then(() => sw.clients.claim());
-		})
+		}),
 	);
 });
 
@@ -103,7 +105,7 @@ async function fetchAndUpdateCache(request: Request, cache?: Response) {
 		} else {
 			return new Response(`Could Not fetch ${request.url}`, {
 				status: 503,
-				headers: { 'Content-Type': 'text/plain' }
+				headers: {'Content-Type': 'text/plain'},
 			});
 		}
 	}
@@ -115,7 +117,7 @@ const cacheFirst = {
 		const fromNetwork = fetchAndUpdateCache(request, cache);
 		return cache || fromNetwork;
 	},
-	regexes: regexesCacheFirst
+	regexes: regexesCacheFirst,
 };
 
 const cacheOnly = {
@@ -123,7 +125,7 @@ const cacheOnly = {
 		log(`Cache only: ${request.url}`);
 		return cache || fetchAndUpdateCache(request, cache);
 	},
-	regexes: regexesCacheOnly
+	regexes: regexesCacheOnly,
 };
 
 const onlineFirst = {
@@ -131,7 +133,7 @@ const onlineFirst = {
 		log(`Online first: ${request.url}`);
 		return fetchAndUpdateCache(request, cache);
 	},
-	regexes: regexesOnlineFirst
+	regexes: regexesOnlineFirst,
 };
 
 const onlineOnly = {
@@ -139,7 +141,7 @@ const onlineOnly = {
 		log(`Online only: ${request.url}`);
 		return fetch(request);
 	},
-	regexes: regexesOnlineOnly
+	regexes: regexesOnlineOnly,
 };
 
 async function getResponse(event: FetchEvent): Promise<Response> {
@@ -155,7 +157,7 @@ async function getResponse(event: FetchEvent): Promise<Response> {
 	) {
 		log('only one client, skipWaiting as we navigate the page');
 		registration.waiting.postMessage('skipWaiting');
-		const response = new Response('', { headers: { Refresh: '0' } });
+		const response = new Response('', {headers: {Refresh: '0'}});
 		return response;
 	}
 
@@ -216,7 +218,7 @@ async function getClientsStatus(): Promise<{
 	// TODO compute last active so that if none are both "focused and visible", we know where to jump in
 	const windowClients = await sw.clients.matchAll({
 		type: 'window',
-		includeUncontrolled: true
+		includeUncontrolled: true,
 	});
 
 	let atLeastOneVisible: WindowClient | undefined;
@@ -241,7 +243,7 @@ async function getClientsStatus(): Promise<{
 	return {
 		atLeastOneFocused,
 		atLeastOneVisible,
-		atLeastOneVisibleAndFocused
+		atLeastOneVisibleAndFocused,
 	};
 }
 
@@ -278,13 +280,13 @@ type DeclarativePushNotification = {
 async function handlePush(data?: string) {
 	const appActive = await getClientsStatus();
 
-	const notificationTuple: { title: string; options: NotificationOptions } = {
+	const notificationTuple: {title: string; options: NotificationOptions} = {
 		title: 'Notification',
 		options: {
 			body: 'You have a new notification',
 			icon: '/favicon.png', // TODO template it ?
-			badge: '/favicon.png' // TODO template it ?
-		}
+			badge: '/favicon.png', // TODO template it ?
+		},
 	};
 
 	if (data) {
@@ -301,7 +303,7 @@ async function handlePush(data?: string) {
 					lang: notif.lang,
 					requireInteraction: notif.requireInteraction,
 					silent: notif.silent,
-					tag: notif.tag
+					tag: notif.tag,
 				};
 				notificationTuple.title = notif.title;
 
@@ -311,7 +313,7 @@ async function handlePush(data?: string) {
 
 				if (notif.navigate) {
 					if (!notificationTuple.options.data) {
-						notificationTuple.options.data = { navigate: notif.navigate };
+						notificationTuple.options.data = {navigate: notif.navigate};
 					} else {
 						if (
 							typeof notificationTuple.options.data === 'object' &&
@@ -319,7 +321,7 @@ async function handlePush(data?: string) {
 						) {
 							notificationTuple.options.data = {
 								...notificationTuple.options.data,
-								navigate: notif.navigate
+								navigate: notif.navigate,
 							};
 						}
 					}
@@ -330,7 +332,8 @@ async function handlePush(data?: string) {
 				// notif.timestamp
 				// notif.renotify
 			} else {
-				notificationTuple.title = json.notification?.title || (json as any).title || 'Notification';
+				notificationTuple.title =
+					json.notification?.title || (json as any).title || 'Notification';
 				notificationTuple.options = json.notification || (json as any).options;
 			}
 		} catch {
@@ -346,11 +349,14 @@ async function handlePush(data?: string) {
 			type: 'notification',
 			notification: {
 				title: notificationTuple.title,
-				options: notificationTuple.options
-			}
+				options: notificationTuple.options,
+			},
 		});
 	} else {
-		await sw.registration.showNotification(notificationTuple.title, notificationTuple.options);
+		await sw.registration.showNotification(
+			notificationTuple.title,
+			notificationTuple.options,
+		);
 	}
 }
 sw.addEventListener('push', function (event: PushEvent) {
@@ -361,7 +367,7 @@ sw.addEventListener('push', function (event: PushEvent) {
 async function handleNotificationClick(notification: Notification) {
 	const windowClients = await sw.clients.matchAll({
 		type: 'window',
-		includeUncontrolled: true
+		includeUncontrolled: true,
 	});
 
 	const swPath = location.pathname;

@@ -1,6 +1,19 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
-	import { notifications } from './';
+	import {fly} from 'svelte/transition';
+	import {serviceWorker} from '$lib/config';
+
+	// TODO
+	export let src: string;
+	export let alt: string;
+
+	function skip() {
+		serviceWorker.skip();
+	}
+
+	function accept() {
+		console.log(`accepting update...`);
+		serviceWorker.skipWaiting();
+	}
 </script>
 
 <!-- Global notification live region, render this permanently at the end of the document -->
@@ -9,7 +22,7 @@
 	class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
 >
 	<div class="flex w-full flex-col items-center space-y-4 sm:items-end">
-		{#each $notifications as notification}
+		{#if $serviceWorker && !$serviceWorker.notSupported && !$serviceWorker.registering && $serviceWorker.updateAvailable && $serviceWorker.registration}
 			<!--
 		Notification panel, dynamically insert this into the live region when it needs to be displayed
   
@@ -22,13 +35,13 @@
 	  -->
 			<div
 				class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black/5"
-				transition:fly={{ delay: 250, duration: 300, x: +100 }}
+				transition:fly={{delay: 250, duration: 300, x: +100}}
 			>
 				<div class="p-4">
 					<div class="flex items-start">
 						<div class="shrink-0">
-							{#if notification.data.options?.icon}
-								<img src={notification.data.options.icon} alt="icon" />
+							{#if src}
+								<img {src} {alt} />
 							{:else}
 								<svg
 									class="size-6 text-gray-400"
@@ -48,26 +61,30 @@
 							{/if}
 						</div>
 						<div class="ml-3 w-0 flex-1 pt-0.5">
-							<p class="text-sm font-medium text-gray-900">{notification.data.title}</p>
-							<p class="mt-1 text-sm text-gray-500">{notification.data.options.body}.</p>
+							<p class="text-sm font-medium text-gray-900">
+								A new version is available.
+							</p>
+							<p class="mt-1 text-sm text-gray-500">
+								Reload to get the update.
+							</p>
 							<div class="mt-3 flex space-x-7">
 								<button
 									type="button"
-									class="rounded-md bg-white text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-									onclick={() => notifications.onClick(notification.id)}>ok</button
+									class="rounded-md bg-white text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+									onclick={accept}>Reload</button
 								>
 								<button
 									type="button"
-									class="rounded-md bg-white text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-									onclick={() => notifications.remove(notification.id)}>dismiss</button
+									class="rounded-md bg-white text-sm font-medium text-gray-700 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+									onclick={skip}>Dismiss</button
 								>
 							</div>
 						</div>
 						<div class="ml-4 flex shrink-0">
 							<button
 								type="button"
-								class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-								onclick={() => notifications.remove(notification.id)}
+								class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+								onclick={skip}
 							>
 								<span class="sr-only">Close</span>
 								<svg
@@ -86,6 +103,6 @@
 					</div>
 				</div>
 			</div>
-		{/each}
+		{/if}
 	</div>
 </div>

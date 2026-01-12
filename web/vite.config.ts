@@ -1,13 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
-import { execSync } from 'node:child_process';
+import {defineConfig} from 'vite';
+import {execSync} from 'node:child_process';
 import devtoolsJson from 'vite-plugin-devtools-json';
-import { sveltekit } from '@sveltejs/kit/vite';
+import {sveltekit} from '@sveltejs/kit/vite';
 
 let FIRST_COMMIT: string | undefined;
 try {
 	FIRST_COMMIT = execSync('git rev-list --max-parents=0 HEAD', {
-		stdio: ['ignore', 'pipe', 'ignore']
+		stdio: ['ignore', 'pipe', 'ignore'],
 	})
 		.toString()
 		.trim();
@@ -20,16 +20,16 @@ export default defineConfig({
 		devtoolsJson(
 			FIRST_COMMIT
 				? {
-						uuid: FIRST_COMMIT
+						uuid: FIRST_COMMIT,
 					}
-				: undefined
+				: undefined,
 		),
 		tailwindcss(),
-		sveltekit()
+		sveltekit(),
 	],
 	build: {
 		emptyOutDir: true,
 		minify: false,
-		sourcemap: true
-	}
+		sourcemap: true,
+	},
 });

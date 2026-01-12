@@ -4,7 +4,7 @@ export function getParamsFromURL(url: string): {
 	pathname?: string;
 } {
 	if (!url) {
-		return { params: {}, pathname: '' };
+		return {params: {}, pathname: ''};
 	}
 	const obj: Record<string, string> = {};
 	const hash = url.lastIndexOf('#');
@@ -21,7 +21,8 @@ export function getParamsFromURL(url: string): {
 			.split('&')
 			.forEach((piece) => {
 				const [key, val = ''] = piece.split('=');
-				obj[decodeURIComponent(key)] = val === '' ? 'true' : decodeURIComponent(val);
+				obj[decodeURIComponent(key)] =
+					val === '' ? 'true' : decodeURIComponent(val);
 			});
 	}
 
@@ -29,7 +30,7 @@ export function getParamsFromURL(url: string): {
 	if (pathname && !pathname.endsWith('/')) {
 		pathname += '/';
 	}
-	return { params: obj, pathname };
+	return {params: obj, pathname};
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -38,12 +39,14 @@ export function getParamsFromLocation(): {
 	pathname?: string;
 } {
 	if (typeof window === 'undefined') {
-		return { params: {} };
+		return {params: {}};
 	}
 	return getParamsFromURL(window.location.href);
 }
 
-export function getHashParamsFromLocation(str?: string): Record<string, string> {
+export function getHashParamsFromLocation(
+	str?: string,
+): Record<string, string> {
 	if (typeof window === 'undefined') {
 		return {};
 	}
@@ -90,11 +93,11 @@ export function rebuildLocationHash(hashParams: Record<string, string>): void {
 		window.history.replaceState(
 			'',
 			document.title,
-			window.location.pathname + window.location.search + reconstructedHash
+			window.location.pathname + window.location.search + reconstructedHash,
 		);
 	} else {
 		// Prevent scrolling by storing the page's current scroll offset
-		const { scrollTop, scrollLeft } = document.body;
+		const {scrollTop, scrollLeft} = document.body;
 		window.location.hash = '';
 
 		// Restore the scroll offset, should be flicker free
@@ -105,7 +108,7 @@ export function rebuildLocationHash(hashParams: Record<string, string>): void {
 
 async function chrome76Detection(): Promise<boolean> {
 	if ('storage' in navigator && 'estimate' in navigator.storage) {
-		const { quota } = await navigator.storage.estimate();
+		const {quota} = await navigator.storage.estimate();
 		return quota !== undefined && quota < 120000000;
 	}
 	return false;
@@ -113,7 +116,7 @@ async function chrome76Detection(): Promise<boolean> {
 
 function isNewChrome(): boolean {
 	const pieces = navigator.userAgent.match(
-		/Chrom(?:e|ium)\/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/
+		/Chrom(?:e|ium)\/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/,
 	);
 	if (pieces === null || pieces.length !== 5) {
 		return false;
@@ -163,7 +166,10 @@ export function isPrivateWindow(): Promise<boolean | null> {
 				navigator.userAgent.includes('msie')
 			) {
 				// Edge or IE
-				if (!window.indexedDB && (window.PointerEvent || (window as any).MSPointerEvent)) {
+				if (
+					!window.indexedDB &&
+					(window.PointerEvent || (window as any).MSPointerEvent)
+				) {
 					resolve(true);
 				}
 				resolve(false);
@@ -173,7 +179,9 @@ export function isPrivateWindow(): Promise<boolean | null> {
 					resolve(chrome76Detection());
 				}
 
-				const fs = (window as any).RequestFileSystem || (window as any).webkitRequestFileSystem;
+				const fs =
+					(window as any).RequestFileSystem ||
+					(window as any).webkitRequestFileSystem;
 				if (!fs) {
 					resolve(null);
 				} else {
@@ -181,7 +189,7 @@ export function isPrivateWindow(): Promise<boolean | null> {
 						(window as any).TEMPORARY,
 						100,
 						() => resolve(false),
-						() => resolve(true)
+						() => resolve(true),
 					);
 				}
 			}

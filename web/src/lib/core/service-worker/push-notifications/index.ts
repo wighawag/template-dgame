@@ -1,6 +1,6 @@
-import { derived, type Readable } from 'svelte/store';
-import { type ServiceWorkerState } from '..';
-import { urlB64ToUint8Array } from './utils';
+import {derived, type Readable} from 'svelte/store';
+import {type ServiceWorkerState} from '..';
+import {urlB64ToUint8Array} from './utils';
 
 // TODO share with server
 export type NotificationAction = {
@@ -61,7 +61,9 @@ export type PushNotificationsState =
 			error?: any;
 	  };
 
-type PrivateAccount = { signer: { address: string; privateKey: string } | undefined } | undefined;
+type PrivateAccount =
+	| {signer: {address: string; privateKey: string} | undefined}
+	| undefined;
 
 export function createPushNotificationService(params: {
 	serverPublicKey: string;
@@ -73,19 +75,19 @@ export function createPushNotificationService(params: {
 	const domain = params.domain;
 	async function getSubscriptionState(
 		registration: ServiceWorkerRegistration,
-		account: PrivateAccount
+		account: PrivateAccount,
 	): Promise<PushNotificationsState> {
 		const accountAddress = account?.signer?.address;
 		if (!accountAddress) {
 			return {
 				settled: false,
-				loading: false
+				loading: false,
 			};
 		}
 		const subscription = await registration.pushManager.getSubscription();
 		if (subscription) {
 			const registrationOnServerResponse = await fetch(
-				`${params.serverEndpoint}/registered/${accountAddress}/${domain}/${encodeURIComponent(subscription.endpoint)}`
+				`${params.serverEndpoint}/registered/${accountAddress}/${domain}/${encodeURIComponent(subscription.endpoint)}`,
 			);
 			const registrationResult = await registrationOnServerResponse.json();
 
@@ -93,26 +95,26 @@ export function createPushNotificationService(params: {
 				settled: true,
 				subscription,
 				subscribing: false,
-				registeredOnServer: registrationResult.registered
+				registeredOnServer: registrationResult.registered,
 			};
 		} else {
 			if (Notification.permission === 'denied') {
 				return {
 					settled: true,
-					denied: true
+					denied: true,
 				};
 			}
 			return {
 				settled: true,
 				subscription: undefined,
-				subscribing: false
+				subscribing: false,
 			};
 		}
 	}
 
 	let guard: object | undefined;
 
-	let _state: PushNotificationsState = { settled: false, loading: false };
+	let _state: PushNotificationsState = {settled: false, loading: false};
 	let _set: ((value: PushNotificationsState) => void) | undefined;
 	let _serviceWorker: ServiceWorkerState | undefined;
 	let _account: PrivateAccount | undefined;
@@ -132,19 +134,21 @@ export function createPushNotificationService(params: {
 			!_serviceWorker.registering &&
 			_serviceWorker.registration
 		) {
-			setState({ settled: false, loading: true });
+			setState({settled: false, loading: true});
 			const inner = (guard = {});
-			Promise.resolve(getSubscriptionState(_serviceWorker.registration, _account)).then((value) => {
+			Promise.resolve(
+				getSubscriptionState(_serviceWorker.registration, _account),
+			).then((value) => {
 				if (guard === inner) {
 					setState(value);
 				}
 			});
 		} else {
-			setState({ settled: false, loading: false });
+			setState({settled: false, loading: false});
 		}
 	}
 
-	const { subscribe } = derived<
+	const {subscribe} = derived<
 		[Readable<ServiceWorkerState>, Readable<PrivateAccount>],
 		PushNotificationsState
 	>(
@@ -155,7 +159,7 @@ export function createPushNotificationService(params: {
 			_set = set;
 			updateState();
 		},
-		_state
+		_state,
 	);
 
 	function refresh() {
@@ -165,13 +169,13 @@ export function createPushNotificationService(params: {
 	function subscribeToPush() {
 		if (_state.settled && 'subscription' in _state && _state.subscription) {
 			// throw new Error(`already subscribed`);
-			setState({ ..._state, error: 'already subscribed' });
+			setState({..._state, error: 'already subscribed'});
 			return;
 		}
 
 		if (_state.settled && 'denied' in _state && _state.denied) {
 			// throw new Error(`subscription denied`);
-			setState({ ..._state, error: 'subscription denied' });
+			setState({..._state, error: 'subscription denied'});
 			return;
 		}
 		const applicationServerKey = urlB64ToUint8Array(params.serverPublicKey);
@@ -184,11 +188,11 @@ export function createPushNotificationService(params: {
 			_serviceWorker.registration
 		) {
 			const accountBeingUsed = accountAddress;
-			setState({ settled: true, subscribing: true, subscription: undefined });
+			setState({settled: true, subscribing: true, subscription: undefined});
 			_serviceWorker.registration.pushManager
 				.subscribe({
 					userVisibleOnly: true,
-					applicationServerKey: applicationServerKey
+					applicationServerKey: applicationServerKey,
 				})
 				.then(async function (subscription) {
 					// TODO one more state update to show registrating on server
@@ -201,13 +205,18 @@ export function createPushNotificationService(params: {
 				})
 				.catch(function (error) {
 					if (Notification.permission === 'denied') {
-						setState({ settled: true, denied: true });
+						setState({settled: true, denied: true});
 						return {
 							settled: true,
-							denied: true
+							denied: true,
 						};
 					} else {
-						setState({ settled: true, subscription: undefined, subscribing: false, error });
+						setState({
+							settled: true,
+							subscription: undefined,
+							subscribing: false,
+							error,
+						});
 					}
 				});
 		} else {
@@ -215,19 +224,22 @@ export function createPushNotificationService(params: {
 		}
 	}
 
-	async function _registerOnServer(address: string, subscription: PushSubscription) {
+	async function _registerOnServer(
+		address: string,
+		subscription: PushSubscription,
+	) {
 		let registeredOnServer = false;
 		try {
 			const response = await fetch(`${params.serverEndpoint}/register`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
 					address,
 					domain: domain,
-					subscription: subscription.toJSON()
-				})
+					subscription: subscription.toJSON(),
+				}),
 			});
 			if (response.ok) {
 				const json = await response.json();
@@ -242,12 +254,22 @@ export function createPushNotificationService(params: {
 			// show error ?
 		}
 
-		setState({ settled: true, subscription, subscribing: false, registeredOnServer });
+		setState({
+			settled: true,
+			subscription,
+			subscribing: false,
+			registeredOnServer,
+		});
 	}
 
 	function registerOnServer() {
 		const accountAddress = _account?.signer?.address;
-		if (_state.settled && 'subscription' in _state && _state.subscription && accountAddress) {
+		if (
+			_state.settled &&
+			'subscription' in _state &&
+			_state.subscription &&
+			accountAddress
+		) {
 			_registerOnServer(accountAddress, _state.subscription);
 		} else {
 			throw new Error(`not ready`);
@@ -256,7 +278,7 @@ export function createPushNotificationService(params: {
 
 	function acknowledgeError() {
 		if ('error' in _state && _state.error) {
-			setState({ ..._state, error: undefined });
+			setState({..._state, error: undefined});
 		}
 	}
 
@@ -268,18 +290,25 @@ export function createPushNotificationService(params: {
 		const response = await fetch(`${params.serverEndpoint}/push`, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
 				address: accountAddress,
 				domain,
-				message
-			})
+				message,
+			}),
 		});
 		const text = await response.text();
-		console.log({ text });
+		console.log({text});
 		return response.ok;
 	}
 
-	return { subscribe, refresh, subscribeToPush, registerOnServer, acknowledgeError, testPush };
+	return {
+		subscribe,
+		refresh,
+		subscribeToPush,
+		registerOnServer,
+		acknowledgeError,
+		testPush,
+	};
 }
