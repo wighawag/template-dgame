@@ -9,3 +9,10 @@ static/pwa
 
 # Env
 *.local
+
+src/lib/deployments.ts
+
+# assets
+static/assets
+.assetpack
+src/lib/manifest.json

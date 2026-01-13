@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-static';
-import {execSync} from 'node:child_process';
 import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
+import {execSync} from 'child_process';
 
 let VERSION = `timestamp_${Date.now()}`;
 try {
@@ -26,12 +26,11 @@ try {
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://svelte.dev/docs/kit/integrations
-	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 
 	kit: {
 		version: {
+			// we create a dertemrinistic building using a derterministic version (via git commit, see above)
 			name: VERSION,
 		},
 		adapter: adapter({
