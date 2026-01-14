@@ -2,13 +2,10 @@ import {PUBLIC_WALLET_HOST} from '$env/static/public';
 import EmbeddedChainWorker from '$lib/onchain/embedded-chain-worker?worker'; // gives you the built URL
 import {createConnection} from '@etherplay/connect';
 import {setupEnvironment} from '@rocketh/web';
-import DeployAvatars from 'template-commit-reveal-contracts/deploy/001_deploy_avatars.js';
-import DeployGame from 'template-commit-reveal-contracts/deploy/010_deploy_game.js';
-import DeploySale from 'template-commit-reveal-contracts/deploy/020_deploy_sale.js';
-import {
-	config,
-	extensions,
-} from 'template-commit-reveal-contracts/rocketh/config.js';
+import DeployAvatars from 'reveal-or-die-contracts/deploy/001_deploy_avatars.js';
+import DeployGame from 'reveal-or-die-contracts/deploy/010_deploy_game.js';
+import DeploySale from 'reveal-or-die-contracts/deploy/020_deploy_sale.js';
+import {config, extensions} from 'reveal-or-die-contracts/rocketh/config.js';
 import {wrap} from 'comlink';
 import {type EmbeddedChain, type EmbeddedChainOptions} from 'embedded-chain';
 import {derived, writable} from 'svelte/store';

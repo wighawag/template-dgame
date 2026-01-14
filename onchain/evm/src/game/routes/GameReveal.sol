@@ -9,7 +9,7 @@ contract GameReveal is IGameReveal, UsingGameInternal {
 
     function reveal(
         uint256 avatarID,
-        bytes calldata actions,
+        Action[] calldata actions,
         bytes32 secret,
         address payable payee
     ) external payable {
@@ -18,6 +18,14 @@ contract GameReveal is IGameReveal, UsingGameInternal {
         if (payee != address(0)) {
             payee.transfer(msg.value);
         }
+    }
+
+    function moveToNextEpoch() external returns (ManualEpoch memory) {
+        return _moveToNextEpoch();
+    }
+
+    function moveToNextPhase() external returns (ManualEpoch memory) {
+        return _moveToNextPhase();
     }
 
     function acknowledgeMissedReveal(uint256 avatarID) external {

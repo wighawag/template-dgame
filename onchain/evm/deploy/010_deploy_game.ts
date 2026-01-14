@@ -15,6 +15,7 @@ export default deployScript(
 			revealPhaseDuration: data.Game.revealPhaseDuration,
 			time: zeroAddress,
 			avatars: Avatars.address,
+			numMoves: data.Game.numMoves,
 		};
 
 		const routes = [
@@ -28,24 +29,15 @@ export default deployScript(
 			'Game',
 			{
 				account: deployer,
-				artifact: (name, params) => {
-					return deployViaRouter<Abi_IGame>(
-						name,
-						params,
-						routes,
-						// 	{
-						// 	routerContract: {
-						// 		type: 'custom',
-						// 		artifact: artifacts.Router10X60,
-						// 	},
-						// }
-					);
+				artifact: (name, params, options) => {
+					return deployViaRouter<Abi_IGame>(name, params, routes, options);
 				},
 				args: [config],
 			},
 			{
 				owner: admin,
 				linkedData: config,
+				// deterministic: true,
 				// proxyContract: {
 				// 	type: 'custom',
 				// 	artifact: artifacts.ERC173Proxy,

@@ -18,7 +18,7 @@ interface IGameCommit is UsingGameTypes {
 interface IGameReveal is UsingGameTypes {
     function reveal(
         uint256 avatarID,
-        bytes calldata actions,
+        Action[] calldata actions,
         bytes32 secret,
         address payable payee
     ) external payable;
@@ -28,6 +28,28 @@ interface IGameReveal is UsingGameTypes {
 
 interface IGameGetters is UsingGameTypes {
     function getEpoch() external view returns (uint64 epoch, bool commiting);
+
+    function getAvatarsInZone(
+        uint64 zone,
+        uint64 fromIndex,
+        uint64 limit
+    )
+        external
+        view
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch);
+
+    function getAvatarsInMultipleZones(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit
+    )
+        external
+        view
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch);
+
+    function getAvatar(
+        uint256 avatarID
+    ) external view returns (PublicAvatar memory avatar);
 
     function getCommitment(
         uint256 avatarID
@@ -42,6 +64,12 @@ interface IGameDeposit is UsingGameTypes {
         address controller,
         address payable payee
     ) external payable;
+    function withdraw(uint256 avatarID, address to) external;
+    function avatarsPerOwner(
+        address owner,
+        uint256 startIndex,
+        uint256 limit
+    ) external view returns (PublicAvatar[] memory avatarIDs, bool more);
 }
 
 interface IGame is

@@ -12,7 +12,7 @@
 		<div
 			class="max-h-[calc(100vh-128px)] max-w-[calc(100vw-128px)] bg-gray-900 p-16"
 		>
-			<h1 class="text-lg font-bold">Welcome to Bomber.world</h1>
+			<h1 class="text-lg font-bold">Welcome to reveal-or-die</h1>
 
 			<p>Masked warriors. Real stakes. Endless spectacle.</p>
 

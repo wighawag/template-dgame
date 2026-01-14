@@ -92,7 +92,8 @@ function assetpackPlugin(): Plugin {
 			mode = resolvedConfig.command;
 			if (!resolvedConfig.publicDir) return;
 			if (apConfig.output) return;
-			const publicDir = resolvedConfig.publicDir.replace(process.cwd(), '');
+			const currentFolder = process.cwd().replaceAll(`\\`, `/`); // fix issue on windows
+			const publicDir = resolvedConfig.publicDir.replace(currentFolder, '');
 			apConfig.output = `.${publicDir}/assets/`;
 		},
 		buildStart: async () => {
@@ -153,10 +154,18 @@ if (env.USE_LOCALHOST_SSL) {
 
 export default defineConfig({
 	plugins,
+	define: {
+		// fix ethereumjs in worker
+		'process.env': '{}',
+		process: '{}',
+	},
 	build: {
 		emptyOutDir: true,
 		minify: false,
 		sourcemap: true,
+	},
+	worker: {
+		format: 'es',
 	},
 	ssr: {
 		noExternal: ['pixi-viewport'],

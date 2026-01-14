@@ -1,7 +1,7 @@
 import type {TypedDeployments} from '$lib/core/connection/types';
 import {TimeNotSyncedError} from '$lib/core/time';
 import type {EpochInfoStore} from '$lib/types';
-import {calculateVisibleZones} from 'template-commit-reveal-contracts';
+import {calculateVisibleZones} from 'reveal-or-die-contracts';
 import {logs} from 'named-logs';
 import {get, writable, type Readable} from 'svelte/store';
 import type {PublicClient} from 'viem';

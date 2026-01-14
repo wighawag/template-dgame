@@ -4,7 +4,7 @@
 /// <reference lib="webworker" />
 /// <reference types="../../.svelte-kit/ambient.d.ts" />
 
-import {build, version, prerendered, files} from '$service-worker';
+import {build, files, prerendered, version} from '$service-worker';
 
 const ID = version; // + '-1';
 

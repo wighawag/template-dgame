@@ -1,10 +1,13 @@
 {
-  "name": "template-commit-reveal-monorepo",
+  "name": "reveal-or-die-monorepo",
   "version": "0.0.0",
+  "description": "A Game",
   "private": true,
   "type": "module",
   "devDependencies": {
+    "cross-var": "^1.1.0",
     "ldenv": "^0.3.16",
+    "pm2": "^6.0.14",
     "set-defaults": "^0.0.5",
     "syncpack": "^13.0.4",
     "zellij-launcher": "^0.0.1"
@@ -12,14 +15,17 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "patchedDependencies": {
+      "@tevm/actions": "patches/@tevm__actions.patch"
+    }
   },
   "scripts": {
     "prepare": "set-defaults .vscode",
     "preinstall": "npx only-allow pnpm",
     "cleandep": "rm -rf node_modules && pnpm -r exec rm -rf node_modules",
     "---------------------- INSTALL ----------------------": "",
-    "sync-deps": "syncpack fix-mismatches",
+    "sync-deps": "syncpack fix-mismatches && pnpm -r format:fix",
     "---------------------- FORMAT ----------------------": "",
     "format": "prettier --write . && pnpm -r format",
     "format:check": "prettier --check . && pnpm -r format:check",
@@ -27,12 +33,16 @@
     "web:dev": "ldenv pnpm --filter ./web dev",
     "web:build": "ldenv pnpm --filter ./web build",
     "web:serve": "ldenv pnpm --filter ./web serve",
+    "web:check": "ldenv pnpm --filter ./web check",
     "---------------------- ONCHAIN ----------------------": "",
     "onchain:deploy": "ldenv pnpm run --filter ./onchain/evm deploy @@MODE @@",
     "onchain:verify": "ldenv pnpm run --filter ./onchain/evm verify @@MODE @@",
     "onchain:compile": "ldenv pnpm --filter ./onchain/evm compile",
     "onchain:build": "ldenv pnpm --filter ./onchain/evm compile ~~ pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
     "onchain:export": "ldenv pnpm --filter ./onchain/evm typescript ~~ pnpm --filter ./onchain/evm export @@MODE --ts ../../web/src/lib/deployments.ts ~~ @@",
+    "---------------------- SERVICES ----------------------": "",
+    "push-notification": "pnpm --filter ./services/push-notification dev",
+    "missiv": "pnpm --filter ./services/missiv dev",
     "---------------------- DEPLOY ----------------------": "",
     "build": "ldenv --git -d localhost pnpm onchain:build @@MODE ~~ pnpm web:build ~~ @@",
     "serve": "pnpm run --filter ./web serve",
@@ -46,8 +56,11 @@
     "zellij-remote": "zellij-launcher a $npm_package_name-remote-$MODE || zellij -n dev/zellij-remote.kdl -s $npm_package_name-remote-$MODE",
     "remote": "ldenv -d localhost pnpm run zellij-remote @@",
     "---------------------- RUN FULL LOCAL SETUP ----------------------": "",
-    "stop": "zellij kill-session $npm_package_name",
-    "start:pnpm": "pnpm -r dev",
-    "start": "zellij-launcher a $npm_package_name || ldenv -d localhost zellij -n dev/zellij.kdl -s $npm_package_name"
+    "stop": "cross-var zellij kill-session $npm_package_name",
+    "wezterm": "wezterm --config-file dev/wezterm.lua start $PWD",
+    "zellij": "cross-var zellij-launcher a $npm_package_name || cross-var ldenv -d localhost zellij -n dev/zellij.kdl -s $npm_package_name",
+    "pm": "cross-var pnpm pm2 start --namespace $npm_package_name dev/pm2.config.cjs && pnpm pm2 dash",
+    "pm:stop": "cross-var pnpm pm2 stop all --namespace $npm_package_name",
+    "start": "pnpm zellij"
   }
 }

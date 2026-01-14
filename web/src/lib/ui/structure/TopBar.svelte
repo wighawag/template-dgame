@@ -27,7 +27,7 @@
 >
 	<div class="flex h-full items-center space-x-2">
 		<!-- Logo or App Name -->
-		<span class="text-lg font-bold">template-commit-reveal</span>
+		<span class="text-lg font-bold">reveal-or-die</span>
 		<!-- <span
 			>{#if $avatars.step == 'Loaded'}
 				{$avatars.avatarsInWallet.length} / {$avatars.avatarsOnBench.length} / {$avatars
@@ -41,7 +41,7 @@
 			>{$balance.step == 'Loaded'
 				? `${Math.floor($balance.credits * 100) / 100} Credits`
 				: ''}</span
-		>
+		> <a href={url('/tutorial/')}>tutorial</a>
 	</div>
 
 	<div class="relative flex h-full items-center space-x-4">
@@ -117,3 +117,18 @@
 		</div>
 	{/if}
 </nav>
+
+{#if $localState.signer}
+	<div
+		class="fixed top-12 right-0 z-0 mx-auto flex h-12 w-32 bg-black px-4 text-white opacity-70"
+	>
+		<div id="stats">
+			<div>
+				Moves: {$viewState.avatar
+					? $viewState.avatar.numMoves
+					: $deployments.contracts.Game.linkedData.numMoves}
+			</div>
+			<div></div>
+		</div>
+	</div>
+{/if}

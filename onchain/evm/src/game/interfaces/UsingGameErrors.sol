@@ -13,6 +13,28 @@ interface UsingGameErrors is UsingGameTypes {
     /// @notice happen when an unauthorized account attempt to withdraw an avatar
     error NotAuthorizedOwner(address account);
 
+    /// @notice happen when transfering an avatar with invalid data
+    error InvalidData();
+
+    /// @notice happen when attempting to leave the game from a non-exit position
+    error UnableToExitFromThisPosition(uint64 position);
+
+    /// @notice happen when attempting to move an avatar not in the game
+    error AvatarNotAvailable(uint256 avatarID);
+
+    /// @notice happen when attempting to move an avatar not in the game
+    error AvatarNotInGame(uint256 avatarID);
+
+    /// @notice happen when attempting to enter an avatar already in the game
+    error AvatarAlreadyInGame(uint256 avatarID);
+
+    /// @notice happen when attempting to extract an avatar still in the game
+    error AvatarStillInGame(uint256 avatarID);
+
+    /// @notice happen when attempting to move an avatar that just entered the game. \
+    ///  It needs to wait the next epoch
+    error AvatarNotReady(uint256 avatarID);
+
     /// @notice When in Reveal phase, it is not possible to commit new moves or cancel previous commitment
     ///  During Reveal phase, players have to reveal their commitment, if not already done.
     error InRevealPhase(uint64 epoch);
@@ -43,9 +65,22 @@ interface UsingGameErrors is UsingGameTypes {
     /// prevent player from acknowledging missed reveal if there is still time to reveal.
     error CanStillReveal(uint64 epoch);
 
+    /// @notice happen when attempting to move a dead avatar
+    ///  The avatar is dead, no action possible
+    /// @param avatarID the id of the dead avatar
+    error AvatarIsDead(uint256 avatarID);
+
+    /// @notice The cell configuration is invalid
+    ///  This can happen win debug mode where admin can setup cell bypassing moves rules
+    ///  For example when setting up neighborood configuration that would require a cell to have negative life
+    error ImpossibleConfiguration();
+
     /// @notice happen when attempting to send a non-avatar ERC721 to the game
     error OnlyAvatarsAreAccepted();
 
-    /// @notice happen when transfering an avatar with invalid data
-    error InvalidData();
+    /// @notice happen when attempting to move to next phase/epoch when not configured to be able to do it.
+    error NextPhaseNotAllowed();
+
+    /// @notice happen when attempting to move to next phase when skip commit is enabled
+    error CommitPhaseIsSkipped();
 }

@@ -1,5 +1,5 @@
 {
-	"name": "template-commit-reveal-contracts",
+	"name": "reveal-or-die-contracts",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -57,10 +57,11 @@
 		"zellij-launcher": "^0.0.1"
 	},
 	"scripts": {
-		"prepare": "set-defaults .vscode && pnpm compile",
+		"prepare": "set-defaults .vscode && pnpm generate_areas &&  pnpm compile",
 		"---------------------- INTERNAL ----------------------": "",
 		":deploy+export": "cross-var pnpm hardhat --network $MODE deploy --skip-prompts && cross-var rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
+		"generate_areas": "tsx scripts/asciiAreaToStruct.ts ./data/demo_areas",
 		"local_node": "ldenv -d localhost pnpm hardhat node",
 		"compile": "hardhat --show-stack-traces compile",
 		"compile:watch": "as-soon -w src pnpm compile",

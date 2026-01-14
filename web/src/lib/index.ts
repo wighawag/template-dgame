@@ -15,12 +15,16 @@ import {createCamera} from './core/render/camera';
 import {createLocalState} from './private/localState';
 import {eventEmitter} from './render/eventEmitter';
 import {createWriteOperations} from './onchain/writes';
+import {createAvatarCollectionStore} from './onchain/avatars';
 import {ZonesFetcher} from './onchain/zones-fetcher';
+import {createEnterFlow} from './ui/flows/enter/enterFlow';
+import {createPurchaseFlow} from './ui/flows/purchase/purchaseFlow';
 import {createSyncedTime} from './core/time';
 import {
 	createManualEpochTrackers,
 	createTimedEpochTrackers,
 } from './core/epoch';
+import {createAutoSubmitterWithGameConfig} from './private/auto-commit-reveal';
 import type {GameDependencies} from './types';
 
 export async function createGameDependenciesForRemotePlay(): Promise<GameDependencies> {
@@ -143,12 +147,45 @@ export async function createGameDependenciesForRemotePlay(): Promise<GameDepende
 	});
 	window.localState = localState;
 
+	const {commitAutoSubmitter, revealAutoSubmitter} =
+		createAutoSubmitterWithGameConfig({
+			epochConfig,
+			localState,
+			epochInfo,
+			syncedTime,
+		});
+	// TODO move somewhere we can also trigger stop
+	commitAutoSubmitter.start();
+	revealAutoSubmitter.start();
+
 	// For now use deployments.current
 	const viewState = createViewState(
 		onchainState,
 		localState,
 		deployments.current,
 	);
+	// For now use deployments.current
+	const avatars = createAvatarCollectionStore({
+		account,
+		publicClient,
+		deployments: deployments.current,
+	});
+	window.avatars = avatars;
+
+	const purchaseFlow = createPurchaseFlow({
+		avatars,
+		writes,
+	});
+
+	const enterFlow = createEnterFlow({
+		connection,
+		viewState,
+		purchaseFlow,
+		epochInfo,
+		twoPhase,
+		avatars,
+		localState,
+	});
 
 	window.viewState = viewState;
 	const renderer = createRenderer({
@@ -159,6 +196,8 @@ export async function createGameDependenciesForRemotePlay(): Promise<GameDepende
 		epochConfig,
 		camera,
 		cameraControl,
+		avatars,
+		enterFlow,
 		deployments: deployments.current, // TODO use deployment store ?
 	});
 
@@ -183,7 +222,10 @@ export async function createGameDependenciesForRemotePlay(): Promise<GameDepende
 		publicClient,
 		account,
 		writes,
+		avatars,
 		deployments,
+		enterFlow,
+		purchaseFlow,
 	};
 }
 
@@ -300,6 +342,28 @@ export async function createGameDependenciesForEmbeddedPlay(): Promise<GameDepen
 		localState,
 		deployments.current,
 	);
+	// For now use deployments.current
+	const avatars = createAvatarCollectionStore({
+		account,
+		publicClient,
+		deployments: deployments.current,
+	});
+	window.avatars = avatars;
+
+	const purchaseFlow = createPurchaseFlow({
+		avatars,
+		writes,
+	});
+
+	const enterFlow = createEnterFlow({
+		connection,
+		viewState,
+		purchaseFlow,
+		epochInfo,
+		twoPhase,
+		avatars,
+		localState,
+	});
 
 	window.viewState = viewState;
 	const renderer = createRenderer({
@@ -310,7 +374,8 @@ export async function createGameDependenciesForEmbeddedPlay(): Promise<GameDepen
 		epochConfig,
 		camera,
 		cameraControl,
-
+		avatars,
+		enterFlow,
 		deployments: deployments.current, // TODO use deployment store ?
 	});
 
@@ -335,7 +400,10 @@ export async function createGameDependenciesForEmbeddedPlay(): Promise<GameDepen
 		publicClient,
 		account,
 		writes,
+		avatars,
 		deployments,
+		enterFlow,
+		purchaseFlow,
 	};
 }
 

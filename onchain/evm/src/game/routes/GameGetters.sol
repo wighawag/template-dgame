@@ -11,6 +11,37 @@ contract GameGetters is IGameGetters, UsingGameInternal {
         return _epoch();
     }
 
+    function getAvatarsInZone(
+        uint64 zone,
+        uint64 fromIndex,
+        uint64 limit
+    )
+        external
+        view
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
+    {
+        return _getAvatarsInZone(zone, fromIndex, limit);
+    }
+
+    function getAvatarsInMultipleZones(
+        uint64[] calldata zones,
+        uint64 fromIndex,
+        uint64 limit
+    )
+        external
+        view
+        returns (PublicAvatar[] memory avatars, bool more, uint64 epoch)
+    {
+        return _getAvatarsInMultipleZones(zones, fromIndex, limit);
+    }
+
+    function getAvatar(
+        uint256 avatarID
+    ) external view returns (PublicAvatar memory) {
+        (uint64 epoch, ) = _epoch();
+        return _getPublicAvatar(avatarID, epoch);
+    }
+
     function getCommitment(
         uint256 avatarID
     ) external view returns (Commitment memory commitment) {
@@ -23,8 +54,9 @@ contract GameGetters is IGameGetters, UsingGameInternal {
                 startTime: START_TIME,
                 commitPhaseDuration: COMMIT_PHASE_DURATION,
                 revealPhaseDuration: REVEAL_PHASE_DURATION,
+                avatars: AVATARS,
                 time: TIME,
-                avatars: AVATARS
+                numMoves: MAX_MOVES
             });
     }
 }

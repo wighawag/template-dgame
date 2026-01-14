@@ -2,6 +2,7 @@
 	"useTabs": true,
 	"singleQuote": true,
 	"bracketSpacing": false,
+	"printWidth": 80,
 	"plugins": ["prettier-plugin-solidity"],
 	"overrides": [
 		{
