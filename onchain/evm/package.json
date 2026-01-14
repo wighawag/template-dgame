@@ -57,7 +57,7 @@
 		"zellij-launcher": "^0.0.1"
 	},
 	"scripts": {
-		"prepare": "set-defaults .vscode && pnpm generate_areas &&  pnpm compile",
+		"prepare": "set-defaults .vscode && pnpm generate_areas && pnpm compile && pnpm typescript",
 		"---------------------- INTERNAL ----------------------": "",
 		":deploy+export": "cross-var pnpm hardhat --network $MODE deploy --skip-prompts && cross-var rocketh-export -e $MODE",
 		"---------------------- DEV ---------------------- ": "",
