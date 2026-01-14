@@ -48,4 +48,10 @@ interface UsingGameErrors is UsingGameTypes {
 
     /// @notice happen when transfering an avatar with invalid data
     error InvalidData();
+
+    /// @notice happen when attempting to move to next phase/epoch when not configured to be able to do it.
+    error NextPhaseNotAllowed();
+
+    /// @notice happen when attempting to move to next phase when skip commit is enabled
+    error CommitPhaseIsSkipped();
 }

@@ -46,6 +46,11 @@ interface UsingGameEvents is UsingGameTypes {
         bytes actions
     );
 
+    /// @notice a new epoch/phase has been manually triggered
+    /// @param epoch epoch of the new phase
+    /// @param commiting whether we are in the commiting phase or not
+    event NewPhase(uint64 indexed epoch, bool commiting);
+
     // DEBUG
     event PreviousCommitmentNotRevealedEvent(
         uint256 indexed avatarID,

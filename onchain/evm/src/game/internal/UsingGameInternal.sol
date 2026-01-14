@@ -115,6 +115,50 @@ abstract contract UsingGameInternal is
         commitment.epoch = 0; // used
     }
 
+    function _getManualEpoch() internal view returns (ManualEpoch memory) {
+        if (_manualEpoch.epoch == 0) {
+            // we start at 2 like the automatic epoch to make the hypothetical previous epoch be 1
+            return ManualEpoch({epoch: 2, commiting: !SKIP_COMMIT});
+        }
+        return _manualEpoch;
+    }
+
+    function _moveToNextEpoch() internal returns (ManualEpoch memory) {
+        // TODO add posibility to skip epoch even if turn are timed
+        // TODO add logic to present moving to next epoch if not all player who already in the game has done so
+        if (!(COMMIT_PHASE_DURATION == 0 && REVEAL_PHASE_DURATION == 0)) {
+            revert NextPhaseNotAllowed();
+        }
+
+        ManualEpoch memory currentManualEpoch = _getManualEpoch();
+        _manualEpoch.epoch = currentManualEpoch.epoch + 1;
+        _manualEpoch.commiting = !SKIP_COMMIT;
+
+        return _manualEpoch;
+    }
+
+    function _moveToNextPhase() internal returns (ManualEpoch memory) {
+        if (SKIP_COMMIT) {
+            revert CommitPhaseIsSkipped();
+        }
+
+        // TODO add posibility to skip epoch even if turn are timed
+        // TODO add logic to present moving to next epoch if not all player who already in the game has done so
+        if (!(COMMIT_PHASE_DURATION == 0 && REVEAL_PHASE_DURATION == 0)) {
+            revert NextPhaseNotAllowed();
+        }
+
+        ManualEpoch memory currentManualEpoch = _getManualEpoch();
+        if (currentManualEpoch.commiting) {
+            _manualEpoch.epoch = currentManualEpoch.epoch;
+            _manualEpoch.commiting = false;
+        } else {
+            _manualEpoch.commiting = true;
+            _manualEpoch.epoch = currentManualEpoch.epoch + 1;
+        }
+        return _manualEpoch;
+    }
+
     function _acknowledgeMissedReveal(uint256 avatarID) internal {
         // TODO burn / stake ....
         Commitment storage commitment = _commitments[avatarID];
@@ -148,15 +192,23 @@ abstract contract UsingGameInternal is
         virtual
         returns (uint64 epoch, bool commiting)
     {
-        uint256 epochDuration = COMMIT_PHASE_DURATION + REVEAL_PHASE_DURATION;
-        uint256 time = _timestamp();
-        if (time < START_TIME) {
-            revert GameNotStarted();
+        if (COMMIT_PHASE_DURATION == 0 && REVEAL_PHASE_DURATION == 0) {
+            ManualEpoch memory currentManualEpoch = _getManualEpoch();
+            epoch = currentManualEpoch.epoch;
+            commiting = currentManualEpoch.commiting;
+        } else {
+            uint256 epochDuration = COMMIT_PHASE_DURATION +
+                REVEAL_PHASE_DURATION;
+            uint256 time = _timestamp();
+            if (time < START_TIME) {
+                revert GameNotStarted();
+            }
+            uint256 timePassed = time - START_TIME;
+            epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
+            commiting =
+                timePassed - ((epoch - 2) * epochDuration) <
+                COMMIT_PHASE_DURATION;
         }
-        uint256 timePassed = time - START_TIME;
-        epoch = uint64(timePassed / epochDuration + 2); // epoch start at 2, this make the hypothetical previous reveal phase's epoch to be 1
-        commiting =
-            timePassed - ((epoch - 2) * epochDuration) < COMMIT_PHASE_DURATION;
     }
 
     function _checkHash(
