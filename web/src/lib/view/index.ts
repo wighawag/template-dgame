@@ -42,10 +42,6 @@ export function createViewState(
 						...onchainEntity,
 						entering: false,
 					};
-				} else {
-					entities[entityID] = {
-						...onchainEntity,
-					};
 				}
 			}
 			let avatarData: {id: string; numMoves: number} | undefined;
