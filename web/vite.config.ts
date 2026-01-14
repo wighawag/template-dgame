@@ -158,6 +158,9 @@ export default defineConfig({
 		minify: false,
 		sourcemap: true,
 	},
+	worker: {
+		format: 'es',
+	},
 	ssr: {
 		noExternal: ['pixi-viewport'],
 	},
