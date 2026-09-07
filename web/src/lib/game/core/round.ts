@@ -148,24 +148,33 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 	 * Default false, which is right for a game where a quiet epoch simply passes:
 	 * committing an empty round would spend gas to say nothing.
 	 *
-	 * It is wrong, and expensively so, for a game that PUNISHES SILENCE.
-	 * reveal-or-die kills an avatar that has not revealed for a few epochs
-	 * (`_getResolvedAvatar`: "we force character to continuously commit+reveal",
-	 * `numMissesAllowed = 3`), so a player who watches a few rounds without moving
-	 * loses the avatar they paid for, having done nothing wrong and been told
+	 * It is wrong, and expensively so, for a game that PUNISHES SILENCE. Where
+	 * what is at stake DECAYS rather than sitting in a bond - an avatar that dies
+	 * after a few missed rounds, a character that loses levels - the contract
+	 * measures liveness by reveals, so a player who watches a few rounds without
+	 * moving loses what they paid for, having done nothing wrong and been told
 	 * nothing. The client has to keep the loop turning on their behalf.
+	 *
+	 * A decaying stake is one of the two obvious ways to satisfy "something must
+	 * be at stake, or nobody has to reveal", which is why this is framework rather
+	 * than one game's workaround.
 	 *
 	 * A PREDICATE rather than a flag, because the answer changes minute to minute:
 	 * it is only true while the game is actually holding something that can die.
-	 * An avatar waiting to enter has no clock running, and committing empty rounds
-	 * for it would burn gas for nothing.
+	 * An entity waiting to enter play has no clock running against it, and
+	 * committing empty rounds for it would burn gas for nothing.
 	 *
-	 * This is the framework's business rather than the game's because the round is
-	 * what owns the epoch loop, the secret and the storage; a game cannot express
-	 * "commit nothing" from outside, since `plan([])` means "nothing is pending".
-	 * Worth backporting: "something must be at stake" is the template's own stated
-	 * requirement, and a stake that decays is one of the two obvious ways to have
-	 * one.
+	 * It has to live here rather than in the game because the round owns the epoch
+	 * loop, the secret and the storage, and a game cannot express "commit nothing"
+	 * from outside: `plan([])` means "nothing is pending", not "send an empty
+	 * turn".
+	 *
+	 * KNOWN TENSION, worth reading before building a deliberate exit on top of
+	 * this: an idle player with the tab open never dies and quietly spends gas, so
+	 * this makes death-by-silence unreachable and removes the natural way to
+	 * leave. A game with an explicit exit, a forfeit, or a way to stop being
+	 * waited for has to make this predicate agree with it, or the framework will
+	 * spend gas preventing the departure the player just asked for.
 	 */
 	commitWhenIdle?: () => boolean;
 	/**
@@ -259,9 +268,10 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 	 * Not the same as `step === 'Idle'`, and reading it that way stopped the
 	 * liveness loop after exactly one turn. A round that has been revealed sits
 	 * on `Revealed` - there is nothing to put it back to `Idle`, and nothing
-	 * should: the HUD reports the outcome from it - so a player who moved once
-	 * and then stood still committed nothing ever again, and lost the avatar a
-	 * few epochs later to the very silence this option exists to prevent.
+	 * should, since the HUD reports the outcome from it - so a player who moved
+	 * once and then stood still committed nothing ever again, and lost what they
+	 * held a few epochs later to the very silence this option exists to prevent.
+	 * Found in play, not in review.
 	 *
 	 * A FINISHED round from an EARLIER epoch is nothing pending. The epoch
 	 * comparison is what makes that safe: a round revealed in the epoch still
@@ -314,9 +324,9 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 	async function commit() {
 		// `Idle` is allowed only for a game that has asked for it: see
 		// `commitWhenIdle`. Everything below already copes with an empty action list
-		// (the commitment hashes it, the reveal discloses it, and the contract's
-		// action loop simply does nothing), so what is being decided here is only
-		// whether an empty turn is worth sending.
+		// (the commitment hashes it, the reveal discloses it, and a contract's action
+		// loop simply does nothing), so what is being decided here is only whether an
+		// empty turn is worth sending.
 		const idleButOwed =
 			nothingPendingFor(epochInfo.now().currentEpoch) && commitWhenIdle();
 		if ($state.step !== 'Planning' && $state.step !== 'Error' && !idleButOwed) {
@@ -499,10 +509,10 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 				$info.type === 'timed' &&
 				$info.isCommitPhase &&
 				($state.step === 'Planning' ||
-					// Nothing planned, but silence costs this game's player their
-					// avatar. See `commitWhenIdle`, and `nothingPendingFor` for why
-					// this is not simply `Idle`: the round that just ended is still
-					// being reported, and it owes the next epoch a turn all the same.
+					// Nothing planned, but silence costs this game's player what they
+					// hold. See `commitWhenIdle`, and `nothingPendingFor` for why this is
+					// not simply `Idle`: the round that just ended is still being
+					// reported, and it owes the next epoch a turn all the same.
 					(nothingPendingFor($info.currentEpoch) && commitWhenIdle())) &&
 				$info.timeLeftForCommitEnd <= $info.config.commitTimeAllowance
 			) {

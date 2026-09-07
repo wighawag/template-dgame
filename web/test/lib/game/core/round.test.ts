@@ -526,11 +526,12 @@ describe('the commit-reveal round', () => {
 
 describe('a game where silence costs the player their stake', () => {
 	/**
-	 * `commitWhenIdle` exists for reveal-or-die, whose contract says it out loud:
-	 * `_getResolvedAvatar` carries the comment "we force character to
-	 * continuously commit+reveal" and sets `life = 0` once `lastEpoch` falls more
-	 * than `numMissesAllowed` behind. `lastEpoch` advances only on a REVEAL, so a
-	 * player who watches a few rounds without moving loses the avatar they paid
+	 * `commitWhenIdle` exists for a game whose stake DECAYS rather than sitting
+	 * in a bond. The shape, taken from the game on this template that has one:
+	 * the contract forces the player to continuously commit and reveal, and
+	 * zeroes what they hold once their last revealed epoch falls more than a
+	 * configured number of misses behind. That counter advances only on a REVEAL,
+	 * so a player who watches a few rounds without moving loses what they paid
 	 * for, having done nothing wrong.
 	 *
 	 * The round cannot be driven into this from outside: `plan([])` means
@@ -584,7 +585,7 @@ describe('a game where silence costs the player their stake', () => {
 	});
 
 	it('spends nothing while there is nothing at risk', async () => {
-		// An avatar waiting to enter has no clock running against it, so an empty
+		// An entity waiting to enter play has no clock running against it, so an empty
 		// commitment for it would burn gas to prevent nothing. This is why the
 		// option is a predicate and not a flag.
 		const {round, calls, setTime} = idleRound(() => false);
@@ -604,7 +605,7 @@ describe('a game where silence costs the player their stake', () => {
 		// that has been revealed stays `Revealed` - nothing put it back to `Idle`
 		// at the epoch boundary - and the idle commit only fires from `Idle`, so a
 		// player who moved once and then stood still committed nothing ever again
-		// and lost the avatar four epochs later. Reported from play: "after 3 turns
+		// and lost what they held four epochs later. Reported from play: "after 3 turns
 		// the avatar dies".
 		//
 		// One epoch is 44 seconds here: the commit phase closes at 40 and the
@@ -638,7 +639,7 @@ describe('a game where silence costs the player their stake', () => {
 	it('keeps turning after a MISSED reveal, which is when it matters most', async () => {
 		// A missed reveal already cost the player the turn and left a commitment
 		// the contract will reject the next one over. Parking the round on `Missed`
-		// for good would then let the avatar die of the silence that followed,
+		// for good would then let the stake decay away in the silence that followed,
 		// which is a second, larger punishment for the same mistake.
 		const {round, calls, setTime} = idleRound(() => true);
 		const stop = round.start();
