@@ -28,6 +28,7 @@ import {
 	type RoundStorage,
 	type RoundStore,
 } from '$lib/game/core/round';
+import {createDerivedSecret} from '$lib/game/core/secret';
 import {
 	createCamera,
 	type CameraControl,
@@ -845,8 +846,62 @@ export function createGameContext(core: CoreServices): GameContext {
 		onSettled: () => void deposited.update(),
 	});
 
+	/**
+	 * Sign with the LOCAL SIGNER, silently, for the commit secret.
+	 *
+	 * Taken off the signer executor rather than from a private key the game asks
+	 * for: in signer mode its `account` is a viem local account, so it already
+	 * signs without a prompt and without this file ever touching a key. It also
+	 * means the composition root needs no new member, which matters because that
+	 * is the most conflicted file in the tree.
+	 *
+	 * The SIGNER and not the account, deliberately, and the reason is the whole
+	 * feature: sign-in derives the signer from a signature over an origin-scoped
+	 * message the wallet produces locally, so the same account derives the same
+	 * signer on any device and the secret comes back with it. Signing with the
+	 * account would be equally recoverable and would put a wallet prompt on every
+	 * commit, which is what the signer exists to remove.
+	 *
+	 * It THROWS when there is no signer rather than falling back to a random
+	 * secret. A silent fallback would produce a round that looks identical and is
+	 * not recoverable, which is the failure this is here to prevent, and the
+	 * setup gate already refuses to let anyone commit before signing in.
+	 */
+	async function signAsSigner(message: string): Promise<`0x${string}`> {
+		const executor = get(core.signerExecutor);
+		const account = executor.status === 'ready' ? executor.account : undefined;
+		if (!account || typeof account === 'string' || !account.signMessage) {
+			throw new Error(
+				'Cannot derive the commit secret: no local signer is available.',
+			);
+		}
+		return account.signMessage({message});
+	}
+
 	const round = createRound<bigint, Action>({
 		epochInfo,
+		/**
+		 * DERIVED, not random, so a cleared browser does not cost the avatar.
+		 *
+		 * Restores what the port dropped. The pre-port build derived the secret
+		 * from a signature (`lib/private/localState.ts` in bomber-world), and the
+		 * round here fell back to 32 random bytes in local storage - which matters
+		 * more in this game than in the template's, because what is at stake is an
+		 * avatar that DIES after `numMissesAllowed` missed rounds. Clearing site
+		 * data mid-round cost it.
+		 *
+		 * The identity is the AVATAR, not the account, which is why the framework
+		 * passes it: a player who owns two avatars must not derive one secret for
+		 * both. See `game/core/secret.ts`.
+		 *
+		 * What this does NOT recover on its own is the planned ACTIONS - the chain
+		 * holds only the hash. See D9 in the template's plan.
+		 */
+		makeSecret: createDerivedSecret<bigint>({
+			sign: signAsSigner,
+			chainId: deployments.chain.id,
+			contract: deployments.contracts.Game.address,
+		}),
 		adapter: createWorldCommitReveal({
 			deps: core,
 			// Refuse to commit while an unrevealed commitment is in the way, and say

@@ -114,11 +114,12 @@ export type RoundStore<TIdentity extends PlayerIdentity, TAction> = Readable<
  *
  * Safe, but not the only sensible choice, which is why `makeSecret` exists.
  * reveal-or-die, bomber-world and stratagems all DERIVE the secret instead,
- * from a signature over `Commit:<chainId>:<contract>:<epoch>` by a key the
- * player already holds. That is strictly better against the failure that costs
- * real money here: a random secret exists only in storage, so losing storage
- * loses the stake, while a derived one can be recomputed on another device from
- * the key alone.
+ * from a signature by a key the player already holds. That is strictly better
+ * against the failure that costs real money here: a random secret exists only
+ * in storage, so losing storage loses the stake, while a derived one can be
+ * recomputed on another device from the key alone.
+ *
+ * `createDerivedSecret` in `./secret.ts` is that, ready to pass in.
  */
 function randomSecret(): `0x${string}` {
 	const bytes = new Uint8Array(32);
@@ -202,10 +203,18 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 	 *
 	 * A game overrides this to DERIVE the secret from a key the player already
 	 * holds, which makes a round recoverable after local storage is lost. See
-	 * `randomSecret` above.
+	 * `randomSecret` above and `createDerivedSecret` in `./secret.ts`.
+	 *
+	 * IT IS HANDED THE IDENTITY, not only the epoch, and a derivation that
+	 * ignores it is wrong wherever one account can hold several. Two identities
+	 * deriving the same secret means either can open the other's commitment by
+	 * enumerating a small action space against the published hash, so the hiding
+	 * property is gone from the inside. The framework passes it so that the
+	 * cheapest correct derivation is also the obvious one.
 	 */
 	makeSecret?: (params: {
 		epoch: number;
+		identity: TIdentity;
 	}) => `0x${string}` | Promise<`0x${string}`>;
 	/**
 	 * Called when a round completes, so the caller can refresh chain state.
@@ -326,7 +335,7 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 			return;
 		}
 		const epoch = info.currentEpoch;
-		const secret = await makeSecret({epoch});
+		const secret = await makeSecret({epoch, identity: player});
 		const {hash} = adapter.buildCommitment({actions, secret});
 
 		// Persisted BEFORE the call, so a reload during the wallet prompt cannot
