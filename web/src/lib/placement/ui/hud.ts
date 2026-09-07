@@ -11,6 +11,11 @@ import {formatBalance} from '$lib/core/utils/format/balance';
 import type {Context} from '$lib/context/types';
 import type {RoundState} from '$lib/game/core/round';
 
+import {
+	acquisitionTotal,
+	opensAWallet,
+	type AcquisitionState,
+} from '$lib/game/acquire';
 import type {Placement} from '../commit-reveal';
 import type {ReserveState} from '../reserve';
 import {blocksCommitting, type MissedRevealState} from '../missed-reveal';
@@ -57,7 +62,27 @@ export type HudModel = {
 	 * staked invites them to lay out a whole turn that cannot be committed, and
 	 * the failure only arrives when the round is already closing.
 	 */
-	setup?: {headline: string; detail: string; action?: 'stake' | 'authorise'};
+	setup?: {
+		headline: string;
+		detail: string;
+		action?: 'stake' | 'authorise';
+		/** The words on the button, which for a purchase carry the price. */
+		actionLabel?: string;
+		/** The purchase is in flight, so the button says so and does nothing. */
+		busy?: boolean;
+		busyLabel?: string;
+		error?: string;
+	};
+
+	/**
+	 * Set while a stake is being acquired, for the top-up button on a board the
+	 * player can already play.
+	 *
+	 * The same sentence the setup gate uses, and deliberately not folded into it:
+	 * that one is shown INSTEAD of the board, this one beside it, and a player
+	 * with a reserve that is merely running low is not blocked on it.
+	 */
+	acquiring?: string;
 
 	plannedCount: number;
 	costLabel: string;
@@ -190,9 +215,59 @@ export function describeMissedReveal(
 	};
 }
 
+/**
+ * What acquiring the stake is doing right now, in the player's terms.
+ *
+ * Four waits that feel different: one the player must answer, one they have
+ * paid for, one sent on their behalf without a prompt, and one this browser is
+ * not running at all.
+ *
+ * The WORDS are the game's, which is why this is here rather than in the rail:
+ * the rail exports the state, and "your stake" is one game's name for what
+ * another calls an avatar or a pass. Parameterising the nouns would produce a
+ * sentence that fits nobody well.
+ */
+export function acquisitionBusyLabel(
+	state: AcquisitionState,
+): string | undefined {
+	switch (state.step) {
+		case 'Authorising':
+			// ONLY THE ROUTE THAT ACTUALLY OPENS A WALLET is told to look at one. An
+			// account whose credential was minted at sign-in gets here too, and its
+			// credential is simply handed back without a prompt, so sending it to a
+			// window that never opens is worse than saying nothing.
+			return opensAWallet(state.authorisation)
+				? 'Confirm in your wallet to authorise this browser...'
+				: 'Authorising this browser...';
+		case 'Acquiring':
+			return 'Staking...';
+		case 'ChoosingPayer':
+			return 'Choose how to pay...';
+		case 'Consent':
+			return 'Confirm to continue...';
+		case 'Registering':
+			// No prompt for this one: the signer sends it itself, out of the stipend
+			// the purchase just gave it. Unexplained it looks like a hang after the
+			// money has already gone.
+			return 'Setting up your play key...';
+		case 'Pending':
+			// A FOURTH kind of wait, and the one that needs saying most: this browser
+			// is not doing anything, and the player has no memory of starting it in
+			// this tab, because they reloaded. What they must not be told is "stake
+			// to play", which is what they would be told without this - and they
+			// would, for a second time, with their own money.
+			return state.landed
+				? 'Your stake is in. Getting it onto the board...'
+				: 'Finishing a purchase you already paid for...';
+		default:
+			return undefined;
+	}
+}
+
 /** What the player has to do before they can take a turn. */
 export function describeSetup(
 	setup: SetupNeeded | undefined,
+	options?: {priceLabel?: string; busyLabel?: string},
 ): HudModel['setup'] {
 	if (!setup) return undefined;
 	switch (setup.step) {
@@ -216,9 +291,19 @@ export function describeSetup(
 		case 'stake':
 			return {
 				headline: 'Stake before you play',
+				// Says what the ONE transaction covers, because the player is about to
+				// approve something that does three things: it puts tokens in a
+				// reserve only they can withdraw, it sends this browser's key enough
+				// gas to play with, and it is what lets that key be authorised without
+				// a second transaction. Saying only "stake" would make the wallet
+				// prompt look bigger than the price.
 				detail:
-					'A commitment bonds tokens from your reserve, and they are forfeit if you never reveal. That is what makes a commitment worth anything, so there is nothing to play with until you have some.',
+					'A commitment bonds tokens from your reserve, and they are forfeit if you never reveal. That is what makes a commitment worth anything. One transaction sets you up: it puts a reserve in your name, which only you can withdraw, and funds the key this browser plays with.',
 				action: 'stake',
+				actionLabel: options?.priceLabel
+					? `Stake for ${options.priceLabel}`
+					: 'Stake to play',
+				busyLabel: options?.busyLabel,
 			};
 	}
 }
@@ -236,6 +321,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			game.epochInfo,
 			game.missedReveal,
 			game.setup,
+			game.acquisition,
 		],
 		([
 			$phase,
@@ -246,6 +332,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			$epoch,
 			$missedReveal,
 			$setup,
+			$acquisition,
 		]): HudModel => {
 			const round = describeRound($round);
 			const reserve = $reserve as ReserveState;
@@ -258,7 +345,22 @@ export function createHud(context: Context): Readable<HudModel> {
 			const duration = 'duration' in $phase ? $phase.duration : 0;
 			const playable = $phase.phase === 'play';
 
-			const needsSetup = describeSetup($setup as SetupNeeded | undefined);
+			const acquisition = $acquisition as AcquisitionState;
+			const needsSetup = describeSetup($setup as SetupNeeded | undefined, {
+				busyLabel: acquisitionBusyLabel(acquisition),
+				// THE TOTAL, not the price. The wallet is about to ask for
+				// `price + stipend`, and the two can differ by orders of magnitude: a
+				// button that understates what is about to be charged is worse than
+				// one with no number on it.
+				priceLabel: `${formatBalance(
+					acquisitionTotal(game.config.sale),
+				)} ${context.deployments.get().chain.nativeCurrency.symbol}`,
+			});
+			if (needsSetup?.action === 'stake') {
+				needsSetup.busy = needsSetup.busyLabel !== undefined;
+				needsSetup.error =
+					acquisition.step === 'Error' ? acquisition.message : undefined;
+			}
 
 			return {
 				// Never invite a move the player cannot make: while they are still
@@ -278,6 +380,7 @@ export function createHud(context: Context): Readable<HudModel> {
 				// saying to someone who cannot play at all yet.
 				planningForNextRound: !playable && !needsSetup,
 				setup: needsSetup,
+				acquiring: acquisitionBusyLabel(acquisition),
 				// `hasLocalSigner` is `TARGET_STEP === 'SignedIn'`, and NOTHING ELSE.
 				// It is not about hosted sign-in, and core says so where it is
 				// defined: "Deliberately NOT 'is PUBLIC_WALLET_HOST set': a

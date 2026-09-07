@@ -9,7 +9,6 @@
 	import {getAppContext} from '$lib';
 	import {createHud} from './hud';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
-	import {parseEther} from 'viem';
 
 	const context = getAppContext();
 	const {game} = context;
@@ -17,14 +16,14 @@
 
 	const round = game.round;
 	const planning = game.planning;
-	const reserve = game.reserve;
 	const missedReveal = game.missedReveal;
+	// Getting a stake is ONE transaction that also funds the play key; the rail
+	// refuses to run twice at once, including across a reload, which is why the
+	// button calls it rather than guarding itself. See $lib/game/acquire.
+	const acquisition = game.acquisition;
 	// One shared flow, built in the context, so the account panel and a blocked
 	// move cannot open two top-ups at once.
 	const topUp = context.topUp;
-
-	/** What the "Add stake" button tops the reserve up by. */
-	const TOP_UP = parseEther('10');
 
 	const toneClass: Record<string, string> = {
 		idle: 'text-muted-foreground',
@@ -119,9 +118,17 @@
 				{$hud.setup.detail}
 			</p>
 			{#if $hud.setup.action === 'stake'}
-				<Button size="sm" class="mt-3" onclick={() => reserve.fund(TOP_UP)}>
-					Deposit to play
+				<Button
+					size="sm"
+					class="mt-3"
+					disabled={$hud.setup.busy}
+					onclick={() => acquisition.buy()}
+				>
+					{$hud.setup.busyLabel ?? $hud.setup.actionLabel}
 				</Button>
+				{#if $hud.setup.error}
+					<p class="mt-2 max-w-sm text-xs text-red-400">{$hud.setup.error}</p>
+				{/if}
 			{:else if $hud.setup.action === 'authorise'}
 				<!--
 					The same flow the out-of-gas remedy uses: it registers the delegate
@@ -200,12 +207,16 @@
 				>
 					Clear
 				</Button>
+				<!-- The same rail as the setup gate, so a top-up is one transaction
+				     too and cannot be started twice. It refuses while a previous one is
+				     still settling, which is why the label follows the flow. -->
 				<Button
 					size="sm"
 					variant="secondary"
-					onclick={() => reserve.fund(TOP_UP)}
+					disabled={$hud.acquiring !== undefined}
+					onclick={() => acquisition.buy()}
 				>
-					Add stake
+					{$hud.acquiring ?? 'Add stake'}
 				</Button>
 			</div>
 

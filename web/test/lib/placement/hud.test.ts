@@ -92,7 +92,14 @@ describe('what the HUD says about a failed round', () => {
 function fakeContext(round: State, hasLocalSigner = true) {
 	return {
 		hasLocalSigner,
+		// The setup gate's button carries the price, so the HUD reads the chain's
+		// own currency to write it. `get()` rather than a store: it is a fact about
+		// the deployment, not something that changes while the app runs.
+		deployments: {
+			get: () => ({chain: {nativeCurrency: {symbol: 'ETH', decimals: 18}}}),
+		},
 		game: {
+			config: {sale: {price: 1n, amount: 10n, stipend: 2n}},
 			twoPhase: writable({phase: 'play', timeLeft: 10, duration: 20}),
 			round: writable(round),
 			planning: {count: writable(1)},
@@ -101,6 +108,7 @@ function fakeContext(round: State, hasLocalSigner = true) {
 			epochInfo: writable({currentEpoch: 3}),
 			missedReveal: writable({step: 'Clear'}),
 			setup: writable(undefined),
+			acquisition: writable({step: 'Idle'}),
 		},
 	} as unknown as Context;
 }

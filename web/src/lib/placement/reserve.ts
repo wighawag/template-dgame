@@ -5,8 +5,17 @@
  * must be at stake, or nobody has to reveal. A player who dislikes what they
  * committed to can always go quiet; the bond taken from this reserve at commit
  * time, and forfeited by `acknowledgeMissedReveal`, is what makes that cost
- * them. A game that gates differently (reveal-or-die holds custody of an NFT)
- * replaces this file; the framework only requires that SOMETHING is lost.
+ * them. A game that gates differently (holding custody of an item the player
+ * bought, say) replaces this file; the framework only requires that SOMETHING
+ * is lost.
+ *
+ * This READS the stake and takes it back out. Putting one there is the
+ * acquisition rail's job (`$lib/game/acquire`, wired through
+ * `./acquisition.ts`), because acquiring a stake is the same shape in every
+ * game and getting it wrong costs the player money. It used to be `fund()`
+ * here: mint, approve, add to the reserve, three transactions the wallet asked
+ * about one at a time with nothing on screen explaining why there were three,
+ * and no memory of any of them across a reload.
  */
 import {get, writable, type Readable} from 'svelte/store';
 import type {Context} from '$lib/context/types';
@@ -17,23 +26,19 @@ export type ReserveState =
 
 export type ReserveStore = Readable<ReserveState> & {
 	update(): Promise<void>;
-	/** Mint test tokens, approve, and top the reserve up. Template-only. */
-	fund(amount: bigint): Promise<void>;
 	withdraw(amount: bigint): Promise<void>;
 };
 
 /**
  * What the reserve needs.
  *
- * `accountExecutor`, NOT `signerExecutor`: staking moves the player's real money, so it
- * is paid from the wallet they control, with a prompt, deliberately. The
- * reserve is CREDITED to the ACCOUNT, which is what owns the stake and the
- * cells won with it. The signer neither pays nor owns; it acts for the
- * account, and only once `registerDelegate` has authorised it onchain. The
- * contract's `addToReserve(player, amount)` takes the beneficiary separately
- * from the payer precisely so the two CAN differ, which is safe because a
- * reserve can only ever be withdrawn by its owner: topping up somebody else's
- * is a gift.
+ * `accountExecutor`, NOT `signerExecutor`: taking money back out is the
+ * player's own, so it is sent from the wallet they control, with a prompt,
+ * deliberately. The reserve belongs to the ACCOUNT, which is what owns the
+ * stake and the cells won with it. The signer neither pays nor owns; it acts
+ * for the account, and only once `registerDelegate` has authorised it onchain.
+ * `withdrawFromReserve` is the one account-facing call a delegate may NOT make,
+ * which is what makes a disposable browser key safe to hold.
  */
 export type ReserveDeps = Pick<
 	Context,
@@ -96,10 +101,10 @@ export function createReserve(params: {
 	/**
 	 * Send and wait for inclusion.
 	 *
-	 * Not merely cosmetic: `fund` reads the allowance the `approve` before it
-	 * set, and tops up a reserve the `mint` before it paid for. `writeContract`
-	 * resolves on BROADCAST, so without waiting, each step would race the one it
-	 * depends on. A local node with automine hides this; anything else does not.
+	 * Not merely cosmetic: `writeContract` resolves on BROADCAST, so the read
+	 * that follows would race the transaction it is meant to reflect, and the
+	 * HUD would report the reserve the player just changed as unchanged. A local
+	 * node with automine hides this; anything else does not.
 	 */
 	async function sendAndWait(
 		executor: {
@@ -127,99 +132,6 @@ export function createReserve(params: {
 		return {executor: $executor, deployments: get(deps.deployments)};
 	}
 
-	/**
-	 * Top up the reserve, minting and approving first if needed.
-	 *
-	 * Three transactions in the worst case, which is a poor experience and
-	 * deliberately not hidden: the template's token is freely mintable so that
-	 * the game is playable the moment it is deployed locally, and a real game
-	 * would acquire tokens some other way entirely.
-	 */
-	async function fund(amount: bigint) {
-		const {executor, deployments} = await ready();
-		// The wallet pays; the ACCOUNT is credited. The signer neither pays nor
-		// owns; it plays the moves later, once registered as a delegate.
-		const payer = executor.address;
-		const player = get(params.gameIdentity);
-		if (!player) {
-			throw new Error(
-				'Sign in first, so the game has a key to play your moves with.',
-			);
-		}
-
-		const balance = (await deps.publicClient.readContract({
-			address: deployments.contracts.GameToken.address,
-			abi: deployments.contracts.GameToken.abi,
-			functionName: 'balanceOf',
-			args: [payer],
-		})) as bigint;
-
-		if (balance < amount) {
-			await sendAndWait(
-				executor,
-				await deps.balanceCheck.ensureCanAfford(
-					{
-						contract: {
-							address: deployments.contracts.GameToken.address,
-							abi: deployments.contracts.GameToken.abi,
-							functionName: 'mint',
-							args: [payer, amount - balance],
-							account: executor.account,
-						},
-					},
-					{balance: deps.accountBalance, sender: payer},
-				),
-				'Minting tokens',
-			);
-		}
-
-		const allowance = (await deps.publicClient.readContract({
-			address: deployments.contracts.GameToken.address,
-			abi: deployments.contracts.GameToken.abi,
-			functionName: 'allowance',
-			args: [payer, deployments.contracts.Game.address],
-		})) as bigint;
-
-		if (allowance < amount) {
-			await sendAndWait(
-				executor,
-				await deps.balanceCheck.ensureCanAfford(
-					{
-						contract: {
-							address: deployments.contracts.GameToken.address,
-							abi: deployments.contracts.GameToken.abi,
-							functionName: 'approve',
-							args: [deployments.contracts.Game.address, amount],
-							account: executor.account,
-						},
-					},
-					{balance: deps.accountBalance, sender: payer},
-				),
-				'Approving the game to hold your stake',
-			);
-		}
-
-		await sendAndWait(
-			executor,
-			await deps.balanceCheck.ensureCanAfford(
-				{
-					contract: {
-						address: deployments.contracts.Game.address,
-						abi: deployments.contracts.Game.abi,
-						functionName: 'addToReserve',
-						args: [player, amount],
-						account: executor.account,
-					},
-				},
-				{balance: deps.accountBalance, sender: payer},
-			),
-			'Adding to your reserve',
-		);
-
-		// The HUD shows the reserve, and it is the number the player just changed.
-		await update();
-	}
-
 	async function withdraw(amount: bigint) {
 		const {executor, deployments} = await ready();
 		const payer = executor.address;
@@ -242,5 +154,5 @@ export function createReserve(params: {
 		await update();
 	}
 
-	return {subscribe: state.subscribe, update, fund, withdraw};
+	return {subscribe: state.subscribe, update, withdraw};
 }

@@ -42,6 +42,9 @@ describe('what stands between a player and their first move', () => {
 	});
 
 	it('asks to authorise a browser the account has not authorised', () => {
+		// Still reachable, and still needed: a player who ALREADY has a stake but
+		// is opening a second browser, or who revoked this one. They have nothing
+		// left to buy, so there is no purchase to fold the authorisation into.
 		expect(
 			setupNeeded({
 				identity: ACCOUNT,
@@ -65,21 +68,24 @@ describe('what stands between a player and their first move', () => {
 		).toBeUndefined();
 	});
 
-	it('asks to authorise BEFORE asking for a stake', () => {
-		// Order is a real decision, not a tie-break. Both are wallet
-		// transactions, and a player who abandons setup half way through should
-		// have spent as little as possible: authorising costs gas, staking moves
-		// tokens into a reserve. So the cheap one goes first.
+	it('asks for the STAKE first, because acquiring one authorises too', () => {
+		// Order is a real decision, not a tie-break, and this one was the other way
+		// round until acquiring a stake started carrying the authorisation with it.
+		// The reasoning is unchanged - a player who abandons setup half way should
+		// have spent as little as possible - and it now points the other way:
+		// staking is ONE transaction that also funds the signer, and the signer
+		// registers itself out of that stipend, so asking to authorise first would
+		// demand a transaction the very next step includes.
 		expect(
 			setupNeeded({
 				identity: ACCOUNT,
 				delegation: {step: 'Loaded', allowed: false, withdrawn: false},
 				reserve: {step: 'Loaded', amount: 0n},
 			}),
-		).toEqual({step: 'authorise'});
+		).toEqual({step: 'stake'});
 	});
 
-	it('asks for a stake once the browser may play', () => {
+	it('asks for a stake when the browser may already play', () => {
 		expect(
 			setupNeeded({
 				identity: ACCOUNT,
@@ -87,6 +93,20 @@ describe('what stands between a player and their first move', () => {
 				reserve: {step: 'Loaded', amount: 0n},
 			}),
 		).toEqual({step: 'stake'});
+	});
+
+	it('does NOT ask for a stake while the reserve is still being read', () => {
+		// The same strict-direction mistake as the delegation one above, now that
+		// the reserve is the first thing asked about: every load starts Unloaded,
+		// and treating that as an empty reserve would put the gate over the board
+		// of a staked player on every load until the read lands.
+		expect(
+			setupNeeded({
+				identity: ACCOUNT,
+				delegation: authorised,
+				reserve: {step: 'Unloaded'},
+			}),
+		).toBeUndefined();
 	});
 
 	it('gets out of the way once both are done', () => {

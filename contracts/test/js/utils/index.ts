@@ -1,5 +1,6 @@
 import {Abi_GameToken} from '../../../generated/abis/GameToken.js';
 import {Abi_IGame} from '../../../generated/abis/IGame.js';
+import {Abi_StakeSale} from '../../../generated/abis/StakeSale.js';
 import {loadAndExecuteDeploymentsFromFiles} from '../../../rocketh/environment.js';
 import {EthereumProvider} from 'hardhat/types/providers';
 
@@ -12,6 +13,7 @@ export function setupFixtures(provider: EthereumProvider) {
 
 			const Game = env.get<Abi_IGame>('Game');
 			const GameToken = env.get<Abi_GameToken>('GameToken');
+			const StakeSale = env.get<Abi_StakeSale>('StakeSale');
 
 			const linkedData = Game.linkedData as {
 				startTime: string;
@@ -92,6 +94,7 @@ export function setupFixtures(provider: EthereumProvider) {
 				env,
 				Game,
 				GameToken,
+				StakeSale,
 				linkedData,
 				getEpoch,
 				getTimestamp,

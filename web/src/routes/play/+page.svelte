@@ -12,10 +12,15 @@
 	import {getAppContext} from '$lib';
 	import DefaultHead from '$lib/metadata/DefaultHead.svelte';
 	import GameHud from '$lib/placement/ui/GameHud.svelte';
+	import AcquireModal from '$lib/game/acquire/AcquireModal.svelte';
 	import {loadCanvasComponent} from '$lib/placement/render';
 	import {gridTileCells} from '$lib/game/render/grid';
 
-	const {render, game} = getAppContext();
+	const context = getAppContext();
+	const {render, game} = context;
+
+	// The chain's own currency, for the figure the consent dialog restates.
+	const chain = context.deployments.get().chain;
 
 	/**
 	 * The canvas is loaded dynamically, and only in the browser.
@@ -98,5 +103,14 @@
 			</div>
 		{/await}
 		<GameHud />
+		<!-- A surface over the board rather than part of it, and inside the `{#if}`
+		     because it means nothing without a canvas under it. The rail is shared;
+		     the sentence describing what is bought is this game's. -->
+		<AcquireModal
+			acquisition={game.acquisition}
+			explanation="One transaction puts a reserve in your name and funds the key this browser plays with. Whoever pays, the reserve belongs to your account, and only your account can ever withdraw it."
+			decimals={chain.nativeCurrency.decimals}
+			symbol={chain.nativeCurrency.symbol}
+		/>
 	{/if}
 </div>

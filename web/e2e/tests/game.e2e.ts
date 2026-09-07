@@ -102,8 +102,11 @@ describe('Commit-reveal round', () => {
 		// non-zero would pass without the top-up having done anything.
 		const reserveBefore = BigInt((await roundStep(page)).reserve ?? '0');
 		// The label depends on whether there is anything staked yet: with an empty
-		// reserve the HUD replaces the planning controls with a deposit prompt,
-		// because planning a turn that cannot be committed only fails later.
+		// reserve the HUD replaces the planning controls with the setup gate,
+		// because planning a turn that cannot be committed only fails later. Both
+		// labels go through the acquisition rail, which is ONE transaction that
+		// stakes and funds the play key, so on a fresh account this is also what
+		// authorises the browser.
 		await stake(page);
 		await expect
 			.poll(
@@ -254,8 +257,11 @@ describe('A missed reveal', () => {
 		await clearAnyMissedReveal(page);
 
 		// The label depends on whether there is anything staked yet: with an empty
-		// reserve the HUD replaces the planning controls with a deposit prompt,
-		// because planning a turn that cannot be committed only fails later.
+		// reserve the HUD replaces the planning controls with the setup gate,
+		// because planning a turn that cannot be committed only fails later. Both
+		// labels go through the acquisition rail, which is ONE transaction that
+		// stakes and funds the play key, so on a fresh account this is also what
+		// authorises the browser.
 		await stake(page);
 		await expect
 			.poll(async () => (await roundStep(page)).reserve !== '0', {

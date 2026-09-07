@@ -66,17 +66,38 @@ export async function roundStep(page: Page): Promise<{
 /**
  * Put something at stake, whichever affordance is currently on screen.
  *
- * With an empty reserve the HUD shows a "Deposit to play" gate INSTEAD of the
- * planning controls; once there is a reserve the same action is a secondary
- * "Add stake" button.
+ * With an empty reserve the HUD shows the setup gate's own button INSTEAD of
+ * the planning controls, and its label carries the price, so it is matched on
+ * the stem; once there is a reserve the same action is a secondary "Add stake"
+ * button. Both go through the acquisition rail.
+ *
+ * Driven through the UI rather than through `acquisition.buy()` so that the
+ * gate, the payer choice and the consent step are all exercised.
  */
 export async function stake(page: Page): Promise<void> {
-	const deposit = page.getByRole('button', {name: /deposit to play/i});
+	const deposit = page.getByRole('button', {name: /stake (for|to play)/i});
 	if (await deposit.isVisible({timeout: 5_000}).catch(() => false)) {
 		await deposit.click();
-		return;
+	} else {
+		await page.getByRole('button', {name: /add stake/i}).click();
 	}
-	await page.getByRole('button', {name: /add stake/i}).click();
+
+	// WHICHEVER PAYER IS OFFERED. With only one method the rail skips the choice
+	// entirely, so this acts only if the chooser is actually up.
+	const chooser = page.locator('[data-testid="acquire-payment-methods"]');
+	if (await chooser.isVisible({timeout: 10_000}).catch(() => false)) {
+		await page
+			.locator('[data-testid="acquire-pay-with-account"]')
+			.or(page.locator('[data-testid="acquire-pay-with-wallet"]'))
+			.first()
+			.click({timeout: 30_000});
+	}
+
+	// The consent step, when this purchase also has something to sign.
+	const consent = page.getByRole('button', {name: /^(sign and buy|buy)$/i});
+	if (await consent.isVisible({timeout: 10_000}).catch(() => false)) {
+		await consent.click({timeout: 30_000});
+	}
 }
 
 /** Where the round clock currently is. */
@@ -120,9 +141,11 @@ export async function stakeOnCell(page: Page, cellID: string): Promise<string> {
  * and complete the flow, which registers the signer and funds its gas in one
  * transaction.
  *
- * Conditional because the e2e chain is shared and reused: a browser whose
- * account is already authorised is not asked again, and demanding the prompt
- * would fail on the second run for no reason.
+ * Conditional, and now usually a no-op: the setup gate asks for the STAKE
+ * first, and acquiring one authorises this browser in the same transaction, so
+ * a fresh account never sees this button. It is still reachable for an account
+ * that already has a stake and is opening a second browser, which on a shared,
+ * reused e2e chain is a real case.
  */
 export async function authoriseToPlay(
 	page: Page,

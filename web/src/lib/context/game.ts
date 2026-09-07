@@ -30,6 +30,11 @@ import {
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {
+	createAcquisition,
+	refreshWhenPendingAcquisitionSettles,
+	type AcquisitionStore,
+} from '$lib/game/acquire';
+import {
 	createCamera,
 	type CameraControl,
 	type CameraWatcher,
@@ -66,6 +71,7 @@ import {createPlanning, type PlanningStore} from '$lib/placement/planning';
 import {SignerOutOfFundsError} from '$lib/placement/errors';
 import {isRegistered, type DelegationValue} from '$lib/onchain/delegation';
 import {createReserve, type ReserveStore} from '$lib/placement/reserve';
+import {createStakeAcquisition} from '$lib/placement/acquisition';
 import {
 	blocksCommitting,
 	createMissedReveal,
@@ -106,6 +112,11 @@ export type Game = {
 	planning: PlanningStore;
 	/** The tokens at stake, without which nobody would have to reveal. */
 	reserve: ReserveStore;
+	/**
+	 * Getting a stake in the first place: one transaction, which also funds the
+	 * key this browser plays with. See `$lib/game/acquire`.
+	 */
+	acquisition: AcquisitionStore;
 	/**
 	 * An unrevealed commitment from a past epoch, which blocks all further play
 	 * until the player acknowledges the forfeit.
@@ -240,14 +251,30 @@ export function setupNeeded(params: {
 }): SetupNeeded | undefined {
 	const {identity, delegation, reserve} = params;
 	if (!identity) return {step: 'sign-in'};
-	// Only once the read has landed. Treating Unloaded as "not authorised" would
-	// flash the gate over a board that is perfectly playable, on every load, for
-	// as long as the first read takes.
-	if (delegation.step === 'Loaded' && !isRegistered(delegation)) {
-		return {step: 'authorise'};
-	}
+
+	// THE STAKE COMES FIRST, and the order was the other way round until getting
+	// one started carrying the authorisation with it.
+	//
+	// It used to ask to authorise first, on the grounds that both were wallet
+	// transactions and a player who abandons setup half way should have spent as
+	// little as possible. That reasoning survives; what changed is which order
+	// serves it. Acquiring is now ONE transaction that stakes and funds the
+	// signer in the same call, and the signer registers itself out of that
+	// stipend, so staking IS authorising. Asking for the authorisation first now
+	// demands a transaction that the very next step includes.
+	//
+	// `Unloaded` is not `no stake`: treating an unfinished read as an empty one
+	// would put the gate over a playable board on every load until it lands.
 	if (reserve.step === 'Loaded' && reserve.amount === 0n) {
 		return {step: 'stake'};
+	}
+
+	// Still reachable, and still needed: a player who ALREADY has a stake on this
+	// account but is opening a second browser, or who revoked this one. They have
+	// nothing left to buy, so there is no purchase to fold the authorisation
+	// into, and the top-up flow (register and fund in one) is the remedy.
+	if (delegation.step === 'Loaded' && !isRegistered(delegation)) {
+		return {step: 'authorise'};
 	}
 	return undefined;
 }
@@ -325,6 +352,18 @@ export function createGameContext(core: CoreServices): GameContext {
 	});
 
 	const reserve = createReserve({deps: core, config, gameIdentity});
+
+	const acquisition = createAcquisition({
+		deps: core,
+		acquisition: createStakeAcquisition({config, deployments}),
+		owner: gameIdentity,
+		// The same grant the top-up flow shows, from the one place this app
+		// declares it, so the two cannot describe two different keys.
+		grant: SIGNER_GRANT,
+		// The reserve exists the moment the transaction lands, so re-reading is
+		// what takes the player past the setup gate and onto the board.
+		onAcquired: () => void reserve.update(),
+	});
 
 	/**
 	 * Storage that follows the connected player.
@@ -476,11 +515,9 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * fail, and have no idea why. Same principle as the stake gate: never invite
 	 * a move that cannot be made.
 	 *
-	 * Ordered before the stake because it is the cheaper mistake to make first.
-	 * Staking moves real tokens into a reserve that only this account can
-	 * withdraw; authorising is one transaction that also funds the signer's gas.
-	 * A player who stops halfway through setup should be left having spent as
-	 * little as possible.
+	 * Ordered AFTER the stake, because acquiring one carries the authorisation
+	 * with it. See `setupNeeded` for why that is the order that leaves a player
+	 * who abandons setup half way having spent as little as possible.
 	 */
 	const setup = derived(
 		[gameIdentity, core.delegation, reserve],
@@ -530,6 +567,16 @@ export function createGameContext(core: CoreServices): GameContext {
 			signerBalance: core.signerBalance,
 		});
 
+		// A purchase that was in flight when the tab was last closed finishes with
+		// nobody watching: this browser did not send it, so none of the code that
+		// normally follows one runs, and the player would sit on "finishing what
+		// you already paid for" until they reload again, having already reloaded
+		// once.
+		const unsubscribeAcquisition = refreshWhenPendingAcquisitionSettles({
+			acquisition,
+			onSettled: () => void reserve.update(),
+		});
+
 		// Re-check when the epoch turns over.
 		//
 		// Whether a commitment counts as MISSED is a question about the current
@@ -553,6 +600,7 @@ export function createGameContext(core: CoreServices): GameContext {
 			unsubscribeRound();
 			unsubscribeEpoch();
 			unsubscribeGas();
+			unsubscribeAcquisition();
 		};
 	}
 
@@ -569,6 +617,7 @@ export function createGameContext(core: CoreServices): GameContext {
 			round,
 			planning,
 			reserve,
+			acquisition,
 			missedReveal,
 			cost,
 			readyToPlay,

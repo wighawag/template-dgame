@@ -82,9 +82,23 @@ export const config = {
 		},
 	},
 	data: {
+		/**
+		 * What one stake costs and how much of it you get.
+		 *
+		 * `price` is in the chain's own currency and is checked EXACTLY by
+		 * `StakeSale.purchase`, so it belongs on the sale's deployment and nowhere
+		 * else. It is deliberately not zero even here: a free purchase would never
+		 * exercise the value split that lets one transaction pay for the stake and
+		 * fund the key that plays with it.
+		 *
+		 * `amount` is ten placements at the placement cost below, which is enough
+		 * to play with and small enough that running out is a state the game gets
+		 * to demonstrate.
+		 */
 		sale: {
 			default: {
 				price: parseEther('0.00000001'),
+				amount: parseEther('10'),
 			},
 		},
 		/**
