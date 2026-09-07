@@ -145,11 +145,16 @@ file unsound. Deploy locally, then
 An error in `$lib/core` that upstream does not have is a signal to check the
 generated file before touching the shared one.
 
-**Two files fail `prettier` and must be left alone**: `web/playwright.config.ts`
-and `web/src/lib/core/metadata/Head.svelte`. Both are byte-identical to the
-stem, and jolly-roger's own `format:check` fails on exactly those two, so this
-is upstream's state. Reformatting would diverge shared files for a cosmetic
-reason and buy a conflict in every future merge.
+~~**Two files fail `prettier` and must be left alone**~~: `web/playwright.config.ts`
+and `web/src/lib/core/metadata/Head.svelte`. **Spent as of 2026-09-07: upstream
+has reformatted both, and `format:check` is green here.** The instruction was
+right while it held (both files were byte-identical to the stem, so reformatting
+them here would have diverged a shared file for a cosmetic reason), and it is
+exactly backwards now, which is why it is struck through rather than deleted:
+leaving a green `format:check` alone is the same rule, not a different one. The
+general form survives both states - **a formatting failure in a file identical
+to the stem's is upstream's to fix, and reformatting it here buys a conflict in
+every future merge.**
 
 Now that the force-push has happened, `git branch -u origin/main main` is
 available as the tidier end state (that is how `conquest-v1` is set up), with
@@ -202,12 +207,16 @@ d34ad44  feat(contracts): put the commit-reveal game on jolly-roger
 
 **The baseline to reconcile against after a merge**, rather than accepting whatever comes out: a suite that silently stops being collected looks exactly like a clean run. Measured on `a345d53` with a clean working tree. It moved twice in one day, both times legitimately (the delegation library leaving took 74 contract tests with it; the stem merge brought 38 unit tests and 2 e2e tests), which is the argument for writing down what a number MEANS next to it rather than just the number.
 
-- `pnpm contracts:test` -> 13 passing (13 nodejs, **0 solidity**)
+**Re-measured 2026-09-07 on `22cccc83`, and half of these numbers had roughly doubled.** The old figures are kept beside the new ones because the gap is the point: nobody noticed them moving, and "reconcile against the written baseline" is worthless advice if the written baseline is a year of work out of date. Measure first, then change something.
+
+- `pnpm contracts:test` -> 13 passing (13 nodejs, **0 solidity**). Unchanged.
 - `pnpm web:check` -> 0 errors and 0 warnings, once `deployments.ts` is regenerated (see the merge notes above)
-- `pnpm --filter ./web test:unit --run` -> 744 passing in 66 files
-- `pnpm test:e2e` -> 21 passing, four workers. Pass the ports explicitly, e.g. `cd web && E2E_RPC_PORT=8638 E2E_PORT=4638 pnpm test:e2e`. Bare `pnpm test` chains into e2e against port 8545, which is usually the user's own dev chain. The suite also starts two GATEWAY servers of its own on 4273/4274 (`web/e2e/ports.ts`, overridable with `E2E_GATEWAY_PLAIN_PORT` / `E2E_GATEWAY_SW_PORT`); they do not reuse an existing server, so a busy port fails the run rather than silently serving it.
+- `pnpm --filter ./web test:unit` -> **1348 passing in 110 files (server) plus 65 in 10 files (client)**. Was 744 in 66. Note the script is two vitest projects (`--project server` then `--project client`) and prints two summaries, so a reader who takes the last one and stops has just recorded 65 as the suite.
+- `pnpm test:e2e` -> **50 passing**, four workers. Was 21. Pass the ports explicitly, e.g. `cd web && E2E_RPC_PORT=8638 E2E_PORT=4638 pnpm test:e2e`. Bare `pnpm test` chains into e2e against port 8545, which is usually the user's own dev chain. The suite also starts two GATEWAY servers of its own on 4273/4274 (`web/e2e/ports.ts`, overridable with `E2E_GATEWAY_PLAIN_PORT` / `E2E_GATEWAY_SW_PORT`); they do not reuse an existing server, so a busy port fails the run rather than silently serving it.
 - `pnpm --filter ./contracts lint` -> **29 errors, and that is the state on `main` too.** All of them are `no-global-imports` and one `no-send`, none introduced by recent work. Do not read a red lint as something you broke; do not read it as fine either.
-- `pnpm format:check` -> **2 warnings, both upstream's** (see the merge notes). Anything else is yours.
+- `pnpm format:check` -> **clean**. Was 2 warnings, both upstream's; upstream has since fixed them. Anything at all here is now yours.
+
+reveal-or-die, measured the same day for the same reason, since Phase 0 of `docs/plans/games-on-this-foundation.md` cascades into it: `contracts:test` 9 passing (9 nodejs), `web:check` clean, `test:unit` 1618 in 128 files plus 72 in 11, `test:e2e` 49 passing, `contracts lint` 67 errors (pre-existing, same shape as the 29 here), `format:check` green in `web` and 7 files short in `contracts` (pre-existing).
 
 **The contract count fell from 87 to 13, and that is correct.** This document used to record 87 (61 solidity, 26 nodejs). 74 of those were the delegation library's own tests, and they left the tree with the library when it became `@etherplay/delegation` in `918cb4f`: `contracts/test/solidity/` is gone entirely and so are `Delegation.test.ts` and `SignatureUtils.test.ts`. What is left is `contracts/test/js/Game.test.ts`, which is this template's own game and its use of the package. Do not read the drop as lost coverage, and do not go looking for the Solidity suite; `contracts/package.json` has a `_lint` note explaining why the `test/solidity` glob is not listed.
 

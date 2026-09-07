@@ -37,6 +37,21 @@ What is genuinely undecided, and what this document is for:
 | `catacombs`, `stratagems` | none | separate stack generation; dormant by decision, see below. |
 | `conquest-v1` | `jolly-roger@main` directly | 24 ahead, own pre-seams `lib/game` and `lib/render`, move pipeline unported. |
 
+### Baselines, measured at the start of Phase 0
+
+Written down because `HANDOFF.md`'s numbers have moved twice already and a suite that silently stops being collected looks exactly like a clean run. Both repos clean, both green, measured against `template-commit-reveal@22cccc83` and `reveal-or-die@b0c2691`.
+
+| suite | template-commit-reveal | reveal-or-die |
+|---|---|---|
+| `contracts:test` | 13 passing (13 nodejs, 0 solidity) | 9 passing (9 nodejs, 0 solidity) |
+| `web:check` | 0 errors, 0 warnings | 0 errors, 0 warnings |
+| `test:unit` | 1348 in 110 files (server) + 65 in 10 files (client) | 1618 in 128 files (server) + 72 in 11 files (client) |
+| `test:e2e` | 50 passed | 49 passed |
+| `contracts lint` | 29 errors, pre-existing | 67 errors, pre-existing |
+| `format:check` | **green** | web green; contracts 7 files, pre-existing |
+
+Two of those correct `HANDOFF.md` rather than merely updating it. Its unit figure (744 in 66 files) and its e2e figure (21) are roughly half of what is actually collected now, and its standing instruction to leave `web/playwright.config.ts` and `web/src/lib/core/metadata/Head.svelte` unformatted is spent: upstream has since reformatted both, `format:check` is green here, and following the instruction now would be the divergence it was written to prevent.
+
 Two readings of that table matter.
 
 **The seams held.** A whole game ported onto them and changed one framework file. That is the strongest evidence available that the framework/game split is real, and it is what makes everything below affordable.
@@ -98,11 +113,15 @@ reveal-or-die was built as an almost-template with branding. Most of it is not r
 
 That precedent is also the warning. The backport was done by **writing the same thing again upstream** (`d16a3d95`, "render: keyboard and gamepad, as intent recognisers beside gestures") while reveal-or-die kept using its own copy (`57f5375`, "input: keyboard and gamepad as intent recognisers, in gestures.ts's shape"). Both now exist in reveal-or-die's tree, they differ by about thirty lines each, only the local copy is imported, and the inherited one is referenced only by a README. That is `check-shared-divergence.sh`'s failure mode happening across a repo boundary, where nothing checks it. **A backport is a move, not a re-implementation, and the descendant's copy is deleted in the same change.**
 
+**What the thirty lines turned out to be, measured in Phase 0, because it changes what the warning is about.** The two copies are identical in every executable line, in all three modules and in all three test files; every differing line is a doc comment, plus the import path in the tests. Upstream is not a divergent re-implementation, it is the same code with its provenance generalised: where reveal-or-die names `docs/audits/03-renderer.md` 3.4, the deleted `render/keyboard-controller.ts` and `render/gamepads.ts`, `$lib/world/controls.ts` and "a turn is three moves long", upstream says "a game built on this template" and "a handful of moves". It had also already absorbed the descendant's one substantive change: the two-kind focus guard that reveal-or-die added in `26a1362` (a text field consumes every key, a focused button consumes only Enter and Space) landed upstream two days later inside `d16a3d95`. So the reconciliation was a pure deletion, and upstream's copy needed nothing.
+
+Do not read that as the duplication having been harmless. **It was caught while it was still one commit old, and the cost was paid in the only currency available to it**: for five days two repos each maintained their own copy of the same recognisers and their own copy of the same tests, and the second substantive change to either would have been the one that diverged. What the measurement narrows is the lesson, not the rule. The failure mode is not "a re-implementation drifts"; it is that **a re-implementation is indistinguishable from a move until somebody diffs it**, and nothing in the tree does that across a repo boundary. The rule stands unchanged, and it is cheaper to obey than to audit.
+
 ### What goes up to `main`
 
 | what | where it is now | why it is not reveal-or-die's |
 |---|---|---|
-| input recognisers | `lib/input/*` (and a divergent copy upstream) | already agreed upstream; finish the move and delete the local copy |
+| input recognisers | `lib/input/*` | **Phase 0, in progress.** Nothing to reconcile upstream: the copies are identical bar their comments, so the move is the deletion. See below |
 | the acquisition rail | `lib/world/purchase.ts` (858), `pending-purchase.ts`, `PurchaseModal` | generalise to "acquire what lets you play, in ONE transaction, with a gas stipend to the signer, recoverable after a reload". Main's reference game buys its ERC20 stake through it, so the rail has a user on `main` and only WHAT is acquired changes on the branch |
 | asset pipeline and load gate | `vite.assetpack.ts`, `world/render/assets.ts`, `LoadingSprite`, `ui/loading/*` | every game has assets; a template whose example has none never proves the pipeline |
 | epoch countdown UI | `world/ui/GameClock.svelte` | the epoch is framework, so its display is too |
@@ -200,7 +219,13 @@ Three things follow, and they are why this is a seam rather than a rule.
 
 Sequenced by what gets more expensive if deferred, not by size.
 
-**Phase 0: stop the bleeding.** Finish the input backport as a MOVE (delete reveal-or-die's copy, reconcile the thirty-line delta upstream). Add `verify` to the `fanout.config.json` on `template-commit-reveal@offshoot` and `reveal-or-die@offshoot`; both are currently ungated, which means a cascade can land red and nothing says so. Acceptance: a fanout with `--verify` is green end to end. Adopting jolly-roger's `tooling` branch is deliberately NOT part of this phase: `check-shared-divergence.sh` compares files shared between a base and its feature branches, and this repo has none until Phase 2 creates one, so adopting it now would install a check with nothing to check.
+**Phase 0: stop the bleeding. In progress, 2026-09-07.** Finish the input backport as a MOVE (delete reveal-or-die's copy, reconcile the thirty-line delta upstream). Add `verify` to the `fanout.config.json` on `template-commit-reveal@offshoot` and `reveal-or-die@offshoot`; both are currently ungated, which means a cascade can land red and nothing says so. Acceptance: a fanout with `--verify` is green end to end. Adopting jolly-roger's `tooling` branch is deliberately NOT part of this phase: `check-shared-divergence.sh` compares files shared between a base and its feature branches, and this repo has none until Phase 2 creates one, so adopting it now would install a check with nothing to check.
+
+Three things it has found so far, none of which change the phase's outcome.
+
+- **The delta was documentation, not behaviour**, so the reconciliation was a deletion and upstream's copy needed no change. See Decision 2 for the measurement and for what it does and does not narrow about the rule.
+- **reveal-or-die had no `offshoot` branch at all**, rather than one carrying a config without `verify`. The practical difference matters for the next repo: `offshoot-fanout config set` creates the orphan branch with plumbing, so nothing is checked out and the working tree is never touched, and the config lists `main` explicitly so that `deployment/rise-testnet` cannot wander into a cascade later.
+- **`verify` is copied from jolly-roger verbatim** (`pnpm install && pnpm --filter ./web check && pnpm --filter ./web run test:unit`) and deliberately carries no e2e. e2e needs ports, a chain and about twelve minutes per node; it is run by hand for the nodes a change touches, which is what was done here. A gate that is too slow to run is a gate nobody runs.
 
 **Phase 1: raise the floor.** The backport list in Decision 2, one change per item, each with the descendant's copy deleted in the same change. One fix belongs here rather than in a mode: **reveal-or-die supplies no `makeSecret`, so its secret is 32 random bytes living only in local storage.** Bomber-world, which is the pre-port code, still derives it from a signature (`Commit:${chainId}:${contract}:${epoch}`, `lib/private/localState.ts`), so the port dropped a capability and `HANDOFF.md` still records reveal-or-die as having it. In a game whose stake is the avatar's life after three missed rounds, clearing site data mid-round costs the avatar. Restore it through the seam. Acceptance: reveal-or-die's diff against this template shrinks to its game and its brand, the count of inherited files it modifies stays at or below today's ten, and a round survives clearing local storage between commit and reveal.
 
