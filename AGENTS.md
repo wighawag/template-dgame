@@ -73,17 +73,18 @@ that, and both are easy to break by accident.
 
 ## Where the plan and the handoff live: the `work` branch
 
-**They are not in this working tree, so `ls` and `find` will not show them.** Maintainer material lives on an orphan branch called `work`, which has no merge base with anything and therefore never cascades into a game built from this template. Read a file without checking anything out:
+**They are not in this working tree, so `ls` and `find` will not show them.** Every repo in this tree keeps its maintainer material on an orphan branch called `work`, which has no merge base with anything and therefore never cascades into a descendant. Nothing checks it out. Start by asking what this repo's branch holds, rather than assuming a path:
 
 ```bash
-git show work:work/specs/proposed/games-on-this-foundation.md   # the plan: what is done, what is next, and why
-git show work:HANDOFF.md                                        # repo state, baselines, environment gotchas
-git show work:work/tasks/backlog/                               # staged work items
-git worktree add ../template-commit-reveal-work work            # or check it out beside the repo
+git ls-tree -r --name-only work        # what THIS repo keeps there
+git show work:<path>                   # read one
+git worktree add ../<repo>-work work   # or check it out beside the repo
 ```
 
-**Start with the plan.** It is the source of truth for intent: it carries the phase order, the decisions (D1 to D10) with their reasoning, the measured baselines for this repo and its descendants, and what each phase deliberately does NOT do. If reality contradicts it, change the document in the same commit as the code that proved it wrong, and say which claim was wrong.
+**The plan for the whole template tree lives on `template-commit-reveal`'s `work` branch**, at `work/specs/proposed/games-on-this-foundation.md`. It is the source of truth for intent: the phase order, the decisions with their reasoning, the measured baselines for the template and its descendants, and what each phase deliberately does NOT do. A game built from this template does not carry a copy, by design, so read it there. Alongside it are `HANDOFF.md` (repo state and environment gotchas) and `work/tasks/` (staged work items).
 
-The README's ADR section is jolly-roger's and points at `work:docs/adr/`, which exists **there** and not here. This repo's `work` branch carries `work/specs/`, `work/tasks/` and `docs/plans/` instead. That file is byte-identical to the stem's and is deliberately left that way.
+If reality contradicts the plan, change the document in the same commit as the code that proved it wrong, and say which claim was wrong.
+
+The README's ADR section points at `work:docs/adr/`. That is **jolly-roger's** branch layout, and a repo further down this tree may hold nothing at that path; the listing command above is the reliable route. The README is byte-identical to the stem's in this repo and is deliberately left that way.
 
 Two environment facts worth having before the first command, because both have cost real time: **`pnpm` is not on PATH** (use `~/.volta/bin/pnpm`), and **`web/src/lib/deployments.ts` is generated and gitignored**, so a `check` failure inside `$lib/core` that the stem does not have means regenerate it before touching anything shared. The rest are in the handoff.
