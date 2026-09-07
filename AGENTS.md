@@ -70,3 +70,20 @@ that, and both are easy to break by accident.
   `acknowledgeMissedReveal`. A game may gate differently (custody of an NFT, for
   instance); what the framework needs is only that _something_ is lost by not
   revealing.
+
+## Where the plan and the handoff live: the `work` branch
+
+**They are not in this working tree, so `ls` and `find` will not show them.** Maintainer material lives on an orphan branch called `work`, which has no merge base with anything and therefore never cascades into a game built from this template. Read a file without checking anything out:
+
+```bash
+git show work:work/specs/proposed/games-on-this-foundation.md   # the plan: what is done, what is next, and why
+git show work:HANDOFF.md                                        # repo state, baselines, environment gotchas
+git show work:work/tasks/backlog/                               # staged work items
+git worktree add ../template-commit-reveal-work work            # or check it out beside the repo
+```
+
+**Start with the plan.** It is the source of truth for intent: it carries the phase order, the decisions (D1 to D10) with their reasoning, the measured baselines for this repo and its descendants, and what each phase deliberately does NOT do. If reality contradicts it, change the document in the same commit as the code that proved it wrong, and say which claim was wrong.
+
+The README's ADR section is jolly-roger's and points at `work:docs/adr/`, which exists **there** and not here. This repo's `work` branch carries `work/specs/`, `work/tasks/` and `docs/plans/` instead. That file is byte-identical to the stem's and is deliberately left that way.
+
+Two environment facts worth having before the first command, because both have cost real time: **`pnpm` is not on PATH** (use `~/.volta/bin/pnpm`), and **`web/src/lib/deployments.ts` is generated and gitignored**, so a `check` failure inside `$lib/core` that the stem does not have means regenerate it before touching anything shared. The rest are in the handoff.
