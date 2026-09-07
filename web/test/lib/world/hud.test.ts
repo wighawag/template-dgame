@@ -615,7 +615,7 @@ describe('buying an avatar, through the HUD', () => {
 		// have paid for and are waiting on, and one sent on their behalf with no
 		// prompt at all. A single "Buying..." across all three makes the last one
 		// look like a hang, after the money has already gone.
-		const labels = (['Authorising', 'Purchasing', 'Registering'] as const).map(
+		const labels = (['Authorising', 'Acquiring', 'Registering'] as const).map(
 			(step) =>
 				get(
 					createHud(
@@ -660,7 +660,7 @@ describe('buying an avatar, through the HUD', () => {
 			createHud(
 				fakeContext(
 					{step: 'Idle'},
-					{setup: {step: 'deposit'}, purchase: {step: 'Purchasing'}},
+					{setup: {step: 'deposit'}, purchase: {step: 'Acquiring'}},
 				),
 			),
 		);

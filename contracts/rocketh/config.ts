@@ -112,6 +112,19 @@ export const config = {
 		},
 	},
 	data: {
+		/**
+		 * What one avatar costs.
+		 *
+		 * In the chain's own currency, and checked EXACTLY by the sale, so it
+		 * belongs on the sale's deployment and nowhere else. It is deliberately
+		 * not zero: a free purchase would never exercise the value split that
+		 * lets one transaction pay for the avatar and fund the key that plays
+		 * with it.
+		 *
+		 * The stem carries an `amount` here too, for the reserve its own game
+		 * stakes. This game stakes the avatar itself, so there is no amount to
+		 * name.
+		 */
 		sale: {
 			default: {
 				price: parseEther('0.00000001'),

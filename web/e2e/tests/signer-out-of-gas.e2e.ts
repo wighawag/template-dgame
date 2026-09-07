@@ -62,6 +62,11 @@ describe('A move that runs out of gas', () => {
 		// it is unaffected by the SIGNER's gas running out below - but it has to be
 		// in custody before the commit, or the commit would fail for the wrong
 		// reason and this test would pass on the wrong failure.
+		//
+		// It also FUNDS THE SIGNER, in the same transaction, which is exactly what
+		// the drain below then takes away again. That ordering is deliberate: the
+		// remedy this test is about has to work on a signer that was funded properly
+		// and then ran dry, not on one that was never funded at all.
 		await stakeAnAvatar(page);
 
 		// Now take the gas away. Everything up to here was setup; this is the

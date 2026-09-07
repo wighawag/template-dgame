@@ -24,7 +24,7 @@ import {SignerOutOfFundsError} from '../errors';
 import type {RoundPhase, SetupAction, SetupNeeded} from '$lib/context/game';
 import type {RevealOutcome} from '../reveal-outcome';
 import {causeOfDeath, explainDeath, type DeathCause} from '../death';
-import {opensAWallet, type PurchaseState} from '../purchase';
+import {opensAWallet, type AcquisitionState} from '$lib/game/acquire';
 import {purchaseValue} from 'reveal-or-die-contracts';
 import {formatBalance} from '$lib/core/utils/format/balance';
 
@@ -351,10 +351,16 @@ export function describeMissedReveal(
 /**
  * What the purchase is doing right now, in the player's terms.
  *
- * Three waits that feel different: one they must answer, one they have paid for,
- * and one sent on their behalf without a prompt.
+ * Four waits that feel different: one they must answer, one they have paid for,
+ * one sent on their behalf without a prompt, and one this browser is not running
+ * at all.
+ *
+ * The WORDS are this game's, which is why they stayed here when the rail moved
+ * upstream: the rail exports the state, and "your avatar" is one game's name for
+ * what another calls a stake or a pass. Parameterising the nouns would produce a
+ * sentence that fits nobody well.
  */
-export function purchaseBusyLabel(state: PurchaseState): string | undefined {
+export function purchaseBusyLabel(state: AcquisitionState): string | undefined {
 	switch (state.step) {
 		case 'Authorising':
 			// ONLY THE ROUTE THAT ACTUALLY OPENS A WALLET is told to look at one.
@@ -365,7 +371,7 @@ export function purchaseBusyLabel(state: PurchaseState): string | undefined {
 			return opensAWallet(state.authorisation)
 				? 'Confirm in your wallet to authorise this browser...'
 				: 'Authorising this browser...';
-		case 'Purchasing':
+		case 'Acquiring':
 			return 'Buying your avatar...';
 		case 'ChoosingPayer':
 			return 'Choose how to pay...';
@@ -518,7 +524,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			const timeLeft = 'timeLeft' in timed ? timed.timeLeft! : 0;
 			const duration = 'duration' in timed ? timed.duration! : 0;
 
-			const purchase = $purchase as PurchaseState;
+			const purchase = $purchase as AcquisitionState;
 			const needsSetup = describeSetup($setup as SetupNeeded | undefined, {
 				busyLabel: purchaseBusyLabel(purchase),
 				// THE TOTAL, not the price. The wallet is about to ask for

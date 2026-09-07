@@ -30,6 +30,11 @@ import {
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {
+	createAcquisition,
+	refreshWhenPendingAcquisitionSettles,
+	type AcquisitionStore,
+} from '$lib/game/acquire';
+import {
 	createCamera,
 	type CameraControl,
 	type CameraWatcher,
@@ -82,11 +87,7 @@ import {
 	createMissedReveal,
 	type MissedRevealStore,
 } from '$lib/world/missed-reveal';
-import {
-	createPurchase,
-	refreshWhenPendingPurchaseSettles,
-	type PurchaseStore,
-} from '$lib/world/purchase';
+import {createAvatarAcquisition} from '$lib/world/acquisition';
 import {
 	createWorldReader,
 	emptyWorld,
@@ -168,9 +169,11 @@ export type Game = {
 	 * Buying an avatar, which mints it straight into the game.
 	 *
 	 * The remedy for the `deposit` step of the setup gate, and the only thing here
-	 * that spends the player's own money rather than the signer's gas.
+	 * that spends the player's own money rather than the signer's gas. The rail is
+	 * the framework's (`$lib/game/acquire`); what this game supplies is
+	 * `world/acquisition.ts`, which is the arguments and nothing else.
 	 */
-	purchase: PurchaseStore;
+	purchase: AcquisitionStore;
 	/**
 	 * An unrevealed commitment from a past epoch, which blocks all further play
 	 * until the player acknowledges it.
@@ -771,16 +774,16 @@ export function createGameContext(core: CoreServices): GameContext {
 
 	const deposited = createDeposited({deps: core, owner: gameIdentity});
 
-	const purchase = createPurchase({
+	const purchase = createAcquisition({
 		deps: core,
-		config,
+		acquisition: createAvatarAcquisition({config, deployments}),
 		owner: gameIdentity,
 		// The same grant the top-up flow shows, from the one place this app
 		// declares it, so the two cannot describe two different keys.
 		grant: SIGNER_GRANT,
 		// The avatar is in the contract's custody the moment the purchase lands, so
 		// re-reading is what takes the player past the setup gate and onto the board.
-		onPurchased: () => void deposited.update(),
+		onAcquired: () => void deposited.update(),
 	});
 
 	const activeAvatarID = createActiveAvatar({
@@ -1173,8 +1176,8 @@ export function createGameContext(core: CoreServices): GameContext {
 		// nobody watching: this browser did not send it, so none of the code that
 		// normally follows one runs. Without this the player waits on "finishing
 		// your purchase" until they reload again, having already reloaded once.
-		const unsubscribePurchase = refreshWhenPendingPurchaseSettles({
-			purchase,
+		const unsubscribePurchase = refreshWhenPendingAcquisitionSettles({
+			acquisition: purchase,
 			onSettled: () => void deposited.update(),
 		});
 

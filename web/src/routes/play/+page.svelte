@@ -13,12 +13,16 @@
 	import DefaultHead from '$lib/metadata/DefaultHead.svelte';
 	import GameHud from '$lib/world/ui/GameHud.svelte';
 	import DeathNotice from '$lib/world/ui/DeathNotice.svelte';
-	import PurchaseModal from '$lib/world/ui/PurchaseModal.svelte';
+	import AcquireModal from '$lib/game/acquire/AcquireModal.svelte';
 	import Tutorial from '$lib/world/ui/Tutorial.svelte';
 	import {loadCanvasComponent} from '$lib/world/render';
 	import {gridTileCells} from '$lib/game/render/grid';
 
-	const {render, game} = getAppContext();
+	const context = getAppContext();
+	const {render, game} = context;
+
+	// The chain's own currency, for the figure the consent dialog restates.
+	const chain = context.deployments.get().chain;
 
 	/**
 	 * The canvas is loaded dynamically, and only in the browser.
@@ -128,11 +132,17 @@
 			</div>
 		{/await}
 		<GameHud />
-		<!-- Both are surfaces over the board rather than parts of it, and both are
-		     inside the `{#if}` because neither means anything without a canvas
-		     under it. -->
+		<!-- All three are surfaces over the board rather than parts of it, and all
+		     three are inside the `{#if}` because none means anything without a canvas
+		     under it. The acquisition rail is shared; the sentence describing what is
+		     bought is this game's. -->
 		<DeathNotice />
-		<PurchaseModal />
+		<AcquireModal
+			acquisition={game.purchase}
+			explanation="One transaction buys an avatar into the game and funds the key this browser plays with. Whoever pays, the avatar belongs to your account, and it will not appear in your wallet."
+			decimals={chain.nativeCurrency.decimals}
+			symbol={chain.nativeCurrency.symbol}
+		/>
 		<Tutorial />
 	{/if}
 </div>

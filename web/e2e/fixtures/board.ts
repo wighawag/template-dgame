@@ -157,11 +157,11 @@ export async function stakeAnAvatar(page: Page): Promise<void> {
 
 	// WHICHEVER PAYER IS OFFERED. With only one method the flow skips the choice
 	// entirely, so this acts only if the chooser is actually up.
-	const chooser = page.locator('[data-testid="purchase-payment-methods"]');
+	const chooser = page.locator('[data-testid="acquire-payment-methods"]');
 	if (await chooser.isVisible({timeout: 10_000}).catch(() => false)) {
 		await page
-			.locator('[data-testid="purchase-pay-with-account"]')
-			.or(page.locator('[data-testid="purchase-pay-with-wallet"]'))
+			.locator('[data-testid="acquire-pay-with-account"]')
+			.or(page.locator('[data-testid="acquire-pay-with-wallet"]'))
 			.first()
 			.click({timeout: 30_000});
 	}
