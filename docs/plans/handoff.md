@@ -33,14 +33,23 @@ is identical to `stem/main`; if it is, the change almost certainly belongs
 upstream instead.
 
 What IS ours: `lib/world/` (this game), `lib/context/game.ts` below its stated
-line, `lib/world/ui/`, `lib/input/`, `contracts/`, and `routes/play`.
+line, `lib/world/ui/`, `contracts/`, and `routes/play`.
 
-`lib/input/` is the odd one and deliberately so. It is generic (keyboard and
-gamepad intent recognisers, in the shape `game/render/gestures.ts` uses) and is
-a BACKPORT CANDIDATE with its own README saying where it would land upstream. It
-lives outside `lib/game/` because that tree is byte-identical to the template:
-something that belongs upstream goes upstream and arrives here by merge, not by
-being written into the merged tree by hand.
+`lib/input/` used to be on that list, marked as the odd one: generic keyboard
+and gamepad intent recognisers, held outside `lib/game/` because that tree is
+byte-identical to the template, and labelled a BACKPORT CANDIDATE by its own
+README. **It is gone, and how it went is the part worth keeping.** It was
+backported by being WRITTEN AGAIN upstream (`game/render/{keys,gamepad,
+intents}.ts`) while this repo carried on importing its own copy, so for five
+days both trees held the same recognisers and the same tests, differing only in
+their comments, with nothing anywhere to notice. `lib/world/controls.ts` now
+imports the inherited modules and the copy is deleted.
+
+The rule that produced the mistake was right and is unchanged: something that
+belongs upstream goes upstream and arrives here by merge, never written into the
+merged tree by hand. What it needed was its other half. **A backport is a MOVE:
+the descendant's copy is deleted in the same change that lands the upstream
+one**, because until it is, a re-implementation and a move look exactly alike.
 
 ### Merging from upstream
 

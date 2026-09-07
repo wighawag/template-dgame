@@ -1,12 +1,17 @@
 /**
  * What a control MEANS in this game.
  *
- * The other half of `$lib/input`, and the half that stays here. The
- * recognisers there say "a direction was pressed"; this says that a direction
- * is a step from the end of the plan, that the secondary action is leaving the
- * world, and that cancel takes back the last thing planned. Same split as the
- * pointer's: `game/render/gestures.ts` emits a click and `context/game.ts`
- * decides which cell it is.
+ * The other half of `$lib/game/render/{keys,gamepad,intents}`, and the half
+ * that stays here. The recognisers there say "a direction was pressed"; this
+ * says that a direction is a step from the end of the plan, that the secondary
+ * action is leaving the world, and that cancel takes back the last thing
+ * planned. Same split as the pointer's: `game/render/gestures.ts` emits a click
+ * and `context/game.ts` decides which cell it is.
+ *
+ * The recognisers used to be a copy of the template's, in `$lib/input/`,
+ * written here first and re-written upstream instead of moved. They were
+ * identical bar their comments; this file now imports the INHERITED ones and
+ * the copy is gone. See `docs/plans/games-on-this-foundation.md`, decision 2.
  *
  * One mapping for every device, deliberately. The keyboard, a gamepad and the
  * on-screen d-pad all arrive here as intents, so there is one place where the
@@ -22,9 +27,9 @@
  * would eventually differ.
  */
 import {get, type Readable} from 'svelte/store';
-import type {ControlIntent, Direction} from '$lib/input/intents';
-import {attachKeys, type KeyOptions} from '$lib/input/keys';
-import {attachGamepad, type GamepadOptions} from '$lib/input/gamepad';
+import type {ControlIntent, Direction} from '$lib/game/render/intents';
+import {attachKeys, type KeyOptions} from '$lib/game/render/keys';
+import {attachGamepad, type GamepadOptions} from '$lib/game/render/gamepad';
 import type {RoundStore} from '$lib/game/core/round';
 import type {Position} from 'reveal-or-die-contracts';
 import type {Action} from './commit-reveal';

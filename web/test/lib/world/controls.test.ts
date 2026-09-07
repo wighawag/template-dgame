@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {writable} from 'svelte/store';
 import {createControls, STEP} from '$lib/world/controls';
 import type {MissedRevealState} from '$lib/world/missed-reveal';
-import type {ControlIntent} from '$lib/input/intents';
+import type {ControlIntent} from '$lib/game/render/intents';
 
 /**
  * The half of the input layer that knows what game this is.
