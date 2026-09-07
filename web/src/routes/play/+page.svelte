@@ -54,7 +54,7 @@
 	 *   dynamic import above) and not at all when the chunk fails, so binding
 	 *   input to it means keys that do nothing for the first moments of every
 	 *   visit and a board that is silently uncontrollable whenever the `:catch`
-	 *   branch is up. That coupling is what `docs/audits/03-renderer.md` 4.2 says
+	 *   branch is up. That coupling is what `work:docs/audits/03-renderer.md` 4.2 says
 	 *   to undo, and the previous build had it: input was owned by the renderer,
 	 *   and its teardown called `removeAllListeners()` on an emitter the canvas
 	 *   was using too.

@@ -75,7 +75,7 @@ export function createAvatarRenderer(params: {
 	 * A SECOND COLLECTION, kept in step by the two handlers below, and it should
 	 * not have to exist: `Reconciler` already holds the key-to-object map and
 	 * exposes only `get` and `size`, so there is no way to enumerate what is on
-	 * screen. `docs/audits/03-renderer.md` 3.8 names that as the gap and the
+	 * screen. `work:docs/audits/03-renderer.md` 3.8 names that as the gap and the
 	 * backport that closes it (`values()` on the reconciler, which the template's
 	 * own README implies exists when it sells the stateful renderer for
 	 * "per-object animation"). When that lands upstream, this set goes away.

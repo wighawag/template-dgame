@@ -6,7 +6,7 @@
  * commits per AVATAR, and an account can own several, so somebody has to pick
  * one and the pick has to survive a reload.
  *
- * ONE ACTIVE AVATAR PER CLIENT, decided in docs/plans/web-port.md. Nothing on
+ * ONE ACTIVE AVATAR PER CLIENT, decided in work:docs/plans/web-port.md. Nothing on
  * chain partitions authority per avatar - `_requireAccountForAvatar` resolves
  * the avatar's OWNER and asks whether the sender may act for that account - so
  * every signer the account has delegated can move every avatar it owns. Keeping

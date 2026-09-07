@@ -15,7 +15,7 @@ import {
  * One active avatar per client, and which one.
  *
  * The rule is a CLIENT CONVENTION rather than something the chain enforces (see
- * docs/plans/web-port.md), which is exactly why it is worth pinning: nothing
+ * work:docs/plans/web-port.md), which is exactly why it is worth pinning: nothing
  * downstream will fail loudly if the choice drifts, the player just loses turns
  * to an avatar they did not mean to move.
  */

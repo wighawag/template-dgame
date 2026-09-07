@@ -69,7 +69,7 @@ export function createTutorial(): TutorialStore {
  *
  * The steps are re-targeted at the HUD this port produced. They used to point
  * at `#navigation` (the on-screen D-pad, which went with the old renderer, see
- * docs/plans/web-port.md) and `#arena` (an id nothing has ever had, so that step
+ * work:docs/plans/web-port.md) and `#arena` (an id nothing has ever had, so that step
  * silently did nothing). What is left is what exists: the clock, the moves
  * counter and the avatar picker.
  */

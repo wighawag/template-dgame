@@ -14,7 +14,7 @@ import {Assets, Container, Sprite, Texture} from 'pixi.js';
  * `Assets.add` warns and ignores the second registration of an alias, and two
  * avatars owned by the same account produce the SAME blockie URI, which is not
  * a rare case: it is what an account playing two avatars looks like, and it is
- * the arrangement docs/plans/web-port.md says to use for two browsers.
+ * the arrangement work:docs/plans/web-port.md says to use for two browsers.
  */
 const registered = new Set<string>();
 

@@ -99,7 +99,7 @@ export type WorldView = {
 
 export type LocalPlan = {
 	/**
-	 * ONE avatar per client. See docs/plans/web-port.md: authority is
+	 * ONE avatar per client. See work:docs/plans/web-port.md: authority is
 	 * account-wide, so nothing on chain stops a second client moving the same
 	 * avatar, and keeping the choice here is what keeps two clients apart.
 	 */

@@ -144,7 +144,7 @@ export type Game = {
 	 * Keys, a gamepad and the on-screen d-pad, translated into game actions.
 	 *
 	 * Here rather than in `Render` because input is not a rendering concern and
-	 * the two have different lifetimes: `docs/audits/03-renderer.md` 4.2 is about
+	 * the two have different lifetimes: `work:docs/audits/03-renderer.md` 4.2 is about
 	 * exactly this, and the previous build's version lived inside the renderer,
 	 * where its teardown called `removeAllListeners()` on an emitter the canvas
 	 * was also using.
@@ -667,7 +667,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * sender may act for that account. Every signer the account has delegated can
 	 * therefore move every avatar it owns, which is why one active avatar per
 	 * client is a convention this client keeps rather than a partition the chain
-	 * provides. See docs/plans/web-port.md.
+	 * provides. See work:docs/plans/web-port.md.
 	 *
 	 * Undefined until the player connects, which the setup gate below turns into
 	 * an instruction rather than a broken board.

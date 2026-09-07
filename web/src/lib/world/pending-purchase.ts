@@ -17,7 +17,7 @@
  *
  * It became possible only recently: until the payment rail's client was wrapped
  * by the tracker upstream, a purchase paid from a second wallet never reached
- * the ledger at all. See docs/plans/web-port.md.
+ * the ledger at all. See work:docs/plans/web-port.md.
  *
  * Pure and taking a snapshot, so the whole rule is testable without a chain, a
  * browser or an app context.

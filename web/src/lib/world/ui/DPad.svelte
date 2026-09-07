@@ -13,7 +13,7 @@
 
 	It replaces the d-pad that was deleted with the pre-port renderer, which
 	emitted into a module-level event emitter the canvas also listened to
-	(`docs/audits/03-renderer.md` 4.8). Nothing here is shared with the canvas.
+	(`work:docs/audits/03-renderer.md` 4.8). Nothing here is shared with the canvas.
 -->
 <script lang="ts">
 	import {getAppContext} from '$lib';

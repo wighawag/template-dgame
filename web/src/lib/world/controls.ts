@@ -11,7 +11,7 @@
  * The recognisers used to be a copy of the template's, in `$lib/input/`,
  * written here first and re-written upstream instead of moved. They were
  * identical bar their comments; this file now imports the INHERITED ones and
- * the copy is gone. See `docs/plans/games-on-this-foundation.md`, decision 2.
+ * the copy is gone. See decision 2 of `games-on-this-foundation.md` on template-commit-reveal's `work` branch.
  *
  * One mapping for every device, deliberately. The keyboard, a gamepad and the
  * on-screen d-pad all arrive here as intents, so there is one place where the

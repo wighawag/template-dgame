@@ -6,7 +6,7 @@ import {
 } from '$lib/world/render/LoadingSprite';
 
 /**
- * The two defects docs/audits/03-renderer.md 3.5 named, pinned.
+ * The two defects work:docs/audits/03-renderer.md 3.5 named, pinned.
  *
  * Both are silent, which is the only reason they are worth a test: neither
  * throws, so nothing in the app would ever report them. The audit found them by
@@ -61,7 +61,7 @@ describe('two avatars owned by the same account', () => {
 	it('registers the alias once', () => {
 		// The blockie URI is derived from the OWNER, so two avatars of one account
 		// produce the same alias. Not an edge case: it is what an account playing
-		// two avatars looks like, and docs/plans/web-port.md recommends exactly
+		// two avatars looks like, and work:docs/plans/web-port.md recommends exactly
 		// that arrangement. pixi warns and ignores the second registration, which
 		// is noise that hides real warnings.
 		new LoadingSprite(URI);
