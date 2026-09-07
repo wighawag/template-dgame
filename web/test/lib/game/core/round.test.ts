@@ -274,6 +274,36 @@ describe('the commit-reveal round', () => {
 		stop();
 	});
 
+	it('tells makeSecret WHO is committing, not only when', async () => {
+		// A derivation that sees only the epoch produces one secret for every
+		// identity an account holds, and a secret shared between two identities
+		// lets either open the other's commitment by enumerating a small action
+		// space against the published hash. So the identity has to reach the
+		// derivation, and nothing else in this suite would notice if it stopped:
+		// checked by removing it, which passed all sixteen other tests.
+		const {epochInfo} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter} = fakeAdapter();
+		const seen: {epoch: number; identity: `0x${string}`}[] = [];
+		const round = createRound({
+			epochInfo,
+			adapter,
+			storage,
+			identity,
+			makeSecret: async (params) => {
+				seen.push(params);
+				return `0x${'ab'.repeat(32)}` as `0x${string}`;
+			},
+		});
+		const stop = round.start();
+
+		round.plan([{cellID: 1n}]);
+		await round.commit();
+
+		expect(seen).toEqual([{epoch: 2, identity: player}]);
+		stop();
+	});
+
 	it('lets a game DERIVE the secret instead of randomising it', async () => {
 		// reveal-or-die, bomber-world and stratagems all derive the secret from a
 		// signature over the epoch, so that it can be recomputed on another device

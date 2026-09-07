@@ -28,6 +28,7 @@ import {
 	type RoundStorage,
 	type RoundStore,
 } from '$lib/game/core/round';
+import {createDerivedSecret} from '$lib/game/core/secret';
 import {
 	createCamera,
 	type CameraControl,
@@ -360,8 +361,56 @@ export function createGameContext(core: CoreServices): GameContext {
 		onSettled: () => void reserve.update(),
 	});
 
+	/**
+	 * Sign with the LOCAL SIGNER, silently, for the commit secret.
+	 *
+	 * Taken off the signer executor rather than from a private key the game asks
+	 * for: in signer mode its `account` is a viem local account, so it already
+	 * signs without a prompt and without this file ever touching a key. It also
+	 * means the composition root needs no new member, which matters because that
+	 * is the most conflicted file in the tree.
+	 *
+	 * The SIGNER and not the account, deliberately, and the reason is the whole
+	 * feature: sign-in derives the signer from a signature over an origin-scoped
+	 * message the wallet produces locally, so the same account derives the same
+	 * signer on any device and the secret comes back with it. Signing with the
+	 * account would be equally recoverable and would put a wallet prompt on every
+	 * commit, which is what the signer exists to remove.
+	 *
+	 * It THROWS when there is no signer rather than falling back to a random
+	 * secret. A silent fallback would produce a round that looks identical and is
+	 * not recoverable, which is the failure this is here to prevent, and the
+	 * setup gate already refuses to let anyone commit before signing in.
+	 */
+	async function signAsSigner(message: string): Promise<`0x${string}`> {
+		const executor = get(core.signerExecutor);
+		const account = executor.status === 'ready' ? executor.account : undefined;
+		if (!account || typeof account === 'string' || !account.signMessage) {
+			throw new Error(
+				'Cannot derive the commit secret: no local signer is available.',
+			);
+		}
+		return account.signMessage({message});
+	}
+
 	const round = createRound<`0x${string}`, Placement>({
 		epochInfo,
+		/**
+		 * DERIVED, not random, so a cleared browser does not cost the stake.
+		 *
+		 * The template ships this rather than leaving it to each game because all
+		 * four games derive their secret, and because the parts that are easy to
+		 * get wrong are the ones with no symptom: normalising the address, and
+		 * putting the identity in the message. See `game/core/secret.ts`.
+		 *
+		 * What this does NOT recover on its own is the ACTIONS - the chain holds
+		 * only the hash. See D9 in the plan on the `work` branch.
+		 */
+		makeSecret: createDerivedSecret<`0x${string}`>({
+			sign: signAsSigner,
+			chainId: deployments.chain.id,
+			contract: deployments.contracts.Game.address,
+		}),
 		adapter: createPlacementCommitReveal({
 			deps: core,
 			config,
