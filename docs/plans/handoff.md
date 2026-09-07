@@ -1,0 +1,176 @@
+# Handoff: where reveal-or-die is, and how to work on it
+
+Written at `37bcceb` and updated at `c0d232f`, on `port/template-commit-reveal`.
+Read this before `web-port.md`, which is the detailed record; this is the
+orientation.
+
+## State
+
+The web port is done. The game is playable end to end: sign in, buy an avatar,
+spawn, move, leave, and the round commits and reveals by itself.
+
+| | |
+| --- | --- |
+| branch | `port/template-commit-reveal`. **Never work on `main`**, which is the pre-port app and 50+ commits behind |
+| `cd web && pnpm check` | 0 errors |
+| `cd web && pnpm test:unit` | 1445 + 53, all passing, about 40 seconds |
+| `cd contracts && pnpm test` | 9 passing |
+| `cd web && pnpm build localhost` | clean |
+
+Run `pnpm test:unit`, NOT a bare `vitest`: it runs the two projects one after
+the other, and running them together makes the suite take minutes and fail. See
+the note in `web/vite.config.ts`, which measured it.
+
+## The single most important thing to understand
+
+This repo is a DESCENDANT of `template-commit-reveal`, which descends from
+`jolly-roger`. The `stem` remote points at the template.
+
+**`web/src/lib/core/` and `web/src/lib/game/` are not ours.** They are
+byte-identical to upstream, 129 and 19 files, and keeping them that way is what
+makes merging free. Before changing anything under those paths, check whether it
+is identical to `stem/main`; if it is, the change almost certainly belongs
+upstream instead.
+
+What IS ours: `lib/world/` (this game), `lib/context/game.ts` below its stated
+line, `lib/world/ui/`, `contracts/`, and `routes/play`.
+
+`lib/input/` used to be on that list, marked as the odd one: generic keyboard
+and gamepad intent recognisers, held outside `lib/game/` because that tree is
+byte-identical to the template, and labelled a BACKPORT CANDIDATE by its own
+README. **It is gone, and how it went is the part worth keeping.** It was
+backported by being WRITTEN AGAIN upstream (`game/render/{keys,gamepad,
+intents}.ts`) while this repo carried on importing its own copy, so for five
+days both trees held the same recognisers and the same tests, differing only in
+their comments, with nothing anywhere to notice. `lib/world/controls.ts` now
+imports the inherited modules and the copy is deleted.
+
+The rule that produced the mistake was right and is unchanged: something that
+belongs upstream goes upstream and arrives here by merge, never written into the
+merged tree by hand. What it needed was its other half. **A backport is a MOVE:
+the descendant's copy is deleted in the same change that lands the upstream
+one**, because until it is, a re-implementation and a move look exactly alike.
+
+### Merging from upstream
+
+    git fetch stem
+    git merge-tree --write-tree HEAD stem/main    # exit 0 means clean
+    git merge --no-ff stem/main
+
+Conflicts are almost always in `web/src/lib/placement/**` (the template's own
+demo game, which this repo deleted and replaced with `lib/world/`). The
+resolution is to keep them deleted, but **read the diff first**. At `37bcceb` one
+of those conflicts carried a real behavioural fix to
+`placement/commit-reveal.ts`, the file `lib/world/commit-reveal.ts` was written
+from, and deleting our copy of theirs would have discarded it silently. A
+modify/delete conflict on a `placement/` file is the only signal that the
+template improved something we inherited.
+
+The fanout tool does not reach this repo: it targets `reveal-or-die@main` while
+the work is here, so it has been removed from the registry
+(`~/.offshoot-stems/template-svelte.json`, `ignore: ["reveal-or-die"]`). Merges
+are by hand until that is sorted.
+
+## How the last stretch of work has gone, and the lesson in it
+
+Roughly a dozen defects were found by actually playing the game. The pattern,
+which held five or six times:
+
+**Before writing anything in `lib/world/`, check whether the shared layer
+already has it.** Payer selection, gas reserves, stale-wallet-balance handling,
+a payer chooser, a consent step before a signature: every one of those was
+written here first and already existed in `core/funding` or
+`ui/credits/top-up-flow.ts`, better, with the reasoning recorded. Each time the
+private copy was deleted afterwards. `web/src/lib/ui/credits/README.md` and
+`web/src/lib/core/funding/README.md` are the two files worth reading before
+building anything that touches money.
+
+**Defects in shared code go upstream, not here.** Five have now been fixed in
+`jolly-roger` (or `@etherplay/connect`) and merged back: the "Wallet Action
+Required" modal firing on silent signer sends, the funds modal assuming only two
+possible payers, the top-up modal opening beneath the modal that raised it, a
+delegation signature that no dialog announced, and the test suite's worker
+contention. Writing a prompt and waiting is slower per fix and much cheaper
+overall, because every sibling gets it and this repo keeps a clean merge.
+
+When writing such a prompt: say which BRANCH it lands on, and check rather than
+guess. `jolly-roger@main` has no local signer and composes no payment rail, so
+anything touching either belongs on `with/local-signer`. Say "do not touch
+reveal-or-die" explicitly, since the fanout skips it.
+
+**Test that the test bites.** Delete the fix, watch the test fail, put it back.
+Three tests written during this stretch passed with the code they covered
+removed, including one asserting `not.toThrow()` for a defect whose entire
+nature was that it did not throw.
+
+## What is left
+
+In the order I would take it. `web-port.md` has the detail.
+
+1. **The red "you cannot move" border**, which wants restyling to match shadcn.
+2. **The home page**, which still shows the template's copy rather than this
+   game's.
+
+Done since this was first written, all recorded in `web-port.md`: the controls
+(keyboard, gamepad and an on-screen d-pad), the Exit action, the exit tile being
+the only way out (contract and client), and a purchase surviving a reload.
+
+## Things that are known and deliberately not fixed
+
+- **The map is one 16x16 area tiled infinitely.** `areaAt` carries a
+  `TODO add in genesis hash ?` and returns `Areas[0]` for every zone. The
+  renderer is faithful; the data is a placeholder.
+- **The round number is an absolute epoch index** (about 44,700,000), because
+  `startTime` is 0 and epochs are counted from the unix epoch.
+- **MetaMask can refuse a transaction after a faucet claim**, showing a stale
+  balance while the app correctly reads the new one. Diagnosed as MetaMask's own
+  UI cache rather than anything readable through its provider, so there is
+  nothing to fix here; it is faucet-only and a real deployment would not hit it.
+- **A deployed game needs a REDEPLOY after the `numMissesAllowed` change.** The Game `Config` struct gained a field, so every route's constructor args changed. Until a deployment carries it, `linkedData.numMissesAllowed` is absent and the death notice explains the death without quoting a number, which is deliberate.
+
+- **`Avatars.mint` has no access control**, and `_enter` accepts an obstacle as
+  an entry position. Both are recorded in the contracts and in
+  `docs/plans/identity-without-consent.md`.
+- **A refused Exit is DROPPED, not reverted**, exactly as a refused move is.
+  `_exit` sets `stopProcessing` and the avatar stays where it is. Reverting the
+  reveal instead would cost the player every action in the turn and block the
+  next epoch until `acknowledgeMissedReveal`, which is far worse than the
+  mistake; `UnableToExitFromThisPosition` therefore stays declared and unthrown,
+  beside the other rules `UsingGameErrors.sol` states and enforces elsewhere.
+
+## Verification, and what nobody has checked
+
+Nothing in this repo has an automated end-to-end test against a chain, so the
+things below have only ever been confirmed by hand, and two have not been
+confirmed at all:
+
+- the faucet aimed at a payment-rail wallet
+- the delegation modal now that `@etherplay/connect` 0.11.2 announces the request
+- **every part of the controls and the Exit action.** The recognisers, the
+  intent-to-action mapping and the key guards are covered by unit tests that
+  were each checked by breaking the code under them, but nothing has driven a
+  real keyboard or a real gamepad at a real board, and no exit has ever been
+  revealed on chain. The pixi ring drawn for a planned exit is not covered by
+  anything.
+- **purchase recovery across a reload.** Every rule in it is unit tested,
+  including the guard, which was checked by restoring the original bug and
+  watching the double purchase go through. What is unverified is its premise:
+  that a rail-paid purchase actually reaches account data on a real chain. That
+  is the upstream fix, merged and never run here against a node.
+
+Local setup: port 8545 belongs to something else, so start a node elsewhere and
+point `contracts/.env.local` at it. `web/src/lib/deployments.ts` is generated and
+gitignored; `pnpm install` regenerates it from the committed deployment records,
+so a fresh clone typechecks before it has deployed anything.
+
+**The dev node must mine on a SHORT interval, and `hardhat.config.ts` sets one
+second for `local`.** This is not a preference. Epochs are defined against
+`block.timestamp`, while the client's clock interpolates from the wall clock
+between blocks, so the client crosses a round boundary the moment real time
+says so and the chain only crosses when a block carries a later timestamp.
+Every second of block interval is a second of that gap, and it shows up in play
+as the board sitting in `catching-up` at every boundary and as another player's
+move appearing seconds into the next window. It was three seconds; both symptoms
+were reported from play before the cause was found. A node that mines only on
+transactions is far worse: the gap then lasts until somebody's next
+transaction, which is how a catch-up took fifteen seconds.
