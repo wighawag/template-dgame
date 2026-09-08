@@ -388,17 +388,19 @@ describe('A round the chain holds and this browser has lost', () => {
 			})
 			.toBe(true);
 
-		// Most of the commit phase is needed after this point, so the plan waits
-		// for a play phase with room in it. Two cells, because a plan of one is
-		// the size a wrong guess is most likely to hit by accident.
-		await planOnCanvas(page, {x: 70, y: 50}, 22);
-		await clickCanvas(page, {x: 110, y: 50});
-		await expect
-			.poll(async () => (await roundStep(page)).planned, {
-				message: 'two cells planned',
-				timeout: 15_000,
-			})
-			.toBe(2);
+		// EVERYTHING AFTER THIS HAS TO FIT IN THE EPOCH, so the plan waits for a
+		// play phase with room left in it. The ceiling is the play phase itself
+		// (the commit phase less the allowance the round keeps for the commit to
+		// land), so asking for more than that waits forever; asking for too
+		// little runs the re-entry into the tail of the commit phase, where
+		// `autoCommit` would commit the re-entered plan instead of recovering
+		// the lost one - benign, since the hash is the same, and it would take
+		// the notice off the screen mid-test.
+		//
+		// ONE cell for the same reason: every extra click is budget. The size of
+		// the plan is not what this proves, and a WRONG plan being refused needs
+		// no chain at all, so it is pinned by unit tests instead.
+		await planOnCanvas(page, {x: 70, y: 50}, 15);
 
 		const commit = page.getByRole('button', {name: /commit now/i});
 		if (await commit.isEnabled().catch(() => false)) await commit.click();
@@ -443,13 +445,12 @@ describe('A round the chain holds and this browser has lost', () => {
 		// The same turn, re-entered. Not through `planOnCanvas`: see the note
 		// above about the epoch this has to stay inside.
 		await clickCanvas(page, {x: 70, y: 50});
-		await clickCanvas(page, {x: 110, y: 50});
 		await expect
 			.poll(async () => (await roundStep(page)).planned, {
-				message: 'the same two cells, re-entered',
+				message: 'the same cell, re-entered',
 				timeout: 15_000,
 			})
-			.toBe(2);
+			.toBe(1);
 
 		await recover.click();
 		await expect
