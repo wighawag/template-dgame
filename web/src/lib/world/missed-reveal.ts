@@ -13,8 +13,19 @@
  * carries `TODO burn / stake` and forfeits nothing), so this is about
  * UNBLOCKING play rather than reporting a loss. If a forfeit is added later,
  * this is where it gets surfaced.
+ *
+ * ONE READ, TWO QUESTIONS, and the second one used to be thrown away. Asking
+ * `getCommitment` answers "am I blocked?" - a commitment left over from an
+ * EARLIER epoch - and it equally answers "is there a commitment for the round
+ * in progress that this browser knows nothing about?". The second is the one
+ * that costs a turn and, three of them in a row, the avatar; it was being
+ * reported as `Clear` and dropped, because blocking was the only thing anyone
+ * had ever asked. It is published as {@link MissedRevealStore.commitment} now
+ * and `world/recover-round.ts` is what does something with it. Nothing extra is
+ * fetched.
  */
 import {get, writable, type Readable} from 'svelte/store';
+import type {LiveCommitment} from '$lib/game/core/recovery';
 import type {Context} from '$lib/context/types';
 import {sendWorldTransaction} from './commit-reveal';
 import type {CommitRevealDeps} from './commit-reveal';
@@ -33,6 +44,17 @@ export type MissedRevealStore = Readable<MissedRevealState> & {
 	check(): Promise<void>;
 	/** Clear the stale commitment so the player can commit again. */
 	acknowledge(): Promise<void>;
+	/**
+	 * The commitment the contract holds for the epoch NOW IN PROGRESS, if any.
+	 *
+	 * It blocks nothing, which is why the state above says `Clear` beside it.
+	 * What it does say is that a reveal is owed this epoch whatever this browser
+	 * happens to remember, and `world/recover-round.ts` acts on that.
+	 *
+	 * Undefined whenever the read has not happened, failed, or found nothing: an
+	 * absent answer is never evidence that no commitment exists.
+	 */
+	commitment: Readable<LiveCommitment | undefined>;
 };
 
 /**
@@ -69,6 +91,7 @@ export function createMissedReveal(params: {
 	const {deps, avatarID, currentEpoch} = params;
 
 	const state = writable<MissedRevealState>({step: 'Unknown'});
+	const commitment = writable<LiveCommitment | undefined>(undefined);
 	let value: MissedRevealState = {step: 'Unknown'};
 	state.subscribe((v) => (value = v));
 
@@ -83,21 +106,30 @@ export function createMissedReveal(params: {
 
 		try {
 			const Game = get(deps.deployments).contracts.Game;
-			const commitment = (await deps.publicClient.readContract({
+			const onChain = (await deps.publicClient.readContract({
 				address: Game.address,
 				abi: Game.abi,
 				functionName: 'getCommitment',
 				args: [id],
 			})) as {hash: `0x${string}`; epoch: bigint};
 
-			const epoch = Number(commitment.epoch);
+			const epoch = Number(onChain.epoch);
 			// epoch 0 means no commitment; one for the CURRENT epoch is the round in
 			// progress and blocks nothing. Only an older one bars the way, which is
 			// exactly the condition `_makeCommitment` tests.
-			if (epoch === 0 || epoch === get(currentEpoch)) {
+			if (epoch === 0) {
+				commitment.set(undefined);
 				state.set({step: 'Clear'});
 				return;
 			}
+			if (epoch === get(currentEpoch)) {
+				// LIVE, and still worth saying: a reveal is owed for it, and this
+				// browser may have no idea. See the note at the top of the file.
+				commitment.set({epoch, hash: onChain.hash});
+				state.set({step: 'Clear'});
+				return;
+			}
+			commitment.set(undefined);
 			state.set({step: 'Blocked', epoch});
 		} catch {
 			// A failed read is not evidence of being blocked, and claiming it was
@@ -143,6 +175,7 @@ export function createMissedReveal(params: {
 				'The acknowledgement',
 			);
 
+			commitment.set(undefined);
 			state.set({step: 'Clear'});
 			params.onSettled?.();
 		} catch (error) {
@@ -157,5 +190,6 @@ export function createMissedReveal(params: {
 		},
 		check,
 		acknowledge,
+		commitment: {subscribe: commitment.subscribe},
 	};
 }

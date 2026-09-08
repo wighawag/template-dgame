@@ -20,6 +20,8 @@ import type {RoundState} from '$lib/game/core/round';
 import type {Action} from '../commit-reveal';
 import type {DepositedState} from '../deposited';
 import {blocksCommitting, type MissedRevealState} from '../missed-reveal';
+import type {RecoveryState} from '$lib/game/core/recovery';
+import type {AutoRecoveryState} from '../recover-round';
 import {SignerOutOfFundsError} from '../errors';
 import type {RoundPhase, SetupAction, SetupNeeded} from '$lib/context/game';
 import type {RevealOutcome} from '../reveal-outcome';
@@ -181,6 +183,22 @@ export type HudModel = {
 	 * Set when an unrevealed commitment is blocking play, with what has to be
 	 * done about it.
 	 */
+	/**
+	 * Set when the chain holds a turn for the round in progress that this
+	 * browser has lost, AND the app could not work it out for itself.
+	 *
+	 * Deliberately absent while the search is still running: asking a player to
+	 * re-enter a turn the app is a quarter of a second from finding is worse
+	 * than either doing it silently or asking outright.
+	 */
+	recovery?: {
+		headline: string;
+		detail: string;
+		busy: boolean;
+		/** Whether there is a turn planned on the board to offer. */
+		canRecover: boolean;
+	};
+
 	missedReveal?: {
 		headline: string;
 		detail: string;
@@ -314,6 +332,47 @@ export function describeRound(
  * rejecting new commitments with `PreviousCommitmentNotRevealed` until it is
  * called. If a forfeit is added, this sentence is where it gets said.
  */
+/**
+ * What to tell a player whose browser has lost a turn the chain still holds.
+ *
+ * Three sentences, and which one is right depends on why the search did not
+ * answer - not on the search having failed, which is the reading to avoid. An
+ * ENTRY was never searchable at all; an exhausted search says the commitment is
+ * not a turn from where this avatar stands, which usually means it belongs to a
+ * different avatar; giving up says the map was more open than the budget.
+ *
+ * It never says the avatar is lost. It is not, yet - a reveal is still owed and
+ * can still be made - and that is the whole reason for showing anything.
+ */
+export function describeRecovery(
+	recovery: RecoveryState,
+	auto: AutoRecoveryState,
+	plannedCount: number,
+): HudModel['recovery'] {
+	if (recovery.step === 'Idle') return undefined;
+	// Working on it. Say nothing yet: see the note on the field.
+	if (auto.step === 'Searching') return undefined;
+	if (auto.step === 'Idle' && recovery.step === 'Found') return undefined;
+
+	const headline = `This browser has lost the moves you committed for epoch ${recovery.epoch}.`;
+	if (recovery.step === 'Checking') {
+		return {headline, detail: 'Checking...', busy: true, canRecover: false};
+	}
+
+	const detail =
+		recovery.step === 'Refused'
+			? 'Those are not the moves that were committed. Try again: nothing is spent, and the reveal can still be made until this epoch ends.'
+			: recovery.step === 'Failed'
+				? // NOT a wrong turn. The app could not ask, which is a different
+					// thing with a different remedy - press again.
+					`Those moves could not be checked: ${recovery.message}. Nothing is lost yet - try again.`
+				: auto.step === 'AskThePlayer' && auto.reason === 'not-searchable'
+					? 'Your avatar was entering the world, and where it was going to appear is not something this browser can work out. Point at the cell you chose and recover the round.'
+					: 'The commitment is still on chain and can still be revealed, but only this epoch. Re-enter the same moves and recover the round.';
+
+	return {headline, detail, busy: false, canRecover: plannedCount > 0};
+}
+
 export function describeMissedReveal(
 	state: MissedRevealState,
 ): HudModel['missedReveal'] {
@@ -492,6 +551,8 @@ export function createHud(context: Context): Readable<HudModel> {
 			game.setup,
 			game.purchase,
 			game.revealOutcome,
+			game.recovery,
+			game.autoRecovery,
 		],
 		([
 			$phase,
@@ -508,6 +569,8 @@ export function createHud(context: Context): Readable<HudModel> {
 			$setup,
 			$purchase,
 			$revealOutcome,
+			$recovery,
+			$autoRecovery,
 		]): HudModel => {
 			const deposited = $deposited as DepositedState;
 			const blocked = blocksCommitting($missedReveal as MissedRevealState);
@@ -666,6 +729,11 @@ export function createHud(context: Context): Readable<HudModel> {
 				roundLabel: round.label,
 				roundTone: round.tone,
 				missedReveal: describeMissedReveal($missedReveal as MissedRevealState),
+				recovery: describeRecovery(
+					$recovery as RecoveryState,
+					$autoRecovery as AutoRecoveryState,
+					plannedCount,
+				),
 				// Committing early is allowed the whole time the phase is open; the
 				// round commits by itself if the player leaves it too late. An
 				// unrevealed commitment blocks it entirely: the contract would reject

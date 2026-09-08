@@ -27,6 +27,12 @@
 	const round = game.round;
 	const planning = game.planning;
 	const missedReveal = game.missedReveal;
+	// A turn the chain holds and this browser has lost. Usually recovered
+	// without the player ever seeing this, by searching the walks the maze
+	// allows; the notice is what is left when the search cannot answer. See
+	// $lib/world/recover-round.
+	const recovery = game.recovery;
+	const plannedActions = game.planning.actions;
 	const activeAvatarID = game.activeAvatarID;
 	const purchase = game.purchase;
 	// One shared flow, built in the context, so the account panel and a blocked
@@ -103,6 +109,33 @@
 						{$hud.missedReveal.busy
 							? 'Acknowledging...'
 							: 'Acknowledge missed reveal'}
+					</Button>
+				</div>
+			{/if}
+
+			<!--
+			The chain holds a turn this browser cannot open, and the search did not
+			find it. Unlike a missed reveal nothing is lost yet, and the whole point
+			is that it still can be: the player re-enters the same moves and the
+			hash decides.
+		-->
+			{#if $hud.recovery}
+				<div
+					class="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-2"
+				>
+					<p class="text-sm font-semibold text-amber-400">
+						{$hud.recovery.headline}
+					</p>
+					<p class="mt-1 max-w-sm text-xs text-muted-foreground">
+						{$hud.recovery.detail}
+					</p>
+					<Button
+						size="sm"
+						class="mt-2"
+						disabled={!$hud.recovery.canRecover}
+						onclick={() => recovery.offer($plannedActions)}
+					>
+						{$hud.recovery.busy ? 'Checking...' : 'Recover round'}
 					</Button>
 				</div>
 			{/if}

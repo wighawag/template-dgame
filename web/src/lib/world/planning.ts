@@ -63,6 +63,14 @@ function endsTheTurn(action: Action): boolean {
 export type PlanningStore = {
 	/** What the player has planned, for the view merge. */
 	plan: Readable<LocalPlan>;
+	/**
+	 * The same, in the shape the contract is committed to.
+	 *
+	 * Exposed because recovering a lost turn offers the planned moves as a
+	 * CANDIDATE for a commitment the chain already holds, and the component that
+	 * offers them must not be the thing that converts the display shape back.
+	 */
+	actions: Readable<readonly Action[]>;
 	/** Whether clicks currently change anything. */
 	canPlan: Readable<boolean>;
 	/** Moves still available this turn. */
@@ -135,6 +143,11 @@ export function createPlanning(params: {
 			player: $player,
 			planned: toPlannedActions($planned),
 		}),
+	);
+
+	const actions = derived(
+		plannedStore,
+		($planned): readonly Action[] => $planned,
 	);
 
 	const canPlan = derived(round, ($round) => isPlannable($round));
@@ -285,6 +298,7 @@ export function createPlanning(params: {
 
 	return {
 		plan,
+		actions,
 		canPlan,
 		movesLeft,
 		canExit,

@@ -268,3 +268,35 @@ export async function planOnCanvas(
 		)
 		.toBeGreaterThan(0);
 }
+
+/**
+ * Plan ONE step, by pressing a direction until one is accepted.
+ *
+ * Directions rather than a click on an adjacent cell, because which cells are
+ * adjacent depends on where the avatar entered the maze and three of the four
+ * are usually walls. `stepBy` resolves a direction against the end of the plan
+ * and refuses an illegal one, so trying all four and stopping at the first that
+ * takes is the same thing a player does.
+ *
+ * Returns the key that worked, so a caller can plan the SAME step again later -
+ * which is what recovering a lost turn has to do.
+ */
+export async function stepInAnyDirection(
+	page: Page,
+	only?: string,
+): Promise<string> {
+	const keys = only
+		? [only]
+		: ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'];
+	await skipTutorial(page);
+	for (const key of keys) {
+		await page.keyboard.press(key);
+		// The plan is read out of the app rather than off the screen, so this is
+		// waiting for the round to change and not for a repaint.
+		for (let attempt = 0; attempt < 10; attempt++) {
+			if ((await boardState(page)).planned > 0) return key;
+			await page.waitForTimeout(200);
+		}
+	}
+	throw new Error('no direction was walkable from here');
+}

@@ -37,6 +37,7 @@ import {
 	refreshDuringReveal,
 	settleBoardWhenRoundStarts,
 } from '$lib/game/core/refresh';
+import {createRoundRecovery, type RecoveryStore} from '$lib/game/core/recovery';
 import {
 	boardIsBehindClock,
 	roundPhaseOf,
@@ -68,7 +69,11 @@ import {createViewState, type ViewStateStore} from '$lib/view';
 // above is the framework it plugs into.
 // ---------------------------------------------------------------------------
 import {resolveWorldConfig, type WorldConfig} from '$lib/world/config';
-import {createWorldCommitReveal, type Action} from '$lib/world/commit-reveal';
+import {
+	buildWorldCommitment,
+	createWorldCommitReveal,
+	type Action,
+} from '$lib/world/commit-reveal';
 import {
 	createRoundStorage,
 	noRoundStorage,
@@ -77,6 +82,10 @@ import {
 import {createPlanning, type PlanningStore} from '$lib/world/planning';
 import {createControls, type Controls} from '$lib/world/controls';
 import {holdResolvingRound} from '$lib/world/hold';
+import {
+	recoverByEnumeration,
+	type AutoRecoveryState,
+} from '$lib/world/recover-round';
 import {holdPlanUntilBoardReleases} from '$lib/world/display-plan';
 import {
 	createRevealOutcome,
@@ -192,6 +201,17 @@ export type Game = {
 	 * until the player acknowledges it.
 	 */
 	missedReveal: MissedRevealStore;
+	/**
+	 * A commitment the chain holds for the round in progress that this browser
+	 * has no memory of - a cleared browser, a second device, a private window.
+	 * The turn is still revealable while the epoch lasts.
+	 */
+	recovery: RecoveryStore<Action>;
+	/**
+	 * Whether the app is currently working the lost turn out for itself, and
+	 * what is left if it cannot. See `$lib/world/recover-round`.
+	 */
+	autoRecovery: Readable<AutoRecoveryState>;
 	/**
 	 * Where the active avatar stands on chain, or undefined when it is not in the
 	 * world. Read from the account's own deposited avatars rather than off the
@@ -673,6 +693,20 @@ export function createGameContext(core: CoreServices): GameContext {
 		return account.signMessage({message});
 	}
 
+	/**
+	 * ONE derivation, shared by the round, by recovery and by the search.
+	 *
+	 * Built here rather than inline below because all three have to reproduce
+	 * EXACTLY what was committed with. Separate call sites would compile, agree
+	 * today, and diverge the moment one is edited - and the symptom is a player
+	 * told their own turn is not the one they committed, with nothing logged.
+	 */
+	const makeSecret = createDerivedSecret<bigint>({
+		sign: signAsSigner,
+		chainId: deployments.chain.id,
+		contract: deployments.contracts.Game.address,
+	});
+
 	const round = createRound<bigint, Action>({
 		epochInfo,
 		/**
@@ -692,11 +726,7 @@ export function createGameContext(core: CoreServices): GameContext {
 		 * What this does NOT recover on its own is the planned ACTIONS - the chain
 		 * holds only the hash. See D9 in the template's plan.
 		 */
-		makeSecret: createDerivedSecret<bigint>({
-			sign: signAsSigner,
-			chainId: deployments.chain.id,
-			contract: deployments.contracts.Game.address,
-		}),
+		makeSecret,
 		adapter: createWorldCommitReveal({
 			deps: core,
 			// Refuse to commit while an unrevealed commitment is in the way, and say
@@ -755,6 +785,40 @@ export function createGameContext(core: CoreServices): GameContext {
 		currentPosition,
 		activeAvatarID,
 		player: gameIdentity,
+	});
+
+	/**
+	 * The chain says a commitment exists; this browser may not know that.
+	 *
+	 * Wired from the read `missedReveal` was already making, and from the same
+	 * secret and hashing the round commits with. Nothing is fetched for it.
+	 */
+	const recovery = createRoundRecovery<bigint, Action>({
+		round,
+		commitment: missedReveal.commitment,
+		identity: activeAvatarID,
+		makeSecret,
+		buildCommitment: buildWorldCommitment,
+	});
+
+	/**
+	 * ...and this game can usually work out WHAT was committed, without asking.
+	 *
+	 * A turn here is a walk over walkable cells, and the maze keeps that small
+	 * enough to search: see `$lib/world/recover-round`, which is also where the
+	 * measurement and the budget are. Where the search cannot answer - an avatar
+	 * that was ENTERING, or a map more open than the budget - it says so and the
+	 * player re-enters the turn, which is the route the template's game uses for
+	 * everything.
+	 */
+	const autoRecovery = recoverByEnumeration({
+		recovery,
+		currentPosition,
+		identity: activeAvatarID,
+		numMoves: config.numMoves,
+		makeSecret,
+		buildCommitment: buildWorldCommitment,
+		commitment: missedReveal.commitment,
 	});
 
 	/**
@@ -1020,6 +1084,10 @@ export function createGameContext(core: CoreServices): GameContext {
 			unsubscribePurchase();
 			stopSettleWatch();
 			stopRevealRefresh();
+			// The search subscribes for the whole session, because the state it
+			// reacts to can appear at any point in it: a second device commits, or
+			// this one is opened again after its storage was cleared.
+			autoRecovery.stop();
 		};
 	}
 
@@ -1041,6 +1109,8 @@ export function createGameContext(core: CoreServices): GameContext {
 			deposited,
 			purchase,
 			missedReveal,
+			recovery,
+			autoRecovery: autoRecovery.state,
 			currentPosition,
 			phase,
 			readyToPlay,

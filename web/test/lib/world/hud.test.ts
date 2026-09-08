@@ -12,6 +12,8 @@ import {SignerOutOfFundsError} from '$lib/world/errors';
 import type {RoundState} from '$lib/game/core/round';
 import type {Action} from '$lib/world/commit-reveal';
 import type {DepositedAvatar} from '$lib/world/deposited';
+import type {RecoveryState} from '$lib/game/core/recovery';
+import type {AutoRecoveryState} from '$lib/world/recover-round';
 import type {RevealOutcome} from '$lib/world/reveal-outcome';
 import type {RoundPhase} from '$lib/context/game';
 
@@ -28,6 +30,8 @@ import type {RoundPhase} from '$lib/context/game';
 type State = RoundState<Action>;
 
 const action: Action = {actionType: 1, data: 1n};
+
+const idle = (): State => ({step: 'Idle'});
 
 const failed = (during: 'commit' | 'reveal', error: unknown): State => ({
 	step: 'Error',
@@ -218,6 +222,8 @@ function fakeContext(
 		phase?: RoundPhase;
 		twoPhase?: {phase: 'play' | 'wait'; timeLeft: number; duration: number};
 		numMissesAllowed?: number;
+		recovery?: RecoveryState;
+		autoRecovery?: AutoRecoveryState;
 	} = {},
 ) {
 	return {
@@ -242,6 +248,8 @@ function fakeContext(
 			currentPosition: writable(overrides.currentPosition),
 			epochInfo: writable({currentEpoch: overrides.currentEpoch ?? 3}),
 			missedReveal: writable({step: 'Clear'}),
+			recovery: writable(overrides.recovery ?? {step: 'Idle'}),
+			autoRecovery: writable(overrides.autoRecovery ?? {step: 'Idle'}),
 			setup: writable(overrides.setup),
 			purchase: writable(overrides.purchase ?? {step: 'Idle'}),
 			config: {
@@ -701,5 +709,108 @@ describe('buying an avatar, through the HUD', () => {
 		expect(model.setup?.action).toBe('authorise');
 		expect(model.setup?.error).toBeUndefined();
 		expect(model.setup?.busy).toBeUndefined();
+	});
+});
+
+/**
+ * A turn the chain holds and this browser has lost.
+ *
+ * The interesting rule here is a NEGATIVE one: the player must not be asked to
+ * re-enter a turn while the app is still working it out. Asking and then
+ * answering the question yourself is worse than either doing it silently or
+ * asking outright, and this game can usually answer it.
+ */
+describe('a lost turn the chain still holds', () => {
+	const found = {step: 'Found' as const, epoch: 7};
+
+	it('says nothing at all when there is nothing to recover', () => {
+		expect(get(createHud(fakeContext(idle()))).recovery).toBeUndefined();
+	});
+
+	it('says NOTHING while the search is still running', () => {
+		const model = get(
+			createHud(
+				fakeContext(idle(), {
+					recovery: found,
+					autoRecovery: {step: 'Searching', epoch: 7},
+				}),
+			),
+		);
+		expect(model.recovery).toBeUndefined();
+	});
+
+	it('still says nothing before the search has started', () => {
+		// The gap between the chain read landing and the search beginning is a
+		// tick or two, and a notice that flashes up in it and vanishes is worse
+		// than no notice at all.
+		const model = get(
+			createHud(
+				fakeContext(idle(), {recovery: found, autoRecovery: {step: 'Idle'}}),
+			),
+		);
+		expect(model.recovery).toBeUndefined();
+	});
+
+	it('asks once the search has given up, and never says the avatar is lost', () => {
+		const model = get(
+			createHud(
+				fakeContext(idle(), {
+					recovery: found,
+					autoRecovery: {step: 'AskThePlayer', epoch: 7, reason: 'gave-up'},
+				}),
+			),
+		);
+		expect(model.recovery?.headline).toContain('epoch 7');
+		expect(model.recovery?.detail).toMatch(/can still be revealed/i);
+		expect(model.recovery?.detail).not.toMatch(/lost|dead|forfeit/i);
+	});
+
+	it('says something DIFFERENT for an entry, which was never searchable', () => {
+		// An avatar entering the world could have chosen any cell on an unbounded
+		// map. Telling that player to "re-enter the same moves" describes moves
+		// they never made.
+		const model = get(
+			createHud(
+				fakeContext(idle(), {
+					recovery: found,
+					autoRecovery: {
+						step: 'AskThePlayer',
+						epoch: 7,
+						reason: 'not-searchable',
+					},
+				}),
+			),
+		);
+		expect(model.recovery?.detail).toMatch(/entering the world/i);
+	});
+
+	it('tells a REFUSED turn apart from a check that could not be made', () => {
+		const asked = {
+			step: 'AskThePlayer' as const,
+			epoch: 7,
+			reason: 'exhausted' as const,
+		};
+		const refused = get(
+			createHud(
+				fakeContext(idle(), {
+					recovery: {step: 'Refused', epoch: 7},
+					autoRecovery: asked,
+				}),
+			),
+		);
+		expect(refused.recovery?.detail).toMatch(
+			/not the moves that were committed/i,
+		);
+
+		const failed = get(
+			createHud(
+				fakeContext(idle(), {
+					recovery: {step: 'Failed', epoch: 7, message: 'no signer'},
+					autoRecovery: asked,
+				}),
+			),
+		);
+		expect(failed.recovery?.detail).toContain('no signer');
+		expect(failed.recovery?.detail).not.toMatch(/not the moves/i);
 	});
 });

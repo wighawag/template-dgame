@@ -230,6 +230,8 @@ function fakeContext(
 			currentPosition: writable(START),
 			epochInfo: writable({currentEpoch: 7}),
 			missedReveal: writable({step: 'Clear'}),
+			recovery: writable({step: 'Idle'}),
+			autoRecovery: writable({step: 'Idle'}),
 			setup: writable(undefined),
 			purchase: writable({step: 'Idle'}),
 			config: {sale: {price: 10000000000n}},
