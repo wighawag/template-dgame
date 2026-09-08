@@ -10,6 +10,7 @@
  * and look like a bug in the contract).
  */
 import type {RoundStorage, PersistedRound} from '$lib/game/core/round';
+import type {GameIdentity} from '$lib/game/identity';
 import type {Placement} from './commit-reveal';
 
 const PREFIX = '__placement_round__';
@@ -22,10 +23,19 @@ type StoredRound = {
 	committed: boolean;
 };
 
+/**
+ * Scoped to chain + contract + WHO PLAYS.
+ *
+ * The last part is the identity rather than the account, which is the whole
+ * difference between one pending round per account and one per thing the
+ * account plays with. A game that keys by a token and scoped this by the
+ * account instead would load the previous token's planned actions and commit
+ * them for the next one.
+ */
 export function roundStorageKey(params: {
 	chainID: string | number;
 	gameAddress: string;
-	player: string;
+	player: GameIdentity;
 }): string {
 	return `${PREFIX}${params.chainID}_${params.gameAddress}_${params.player}`.toLowerCase();
 }

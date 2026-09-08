@@ -32,6 +32,7 @@
  */
 import {derived, get, writable, type Readable} from 'svelte/store';
 import type {Context} from '$lib/context/types';
+import type {ActiveIdentityStore} from '$lib/game/identity';
 import type {PlacementConfig} from './config';
 import {sendPlacementTransaction} from './commit-reveal';
 import type {LiveCommitment} from '$lib/game/core/recovery';
@@ -84,8 +85,8 @@ export type MissedRevealDeps = Pick<
 export function createMissedReveal(params: {
 	deps: MissedRevealDeps;
 	config: PlacementConfig;
-	/** The address that plays, and whose commitment this is. */
-	gameIdentity: Readable<`0x${string}` | undefined>;
+	/** WHO PLAYS, and so whose commitment this is. */
+	identity: ActiveIdentityStore;
 	/** Called once a forfeit settles, so the reserve can be re-read. */
 	onSettled?: () => void;
 }): MissedRevealStore {
@@ -101,8 +102,9 @@ export function createMissedReveal(params: {
 	}
 
 	async function check() {
-		const player = get(params.gameIdentity);
-		if (!player) {
+		const player = get(params.identity);
+		// `=== undefined`, not falsy: an identity that is a token id can be `0n`.
+		if (player === undefined) {
 			set({step: 'Unknown'});
 			return;
 		}
@@ -156,8 +158,8 @@ export function createMissedReveal(params: {
 		if ($state.step !== 'Blocked' && $state.step !== 'Failed') return;
 		const {epoch, bond} = $state;
 
-		const player = get(params.gameIdentity);
-		if (!player) return;
+		const player = get(params.identity);
+		if (player === undefined) return;
 
 		await deps.connection.ensureConnected();
 		const executor = get(deps.signerExecutor);

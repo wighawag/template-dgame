@@ -199,7 +199,9 @@ export function createRoundRecovery<
 	async function offer(actions: readonly TAction[]): Promise<boolean> {
 		const live = get(commitment);
 		const player = get(identity);
-		if (!live || !player) return false;
+		// `=== undefined` rather than falsy: a token id of `0n` is a real identity
+		// and a falsy value. See `hasIdentity` in `./round.ts`.
+		if (!live || player === undefined) return false;
 		if (
 			value.step !== 'Found' &&
 			value.step !== 'Refused' &&

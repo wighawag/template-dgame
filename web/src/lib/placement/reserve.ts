@@ -19,6 +19,7 @@
  */
 import {get, writable, type Readable} from 'svelte/store';
 import type {Context} from '$lib/context/types';
+import type {ActiveIdentityStore} from '$lib/game/identity';
 import type {PlacementConfig} from './config';
 
 export type ReserveState =
@@ -34,9 +35,11 @@ export type ReserveStore = Readable<ReserveState> & {
  *
  * `accountExecutor`, NOT `signerExecutor`: taking money back out is the
  * player's own, so it is sent from the wallet they control, with a prompt,
- * deliberately. The reserve belongs to the ACCOUNT, which is what owns the
- * stake and the cells won with it. The signer neither pays nor owns; it acts
- * for the account, and only once `registerDelegate` has authorised it onchain.
+ * deliberately. The reserve is filed under the IDENTITY, and withdrawing from
+ * it is the ACCOUNT's own act - the same address here, and not the same
+ * sentence in a game whose identity is a token. The signer neither pays nor
+ * owns; it acts for the account, and only once `registerDelegate` has
+ * authorised it onchain.
  * `withdrawFromReserve` is the one account-facing call a delegate may NOT make,
  * which is what makes a disposable browser key safe to hold.
  */
@@ -57,24 +60,30 @@ export function createReserve(params: {
 	deps: ReserveDeps;
 	config: PlacementConfig;
 	/**
-	 * The address that PLAYS, and so the one whose reserve this is. Passed in
-	 * rather than read off the context: which address a game plays as is the
-	 * game's own decision, not something the core knows about.
+	 * WHO PLAYS, and so whose reserve this is. Passed in rather than read off
+	 * the context: what a game plays AS is the game's own decision, not
+	 * something the core knows about.
+	 *
+	 * The identity and not the account, deliberately. They hold the same value
+	 * in this game; the stake belongs to whoever is at risk of forfeiting it,
+	 * which is the thing that commits.
 	 */
-	gameIdentity: Readable<`0x${string}` | undefined>;
+	identity: ActiveIdentityStore;
 }): ReserveStore {
 	const {deps} = params;
 	const state = writable<ReserveState>({step: 'Unloaded'});
 
 	async function update() {
-		// The reserve is filed under the address that OWNS it; the tokens sit with
-		// the address that PAYS. Both are the account here, since that is what this
-		// game plays as and what it stakes from. They keep separate names because
+		// The reserve is filed under WHO PLAYS; the tokens sit with the address
+		// that PAYS. Both are the account here, since that is what this game plays
+		// as and what it stakes from. They keep separate names because
 		// `addToReserve` lets a payer credit someone else, and a game that takes
 		// that up should not have to untangle one name doing two jobs.
-		const player = get(params.gameIdentity);
+		const player = get(params.identity);
 		const payer = get(deps.account);
-		if (!player || !payer) {
+		// `=== undefined` for the identity, not falsy: it can be a token id of `0n`.
+		// The payer is an account and so is genuinely an address or nothing.
+		if (player === undefined || !payer) {
 			state.set({step: 'Unloaded'});
 			return;
 		}

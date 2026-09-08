@@ -29,6 +29,11 @@ import {
 	type RoundStore,
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
+import {
+	createActiveIdentity,
+	type ActiveIdentityStore,
+	type GameIdentity,
+} from '$lib/game/identity';
 import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
 import {createRoundRecovery, type RecoveryStore} from '$lib/game/core/recovery';
 import {
@@ -100,14 +105,33 @@ import {cellID} from '$lib/placement/cells';
 export type Game = {
 	config: PlacementConfig;
 	/**
-	 * WHO the player is: the authenticated account, not the key that signs.
+	 * WHO IS SIGNED IN: the authenticated account, not the key that signs.
 	 *
-	 * Exposed because the distinction is the safety property of the whole design
-	 * and is otherwise invisible from outside - the reserve, the commitment and
-	 * every cell won are filed under this address, while a different address pays
-	 * the gas. See `gameIdentity` below.
+	 * THE ACCOUNT, and it stays the account in every game built on this
+	 * template. It is an address here, on `with/nft-identity`, and in
+	 * reveal-or-die, which made the same call independently.
+	 *
+	 * Exposed because the account/signer distinction is the safety property of
+	 * the whole design and is otherwise invisible from outside: the account
+	 * owns, and a different key pays the gas and sends the moves.
+	 *
+	 * NOT what the round is keyed by. That is `activeIdentity`, and the two hold
+	 * the SAME VALUE here because the template is an address game - which is
+	 * precisely why they have to be two members rather than one. A consumer
+	 * asking "who am I signed in as" wants this one; a consumer asking "whose
+	 * commitment is this" wants the other, and on a game whose identity is a
+	 * token they are different values of different types.
 	 */
 	identity: Readable<`0x${string}` | undefined>;
+	/**
+	 * WHO IS PLAYING: what the round, the commitment, the stake and the round's
+	 * storage key are all keyed by. See `$lib/game/identity`.
+	 *
+	 * Equal to `identity` here and NOT the same question. Where a game's
+	 * identity is a token, the account still exists and still owns the token;
+	 * this is the token.
+	 */
+	activeIdentity: ActiveIdentityStore;
 	/** Chain-synced wall clock. NOT `clock`, which is only a UI ticker. */
 	chainTime: ChainTimeStore;
 	/** Which epoch we are in, and how far through its phases. */
@@ -124,7 +148,7 @@ export type Game = {
 	/** The same, collapsed to play / wait. */
 	twoPhase: Readable<TwoPhase>;
 	/** The commit-reveal round: what is planned, committed, revealed. */
-	round: RoundStore<`0x${string}`, Placement>;
+	round: RoundStore<GameIdentity, Placement>;
 	/** Clicks into planned placements. */
 	planning: PlanningStore;
 	/** The tokens at stake, without which nobody would have to reveal. */
@@ -215,7 +239,7 @@ export type GameContext = {
  */
 export function resumeWhenGasArrives(params: {
 	round: Pick<
-		RoundStore<`0x${string}`, Placement>,
+		RoundStore<GameIdentity, Placement>,
 		'subscribe' | 'value' | 'commit' | 'reveal'
 	>;
 	signerBalance: Readable<{step: string; value?: bigint}>;
@@ -321,7 +345,7 @@ export const SIGNER_GRANT: SignerGrant = {action: 'play your moves'};
 
 export function createGameContext(core: CoreServices): GameContext {
 	/**
-	 * The address the game plays as: the AUTHENTICATED ACCOUNT.
+	 * WHO IS SIGNED IN.
 	 *
 	 * Not the signer, though the signer is what SENDS every move. The two are
 	 * different questions and conflating them was a real bug: the template used
@@ -336,11 +360,22 @@ export function createGameContext(core: CoreServices): GameContext {
 	 *
 	 * Undefined until the player connects, which the setup gate below turns into
 	 * an instruction rather than a broken board.
-	 *
-	 * Derived here rather than read off the context because WHICH address a game
-	 * plays as is the game's own decision; the core just offers both.
 	 */
-	const gameIdentity = core.account;
+	const account = core.account;
+
+	/**
+	 * WHO IS PLAYING, which is a different question from who is signed in.
+	 *
+	 * The same value as `account` here and deliberately not the same NAME: the
+	 * round, the secret's domain separation, the stake and the storage key are
+	 * keyed by THIS, and a game whose identity is a token keys them by the
+	 * token while the account goes on owning it. Every site below picks one of
+	 * the two on purpose; see `$lib/game/identity` for the rule.
+	 *
+	 * Built through a provider rather than assigned, because D6 requires
+	 * identity to be a SELECTION even where there is exactly one of them.
+	 */
+	const activeIdentity = createActiveIdentity({account});
 
 	// `.get()` rather than `get(store)`: deployments are fixed for the life of
 	// the app, and the game's readers need them synchronously at construction.
@@ -395,12 +430,16 @@ export function createGameContext(core: CoreServices): GameContext {
 		roundPhaseOf($three, $behind),
 	);
 
-	const reserve = createReserve({deps: core, config, gameIdentity});
+	// The stake is filed under WHO PLAYS, not under who signed in: a game whose
+	// identity is a token bonds against the token.
+	const reserve = createReserve({deps: core, config, identity: activeIdentity});
 
 	const acquisition = createAcquisition({
 		deps: core,
 		acquisition: createStakeAcquisition({config, deployments}),
-		owner: gameIdentity,
+		// THE ACCOUNT, not the identity: a purchase is credited to whoever owns
+		// the result, and that stays an account even when what it buys is a token.
+		owner: account,
 		// The same grant the top-up flow shows, from the one place this app
 		// declares it, so the two cannot describe two different keys.
 		grant: SIGNER_GRANT,
@@ -423,10 +462,12 @@ export function createGameContext(core: CoreServices): GameContext {
 	};
 
 	function forCurrentPlayer(): RoundStorage<Placement> {
-		// Keyed by the address that PLAYS (the signer), which is what the
-		// contract's commitment is keyed by.
-		const player = get(gameIdentity);
-		if (!player) return noRoundStorage;
+		// Keyed by WHO PLAYS, which is what the contract's commitment is keyed by.
+		// (This comment used to say "the signer", which the code has not done since
+		// the account became the player.)
+		const player = get(activeIdentity);
+		// `=== undefined`, not falsy: an identity that is a token id can be `0n`.
+		if (player === undefined) return noRoundStorage;
 		return createRoundStorage({
 			key: roundStorageKey({
 				chainID: deployments.chain.id,
@@ -439,7 +480,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	const missedReveal = createMissedReveal({
 		deps: core,
 		config,
-		gameIdentity,
+		identity: activeIdentity,
 		// The forfeit comes out of the reserve, so the number on screen changes.
 		onSettled: () => void reserve.update(),
 	});
@@ -467,13 +508,22 @@ export function createGameContext(core: CoreServices): GameContext {
 	 */
 	async function signAsSigner(message: string): Promise<`0x${string}`> {
 		const executor = get(core.signerExecutor);
-		const account = executor.status === 'ready' ? executor.account : undefined;
-		if (!account || typeof account === 'string' || !account.signMessage) {
+		// `signerAccount` and not `account`: this is the SIGNER's viem account, a
+		// third thing again, and the outer `account` in this file is the player's.
+		// One word for both would be the exact confusion this file now exists to
+		// keep apart, and shadowing it would hide that behind a scope.
+		const signerAccount =
+			executor.status === 'ready' ? executor.account : undefined;
+		if (
+			!signerAccount ||
+			typeof signerAccount === 'string' ||
+			!signerAccount.signMessage
+		) {
 			throw new Error(
 				'Cannot derive the commit secret: no local signer is available.',
 			);
 		}
-		return account.signMessage({message});
+		return signerAccount.signMessage({message});
 	}
 
 	/**
@@ -486,13 +536,13 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * their own turn is not the one they committed, with nothing logged
 	 * anywhere.
 	 */
-	const makeSecret = createDerivedSecret<`0x${string}`>({
+	const makeSecret = createDerivedSecret<GameIdentity>({
 		sign: signAsSigner,
 		chainId: deployments.chain.id,
 		contract: deployments.contracts.Game.address,
 	});
 
-	const round = createRound<`0x${string}`, Placement>({
+	const round = createRound<GameIdentity, Placement>({
 		epochInfo,
 		/**
 		 * DERIVED, not random, so a cleared browser does not cost the stake.
@@ -524,9 +574,10 @@ export function createGameContext(core: CoreServices): GameContext {
 			},
 		}),
 		storage,
-		// The game plays as the local signer, not as the wallet: see the game
-		// executor in `context/core.ts`.
-		identity: gameIdentity,
+		// WHO PLAYS. The moves are SENT by the local signer (see the game executor
+		// in `context/core.ts`), which is a different thing again: the sender is
+		// neither the account nor the identity.
+		identity: activeIdentity,
 		onSettled: async () => {
 			// A settled round changes both the board and the reserve. Awaited by the
 			// round before it reports itself revealed, so the confirmed placements
@@ -548,7 +599,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	const recovery = createRoundRecovery({
 		round,
 		commitment: missedReveal.commitment,
-		identity: gameIdentity,
+		identity: activeIdentity,
 		makeSecret,
 		buildCommitment: buildPlacementCommitment,
 	});
@@ -628,7 +679,9 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * who abandons setup half way having spent as little as possible.
 	 */
 	const setup = derived(
-		[gameIdentity, core.delegation, reserve],
+		// THE ACCOUNT: the first question this gate asks is whether anyone is
+		// signed in at all, which is about the account and not about what it plays.
+		[account, core.delegation, reserve],
 		([$identity, $delegation, $reserve]) =>
 			setupNeeded({
 				identity: $identity,
@@ -657,11 +710,15 @@ export function createGameContext(core: CoreServices): GameContext {
 
 		void reserve.update();
 		void missedReveal.check();
-		const unsubscribeAccount = gameIdentity.subscribe(() => {
+		const unsubscribeIdentity = activeIdentity.subscribe(() => {
 			void reserve.update();
-			// Whether a commitment is outstanding is a fact about the ACCOUNT, not
-			// about this browser: it has to be re-read when the account changes, and
-			// it is how a player who lost their local state still finds out.
+			// Whether a commitment is outstanding is a fact about the IDENTITY, not
+			// about this browser: it has to be re-read whenever the identity changes,
+			// and it is how a player who lost their local state still finds out.
+			//
+			// Both reads are keyed by the identity, so this follows the identity and
+			// not the account. They are the same store here; a game that can switch
+			// identity under one account would otherwise never re-read on a switch.
 			void missedReveal.check();
 		});
 
@@ -704,7 +761,7 @@ export function createGameContext(core: CoreServices): GameContext {
 		return () => {
 			stopRound();
 			eventEmitter.off('clicked', onClicked);
-			unsubscribeAccount();
+			unsubscribeIdentity();
 			unsubscribeRound();
 			unsubscribeEpoch();
 			unsubscribeGas();
@@ -717,7 +774,8 @@ export function createGameContext(core: CoreServices): GameContext {
 		viewState,
 		game: {
 			config,
-			identity: gameIdentity,
+			identity: account,
+			activeIdentity,
 			chainTime,
 			epochInfo,
 			threePhase,

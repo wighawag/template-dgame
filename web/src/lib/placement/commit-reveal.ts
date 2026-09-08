@@ -11,6 +11,7 @@ import {get} from 'svelte/store';
 import {encodeAbiParameters, keccak256, zeroAddress, type Account} from 'viem';
 import type {Context} from '$lib/context/types';
 import type {CommitRevealAdapter} from '$lib/game/core/seams';
+import type {GameIdentity} from '$lib/game/identity';
 import {costOfPlacements, type PlacementConfig} from './config';
 import {isInsufficientFundsFailure} from '$lib/core/transaction';
 import {SignerOutOfFundsError} from './errors';
@@ -194,7 +195,7 @@ export function createPlacementCommitReveal(params: {
 	 * already paid gas.
 	 */
 	beforeCommit?: () => Promise<void>;
-}): CommitRevealAdapter<`0x${string}`, Placement> {
+}): CommitRevealAdapter<GameIdentity, Placement> {
 	const {deps, config} = params;
 
 	async function ready() {
@@ -234,13 +235,13 @@ export function createPlacementCommitReveal(params: {
 						address: deployments.contracts.Game.address,
 						abi: deployments.contracts.Game.abi,
 						functionName: 'makeCommitment',
-						// `identity` is the ACCOUNT; the executor sending this is the
-						// signer acting for it. The contract checks the pair, so a
-						// signer that has not been authorised (or has been revoked)
-						// reverts here rather than quietly bonding its own empty
-						// reserve. The commitment, the bond and the cells it wins all
-						// belong to the account, so losing this browser costs a key and
-						// nothing else.
+						// `identity` is WHO PLAYS, which in this game is the account;
+						// the executor sending this is the signer acting for it. The
+						// contract checks the pair, so a signer that has not been
+						// authorised (or has been revoked) reverts here rather than
+						// quietly bonding its own empty reserve. The commitment, the
+						// bond and the cells it wins all belong to the identity, so
+						// losing this browser costs a key and nothing else.
 						args: [identity, hash, bond, zeroAddress],
 						account: executor.account,
 						chain: null,

@@ -11,6 +11,7 @@
  */
 import {derived, type Readable} from 'svelte/store';
 import type {RoundState, RoundStore} from '$lib/game/core/round';
+import type {GameIdentity} from '$lib/game/identity';
 import type {Placement} from './commit-reveal';
 import type {LocalPlan} from './view';
 
@@ -51,7 +52,7 @@ export type PlanningStore = {
 };
 
 export function createPlanning(params: {
-	round: RoundStore<`0x${string}`, Placement>;
+	round: RoundStore<GameIdentity, Placement>;
 }): PlanningStore {
 	const {round} = params;
 

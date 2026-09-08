@@ -6,6 +6,7 @@ import {
 	type MissedRevealState,
 } from '$lib/placement/missed-reveal';
 import {describeMissedReveal} from '$lib/placement/ui/hud';
+import type {GameIdentity} from '$lib/game/identity';
 
 const PLAYER = '0x1111111111111111111111111111111111111111' as const;
 
@@ -19,7 +20,7 @@ const PLAYER = '0x1111111111111111111111111111111111111111' as const;
 function fakeDeps(options: {
 	commitment: {epoch: bigint; bond: bigint};
 	currentEpoch: bigint;
-	account?: `0x${string}` | undefined;
+	identity?: GameIdentity | undefined;
 	writeFails?: boolean;
 	readFails?: boolean;
 	/** The signer's gas. Zero makes `send()` refuse before it reaches the node. */
@@ -69,22 +70,23 @@ function fakeDeps(options: {
 			},
 		} as never,
 	};
-	// The address the game PLAYS as: the local signer, not the wallet.
-	const gameIdentity = writable(
-		'account' in options ? options.account : PLAYER,
+	// WHO PLAYS, which is the account in this game and is not the signer that
+	// sends the transaction.
+	const identity = writable(
+		'identity' in options ? options.identity : PLAYER,
 	) as unknown as never;
-	return {deps, gameIdentity, writes};
+	return {deps, identity, writes};
 }
 
 const config = {placementCost: 10n ** 18n} as never;
 
 describe('a commitment that was never revealed', () => {
 	it('is reported, with what it cost, when it is from a past epoch', async () => {
-		const {deps, gameIdentity} = fakeDeps({
+		const {deps, identity} = fakeDeps({
 			commitment: {epoch: 10n, bond: 5n * 10n ** 18n},
 			currentEpoch: 12n,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 
 		expect(store.value).toEqual({
@@ -96,11 +98,11 @@ describe('a commitment that was never revealed', () => {
 	});
 
 	it('is NOT settled without the player asking', async () => {
-		const {deps, gameIdentity, writes} = fakeDeps({
+		const {deps, identity, writes} = fakeDeps({
 			commitment: {epoch: 10n, bond: 5n * 10n ** 18n},
 			currentEpoch: 12n,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 
 		// Acknowledging forfeits the bond. Merely noticing must never spend it:
@@ -110,12 +112,12 @@ describe('a commitment that was never revealed', () => {
 	});
 
 	it('forfeits the bond only when acknowledged, and then unblocks play', async () => {
-		const {deps, gameIdentity, writes} = fakeDeps({
+		const {deps, identity, writes} = fakeDeps({
 			commitment: {epoch: 10n, bond: 5n * 10n ** 18n},
 			currentEpoch: 12n,
 		});
 		const onSettled = vi.fn();
-		const store = createMissedReveal({deps, config, gameIdentity, onSettled});
+		const store = createMissedReveal({deps, config, identity, onSettled});
 		await store.check();
 
 		await store.acknowledge();
@@ -128,11 +130,11 @@ describe('a commitment that was never revealed', () => {
 	});
 
 	it('leaves a commitment for the CURRENT epoch alone', async () => {
-		const {deps, gameIdentity, writes} = fakeDeps({
+		const {deps, identity, writes} = fakeDeps({
 			commitment: {epoch: 12n, bond: 5n * 10n ** 18n},
 			currentEpoch: 12n,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 
 		// It can still be revealed. Acknowledging it would revert with
@@ -143,22 +145,22 @@ describe('a commitment that was never revealed', () => {
 	});
 
 	it('reports nothing when there is no commitment at all', async () => {
-		const {deps, gameIdentity} = fakeDeps({
+		const {deps, identity} = fakeDeps({
 			commitment: {epoch: 0n, bond: 0n},
 			currentEpoch: 12n,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 		expect(store.value.step).toBe('Clear');
 	});
 
 	it('does not claim a stake was lost because a read failed', async () => {
-		const {deps, gameIdentity} = fakeDeps({
+		const {deps, identity} = fakeDeps({
 			commitment: {epoch: 0n, bond: 0n},
 			currentEpoch: 12n,
 			readFails: true,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 
 		// Telling someone they have forfeited a stake is not something to do on
@@ -167,12 +169,12 @@ describe('a commitment that was never revealed', () => {
 	});
 
 	it('keeps the notice up when acknowledging fails, so it can be retried', async () => {
-		const {deps, gameIdentity} = fakeDeps({
+		const {deps, identity} = fakeDeps({
 			commitment: {epoch: 10n, bond: 5n * 10n ** 18n},
 			currentEpoch: 12n,
 			writeFails: true,
 		});
-		const store = createMissedReveal({deps, config, gameIdentity});
+		const store = createMissedReveal({deps, config, identity});
 		await store.check();
 		await store.acknowledge();
 
