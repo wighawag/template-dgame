@@ -30,6 +30,11 @@ import {
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {
+	boardIsBehindClock,
+	roundPhaseOf,
+	type RoundPhase,
+} from '$lib/game/core/round-phase';
+import {
 	createAcquisition,
 	refreshWhenPendingAcquisitionSettles,
 	type AcquisitionStore,
@@ -242,8 +247,6 @@ export type SetupAction = 'authorise' | 'buy';
  * COUNTDOWN during it is the play window it is holding up, so "when can I
  * move" keeps ticking while it lasts.
  */
-export type RoundPhase = 'play' | 'commit' | 'reveal' | 'catching-up';
-
 /**
  * Whether a turn can be taken right now.
  *
@@ -252,6 +255,10 @@ export type RoundPhase = 'play' | 'commit' | 'reveal' | 'catching-up';
  * watches the board refuse them for a fifth of every round; too loose and a
  * plan gets built from a position that is about to be invalidated. Neither is
  * visible by reading the wiring.
+ *
+ * It stays HERE while `RoundPhase` moves upstream, because what it gates on is
+ * this game's `SetupNeeded`: what a player must have before they may act is the
+ * game's rule, and only the phase half of the question is the framework's.
  */
 export function canTakeTurnNow(
 	setup: SetupNeeded | undefined,
@@ -261,25 +268,11 @@ export function canTakeTurnNow(
 }
 
 /**
- * Which part of the round this is, from the three-phase tracker and whether
- * the board is behind the clock.
- *
- * CATCHING-UP WINS over the phase the clock says, deliberately: if the board
- * is behind, that is the more actionable truth, whether the clock thinks it is
- * the lock, the reveal or the new window.
- *
- * Pure, and exported for the tests, because the HUD and the move gate both
- * read it and neither should re-derive it.
+ * Re-exported so this game's modules keep one import for what the context
+ * offers. The model itself is the framework's (`game/core/round-phase.ts`):
+ * every game on this template has a clock that can run ahead of its board.
  */
-export function roundPhaseOf(
-	three: {phase: 'play' | 'commit' | 'reveal'},
-	boardBehindClock: boolean,
-): RoundPhase {
-	if (boardBehindClock) return 'catching-up';
-	if (three.phase === 'reveal') return 'reveal';
-	if (three.phase === 'commit') return 'commit';
-	return 'play';
-}
+export type {RoundPhase};
 
 export type Render = {
 	camera: CameraWatcher;
@@ -739,32 +732,20 @@ export function createGameContext(core: CoreServices): GameContext {
 	});
 
 	/**
-	 * Whether the board is behind the clock, which is the fourth phase.
+	 * Is the board still showing the round that just ended?
 	 *
-	 * THE STATE'S EPOCH IS THE FETCH'S REQUEST, so this reads "no fetch has
-	 * landed since the round changed" - which ends within one fetch, because
-	 * nothing the board reads can change between the clock crossing the
-	 * boundary and the chain mining past it (a reveal mined after the boundary
-	 * is refused with `InCommitmentPhase`, and commits move no avatar). The
-	 * first version of this compared against the CHAIN's epoch instead, which
-	 * made the catch-up last until the next block was mined - on a node that
-	 * mines only on transactions, the next commit, some twenty seconds in - all
-	 * of it a wait for a counter while the data had already arrived.
-	 *
-	 * NOT THE SETTLE'S TIMER, for the same reason as before: a settle can still
-	 * be running once a fetch has landed, and the board can be unfetched without
-	 * any settle having been triggered. What the player experiences is the gap,
-	 * so the gap is what this reads.
-	 *
-	 * NOT LOADED IS NOT BEHIND. An unloaded board is the setup gate's business
-	 * (no wallet, no fetch), not a catch-up.
+	 * NOT THE SETTLE'S TIMER: a settle can still be running once a fetch has
+	 * landed, and the board can be unfetched without any settle having been
+	 * triggered. What the player experiences is the gap, so the gap is what this
+	 * reads. The rule and the trap underneath it are `boardIsBehindClock`.
 	 */
 	const boardBehindClock = derived(
 		[currentEpoch, onchainState],
 		([$epoch, $state]) =>
-			($state as {step?: string; epoch?: number}).step === 'Loaded' &&
-			($state as {epoch?: number}).epoch !== undefined &&
-			($state as {epoch?: number}).epoch! < $epoch,
+			boardIsBehindClock({
+				board: $state as {step: string; epoch?: number},
+				currentEpoch: $epoch,
+			}),
 	);
 
 	/** The four-phase model the HUD and the move gate read. See {@link RoundPhase}. */

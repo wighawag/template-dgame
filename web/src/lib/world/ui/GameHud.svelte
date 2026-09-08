@@ -5,8 +5,9 @@
 	`HudModel` store, and every button calls straight into the game's stores. If
 	a decision has to be made about what to show, it belongs in `hud.ts`.
 
-	This is where the pre-port UI ended up. `GameClock` is still here as its own
-	component; the phase banners `EnterFlow.svelte` used to paint across the
+	This is where the pre-port UI ended up. `GameClock` is the framework's now
+	(`$lib/game/ui`), since every game on this template has the same four-part
+	round to draw; the phase banners `EnterFlow.svelte` used to paint across the
 	bottom of the screen are the `instruction` line, the "Moves: n" box from
 	`TopBar` is the moves counter, and the avatar list `EnterFlow` opened in a
 	modal is the picker below. What they all had in common was reading the
@@ -15,7 +16,7 @@
 <script lang="ts">
 	import {getAppContext} from '$lib';
 	import {createHud} from './hud';
-	import GameClock from './GameClock.svelte';
+	import GameClock from '$lib/game/ui/GameClock.svelte';
 	import DPad from './DPad.svelte';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
 

@@ -4,7 +4,6 @@ import {
 	canTakeTurnNow,
 	onEachNewRound,
 	refreshDuringReveal,
-	roundPhaseOf,
 	settleBoardWhenRoundStarts,
 } from '$lib/context/game';
 
@@ -287,27 +286,10 @@ describe('settleBoardWhenRoundStarts', () => {
 	});
 });
 
-describe('roundPhaseOf', () => {
-	/**
-	 * The four-part model the clock and the move gate read. The one decision in
-	 * it worth pinning is the PRIORITY: the old two-phase model had no word for
-	 * the catch-up at all, and the new one puts it above whatever the clock says
-	 * the phase is, because a board that is behind is the more actionable truth.
-	 */
-	const three = (phase: 'play' | 'commit' | 'reveal') => ({phase});
-
-	it('splits the old "wait" into the commit lock and the reveal', () => {
-		expect(roundPhaseOf(three('play'), false)).toBe('play');
-		expect(roundPhaseOf(three('commit'), false)).toBe('commit');
-		expect(roundPhaseOf(three('reveal'), false)).toBe('reveal');
-	});
-
-	it('puts the catch-up above whatever the clock says', () => {
-		for (const phase of ['play', 'commit', 'reveal'] as const) {
-			expect(roundPhaseOf(three(phase), true)).toBe('catching-up');
-		}
-	});
-});
+// `roundPhaseOf` moved to the framework with the model it produces, and its
+// tests went with it: `test/lib/game/core/round-phase.test.ts`. Every game on
+// this template has a clock that can run ahead of its board, so the priority
+// rule is not this game's to own or to re-test.
 
 describe('canTakeTurnNow', () => {
 	/**

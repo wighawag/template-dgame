@@ -1,11 +1,14 @@
 <!--
-	The phase dial.
+	The phase dial: one offered way to draw `RoundPhase`.
 
-	This game's own clock, kept from the pre-port UI because it is the thing a
-	player looks at constantly and a pie reads faster than a bar. What changed is
-	only where it gets its numbers: it used to reach into the context and read
-	`twoPhase`, `localState` and `deployments` itself, and now it takes a finished
-	model as props. Everything it used to decide lives in `./hud.ts`.
+	The thing a player looks at constantly, and a pie reads faster than a bar.
+	PROPS ONLY, deliberately: no context, no stores, no game concepts, so it can
+	sit anywhere and be tested without an app. Everything it would otherwise have
+	to decide belongs in the HUD model that feeds it.
+
+	A game that wants a different dial writes one against `RoundPhase` and drops
+	this; the framework's claim is over the four-part MODEL
+	(`game/core/round-phase.ts`), not over the picture.
 
 	TWO OVERALL STATES, as it always was - green while the round is yours to
 	change, red once it is resolving - plus ONE transient colour: the catch-up
@@ -17,17 +20,18 @@
 	not in a third shade of red: a player acts on "can I move?", and only a
 	debugger wants the finer split.
 
-	Purely presentational, so it can sit anywhere: the HUD renders it, and the
-	tutorial points at `#game-clock`.
+	`#game-clock` is a stable id so that a tour or a test can point at it.
 -->
 <script lang="ts">
+	import type {RoundPhase} from '$lib/game/core/round-phase';
+
 	let {
 		phase,
 		progress,
 		secondsLeft,
 		size = 100,
 	}: {
-		phase: 'play' | 'commit' | 'reveal' | 'catching-up';
+		phase: RoundPhase;
 		/** How far through this part of the round, 0..1. */
 		progress: number;
 		/**

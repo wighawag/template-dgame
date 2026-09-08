@@ -4,7 +4,7 @@ import {
 	refreshDuringReveal,
 	settleBoardWhenRoundStarts,
 	type BoardEpochState,
-	type RoundPhase,
+	type PlayWindow,
 } from '$lib/game/core/refresh';
 
 /**
@@ -30,7 +30,7 @@ import {
  */
 function stores(initial: 'play' | 'wait' = 'play') {
 	return {
-		phase: writable<RoundPhase>({phase: initial}),
+		phase: writable<PlayWindow>({phase: initial}),
 		clock: writable(7),
 		board: writable<BoardEpochState>({step: 'Unloaded'}),
 	};
