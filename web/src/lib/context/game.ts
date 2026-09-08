@@ -30,6 +30,11 @@ import {
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {
+	boardIsBehindClock,
+	roundPhaseOf,
+	type RoundPhase,
+} from '$lib/game/core/round-phase';
+import {
 	createAcquisition,
 	refreshWhenPendingAcquisitionSettles,
 	type AcquisitionStore,
@@ -104,6 +109,13 @@ export type Game = {
 	epochInfo: EpochInfoStore;
 	/** Player-facing phases: play / commit / reveal. */
 	threePhase: Readable<ThreePhase>;
+	/**
+	 * The four-part model the HUD draws and the move gate reads.
+	 *
+	 * `threePhase` plus the one state a clock cannot see: the board is still
+	 * showing a round that is already over. See `game/core/round-phase.ts`.
+	 */
+	phase: Readable<RoundPhase>;
 	/** The same, collapsed to play / wait. */
 	twoPhase: Readable<TwoPhase>;
 	/** The commit-reveal round: what is planned, committed, revealed. */
@@ -350,6 +362,26 @@ export function createGameContext(core: CoreServices): GameContext {
 		emptyState: emptyBoard,
 		fetchGate: core.chainFetchGate,
 	});
+
+	/**
+	 * Is the board still showing the round that just ended?
+	 *
+	 * Derived from the two stores rather than tracked, so it cannot go stale: it
+	 * is a comparison, not a state machine. The rule and the trap it avoids are
+	 * in `game/core/round-phase.ts`.
+	 */
+	const boardBehindClock = derived(
+		[epochInfo, onchainState],
+		([$epoch, $state]) =>
+			boardIsBehindClock({
+				board: $state as {step: string; epoch?: number},
+				currentEpoch: $epoch.currentEpoch,
+			}),
+	);
+
+	const phase = derived([threePhase, boardBehindClock], ([$three, $behind]) =>
+		roundPhaseOf($three, $behind),
+	);
 
 	const reserve = createReserve({deps: core, config, gameIdentity});
 
@@ -613,6 +645,7 @@ export function createGameContext(core: CoreServices): GameContext {
 			chainTime,
 			epochInfo,
 			threePhase,
+			phase,
 			twoPhase,
 			round,
 			planning,

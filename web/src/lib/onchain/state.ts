@@ -25,7 +25,7 @@ import {
 	refreshDuringReveal,
 	settleBoardWhenRoundStarts,
 	type BoardEpochState,
-	type RoundPhase,
+	type PlayWindow,
 } from '$lib/game/core/refresh';
 import {derived, type Readable} from 'svelte/store';
 
@@ -247,7 +247,7 @@ export function createPollingOnchainState<TState>(params: {
 	// The reveal window, as these policies see it. `isCommitPhase` is the honest
 	// reading for both kinds of epoch: a timed chain and a manually advanced one
 	// both answer it, where only a timed one has a countdown.
-	const phase = derived(epochInfo, ($epochInfo): RoundPhase => ({
+	const phase = derived(epochInfo, ($epochInfo): PlayWindow => ({
 		phase: $epochInfo.isCommitPhase ? 'play' : 'wait',
 	}));
 	const epoch = derived(epochInfo, ($epochInfo) => $epochInfo.currentEpoch);

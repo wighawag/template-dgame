@@ -21,20 +21,23 @@ import type {ReserveState} from '../reserve';
 import {blocksCommitting, type MissedRevealState} from '../missed-reveal';
 import {SignerOutOfFundsError} from '../errors';
 import type {SetupNeeded} from '$lib/context/game';
+import type {RoundPhase} from '$lib/game/core/round-phase';
 
 export type HudModel = {
 	phaseLabel: string;
 	/**
-	 * Two phases, not three.
+	 * Four parts, not two, and the fourth is the reason.
 	 *
-	 * The contract has a commit phase and a reveal phase, and the client adds a
-	 * third slice at the end of the commit phase where moves are locked so the
-	 * commitment has time to land. Three states is one more than the player has
-	 * a decision about: what they need to know is whether this round is still
-	 * theirs to change. `commit` and `reveal` are both "wait", and bomber-world
-	 * shows the same thing this way.
+	 * This used to collapse to play / wait, on the grounds that the only
+	 * decision a player has is whether the round is still theirs to change. That
+	 * is true and it left nowhere to put the CATCH-UP: the moment after the
+	 * round turns over when the board is still showing the last one, which the
+	 * clock cannot see. Reported as "wait" it tells the player the round is
+	 * resolving when nothing is being waited for except a poll, and it is the
+	 * one state where a plan would be built from a position that has already
+	 * changed. See `game/core/round-phase.ts`.
 	 */
-	phase: 'play' | 'wait';
+	phase: RoundPhase;
 	/** Seconds left in the phase, already rounded for display. */
 	secondsLeft: number;
 	/** How far through the phase, 0..1, for a progress bar. */
@@ -264,6 +267,26 @@ export function acquisitionBusyLabel(
 	}
 }
 
+/**
+ * What the dial says beside itself.
+ *
+ * The catch-up gets its own words rather than being folded into "resolving":
+ * nothing is resolving, the board is simply behind, and telling a player the
+ * round is still running is what makes a stale board look like a stuck one.
+ */
+export function phaseLabelOf(phase: RoundPhase): string {
+	switch (phase) {
+		case 'play':
+			return 'Plan your moves';
+		case 'commit':
+			return 'Committing';
+		case 'reveal':
+			return 'Revealing';
+		case 'catching-up':
+			return 'Catching up';
+	}
+}
+
 /** What the player has to do before they can take a turn. */
 export function describeSetup(
 	setup: SetupNeeded | undefined,
@@ -314,6 +337,7 @@ export function createHud(context: Context): Readable<HudModel> {
 	return derived(
 		[
 			game.twoPhase,
+			game.phase,
 			game.round,
 			game.planning.count,
 			game.cost,
@@ -324,6 +348,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			game.acquisition,
 		],
 		([
+			$twoPhase,
 			$phase,
 			$round,
 			$count,
@@ -340,10 +365,14 @@ export function createHud(context: Context): Readable<HudModel> {
 				reserve.step === 'Loaded' ? reserve.amount : undefined;
 			const blocked = blocksCommitting($missedReveal as MissedRevealState);
 
-			// `twoPhase` on a manually advanced chain has no clock, only a phase.
-			const timeLeft = 'timeLeft' in $phase ? $phase.timeLeft : 0;
-			const duration = 'duration' in $phase ? $phase.duration : 0;
-			const playable = $phase.phase === 'play';
+			// `twoPhase` on a manually advanced chain has no clock, only a phase, so
+			// the countdown comes from it while the LABEL comes from the four-part
+			// model. They are asked separately because the catch-up has no
+			// countdown at all: it lasts until a fetch lands, however long that is.
+			const timeLeft = 'timeLeft' in $twoPhase ? $twoPhase.timeLeft : 0;
+			const duration = 'duration' in $twoPhase ? $twoPhase.duration : 0;
+			const phase = $phase as RoundPhase;
+			const playable = phase === 'play';
 
 			const acquisition = $acquisition as AcquisitionState;
 			const needsSetup = describeSetup($setup as SetupNeeded | undefined, {
@@ -365,12 +394,8 @@ export function createHud(context: Context): Readable<HudModel> {
 			return {
 				// Never invite a move the player cannot make: while they are still
 				// being set up the clock is just a clock.
-				phaseLabel: needsSetup
-					? 'Round in progress'
-					: playable
-						? 'Plan your moves'
-						: 'Resolving the round',
-				phase: $phase.phase,
+				phaseLabel: needsSetup ? 'Round in progress' : phaseLabelOf(phase),
+				phase,
 				secondsLeft: Math.max(0, Math.ceil(timeLeft)),
 				progress:
 					duration > 0 ? Math.min(1, Math.max(0, 1 - timeLeft / duration)) : 0,

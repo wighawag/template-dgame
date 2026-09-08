@@ -34,8 +34,20 @@
  */
 import {get, type Readable} from 'svelte/store';
 
-/** The two-state view of a round these policies need. */
-export type RoundPhase = {phase: 'play' | 'wait'};
+/**
+ * The two-state view of a round these policies need: is the move window open?
+ *
+ * NAMED FOR THE QUESTION IT ANSWERS, and it used to be called `RoundPhase`,
+ * which is the name of a different type entirely (`core/round-phase.ts`, the
+ * four-part model the HUD reads). Two types with one name in one repo is a
+ * mistake waiting for whoever imports the wrong one, and neither compiler nor
+ * reviewer would notice: both are structurally about phases.
+ *
+ * Structurally a subset of {@link TwoPhase}, so the epoch tracker's output
+ * satisfies it directly and these policies stay testable with an object
+ * literal.
+ */
+export type PlayWindow = {phase: 'play' | 'wait'};
 
 /** What the board reports about itself: whether it is loaded, and for when. */
 export type BoardEpochState =
@@ -57,7 +69,7 @@ export type BoardEpochState =
  * second cadence there would only be a second bill from the RPC.
  */
 export function refreshDuringReveal(params: {
-	phase: Readable<RoundPhase>;
+	phase: Readable<PlayWindow>;
 	refresh: () => Promise<unknown> | unknown;
 	/** How often to refresh while reveals are landing. Defaults to 1.5s. */
 	intervalMs?: number;
@@ -144,7 +156,7 @@ export function refreshDuringReveal(params: {
  * before the app has started.
  */
 export function settleBoardWhenRoundStarts(params: {
-	phase: Readable<RoundPhase>;
+	phase: Readable<PlayWindow>;
 	/** The clock's epoch: which round the client believes is current. */
 	epoch: Readable<number>;
 	/** The board's own state, whose `epoch` says which round it has reached. */

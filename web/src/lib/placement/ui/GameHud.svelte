@@ -9,6 +9,7 @@
 	import {getAppContext} from '$lib';
 	import {createHud} from './hud';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
+	import GameClock from '$lib/game/ui/GameClock.svelte';
 
 	const context = getAppContext();
 	const {game} = context;
@@ -40,30 +41,24 @@
 	<div
 		class="pointer-events-auto w-fit rounded-lg bg-background/85 p-3 shadow-lg backdrop-blur"
 	>
-		<div class="flex items-baseline gap-2">
-			<!--
-				A dot rather than a word for the one thing the player checks
-				constantly: can I move right now.
-			-->
-			<span
-				class="inline-block size-2 rounded-full {$hud.phase === 'play'
-					? 'bg-emerald-400'
-					: 'bg-amber-400'}"
-			></span>
-			<span class="text-sm font-semibold">{$hud.phaseLabel}</span>
-			<span class="text-xs text-muted-foreground">round {$hud.epoch}</span>
-		</div>
-		<div class="mt-1 flex items-center gap-2">
-			<div class="h-1.5 w-40 overflow-hidden rounded-full bg-muted">
-				<div
-					class="h-full transition-[width] duration-1000 ease-linear {$hud.phase ===
-					'play'
-						? 'bg-emerald-400'
-						: 'bg-amber-400'}"
-					style="width: {$hud.progress * 100}%"
-				></div>
+		<!--
+			THE DIAL, not a dot and a bar. It is the one thing a player checks
+			constantly, and a pie reads faster than a bar because the answer is a
+			shape rather than a length. It is offered by the framework
+			(`game/ui/GameClock.svelte`) against the four-part model; a game that
+			wants a different picture writes one against the same type.
+		-->
+		<div class="flex items-center gap-3">
+			<GameClock
+				phase={$hud.phase}
+				progress={$hud.progress}
+				secondsLeft={$hud.secondsLeft}
+				size={72}
+			/>
+			<div>
+				<p class="text-sm font-semibold">{$hud.phaseLabel}</p>
+				<p class="text-xs text-muted-foreground">round {$hud.epoch}</p>
 			</div>
-			<span class="w-10 text-right font-mono text-xs">{$hud.secondsLeft}s</span>
 		</div>
 		{#if $hud.walletSigningNotice}
 			<p class="mt-1 max-w-xs text-xs text-amber-400">
