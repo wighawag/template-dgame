@@ -23,10 +23,23 @@ const ACCOUNTS = JSON.parse(
 	),
 ) as string[];
 
-/** `test.use({walletAccountIndex: 2})`, or the default of 0 when absent. */
-function claimedIndex(source: string): number {
-	const match = source.match(/walletAccountIndex:\s*(\d+)/);
-	return match ? Number(match[1]) : 0;
+/**
+ * EVERY `test.use({walletAccountIndex: N})` in a file, not just the first.
+ *
+ * It used to be `match`, which returns one result, and a file with several
+ * suites in it therefore had every claim after the first invisible to this
+ * check - which is exactly the file most likely to have several, since suites
+ * that need their own account are the ones that send transactions and those
+ * cluster in the game suite. A collision then survives to a parallel run and
+ * surfaces as an unrelated test failing on a transaction that never appeared,
+ * which is the failure this whole file exists to make impossible.
+ *
+ * A file with no claim at all uses the default, which is account 0.
+ */
+function claimedIndices(source: string): number[] {
+	const matches = [...source.matchAll(/walletAccountIndex:\s*(\d+)/g)];
+	if (matches.length === 0) return [0];
+	return matches.map((m) => Number(m[1]));
 }
 
 /** A file that submits a transaction: it either connects a wallet or sends one. */
@@ -46,11 +59,29 @@ describe('e2e wallet account claims', () => {
 		expect(files.length).toBeGreaterThan(0);
 	});
 
+	it('sees EVERY claim in a file, not just the first', () => {
+		// The bug this replaces, pinned so it cannot come back: `match` returns
+		// one result, so a file with several suites had every claim after the
+		// first invisible - and two real collisions had been sitting behind that,
+		// one of them for months. The file most likely to hold several claims is
+		// exactly the one whose suites all send transactions.
+		const several = files.find(({source}) => claimedIndices(source).length > 1);
+		expect(
+			several,
+			'no suite file claims more than one account, so this guard is untested',
+		).toBeDefined();
+		expect(claimedIndices(several!.source).length).toBeGreaterThan(1);
+	});
+
 	it('gives each of them a distinct account', () => {
 		const byIndex = new Map<number, string[]>();
 		for (const {name, source} of files) {
-			const index = claimedIndex(source);
-			byIndex.set(index, [...(byIndex.get(index) ?? []), name]);
+			for (const index of claimedIndices(source)) {
+				// Named per SUITE rather than per file, because a file can hold
+				// several and "game.e2e.ts twice" is not an answer anyone can act on.
+				const label = `${name}#${index}`;
+				byIndex.set(index, [...(byIndex.get(index) ?? []), label]);
+			}
 		}
 
 		const shared = [...byIndex.entries()].filter(
@@ -67,11 +98,12 @@ describe('e2e wallet account claims', () => {
 
 	it('keeps every claim within the configured accounts', () => {
 		for (const {name, source} of files) {
-			const index = claimedIndex(source);
-			expect(
-				index,
-				`${name} claims account ${index}, but only ${ACCOUNTS.length} are configured`,
-			).toBeLessThan(ACCOUNTS.length);
+			for (const index of claimedIndices(source)) {
+				expect(
+					index,
+					`${name} claims account ${index}, but only ${ACCOUNTS.length} are configured`,
+				).toBeLessThan(ACCOUNTS.length);
+			}
 		}
 	});
 });

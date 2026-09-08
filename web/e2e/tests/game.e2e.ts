@@ -218,7 +218,11 @@ describe('Commit-reveal round', () => {
 describe('A missed reveal', () => {
 	// Its own burner account: this test deliberately leaves an unrevealed
 	// commitment behind for a while, which would block the suite above.
-	test.use({walletAccountIndex: 1});
+	//
+	// It was 1 for a long time, which is the CONTRACTS suite's, and nothing
+	// noticed because the guard read only the first claim in a file. Under a
+	// parallel run the two raced for one nonce.
+	test.use({walletAccountIndex: 4});
 
 	async function connectFrom(
 		page: import('@playwright/test').Page,
@@ -369,7 +373,8 @@ describe('A missed reveal', () => {
 describe('A round the chain holds and this browser has lost', () => {
 	// Its own burner account: this test deliberately leaves a commitment that
 	// nothing can open for a few seconds, which would block the suites above.
-	test.use({walletAccountIndex: 2});
+	// 2 is the out-of-gas suite's.
+	test.use({walletAccountIndex: 5});
 
 	test('is offered back, and the recovered round reveals itself', async ({
 		connectedPage,

@@ -30,10 +30,7 @@ import {
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
-import {
-	createRoundRecovery,
-	type RecoveryStore,
-} from '$lib/game/core/recovery';
+import {createRoundRecovery, type RecoveryStore} from '$lib/game/core/recovery';
 import {
 	boardIsBehindClock,
 	roundPhaseOf,
