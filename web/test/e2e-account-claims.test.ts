@@ -62,15 +62,23 @@ describe('e2e wallet account claims', () => {
 	it('sees EVERY claim in a file, not just the first', () => {
 		// The bug this replaces, pinned so it cannot come back: `match` returns
 		// one result, so a file with several suites had every claim after the
-		// first invisible - and two real collisions had been sitting behind that,
-		// one of them for months. The file most likely to hold several claims is
-		// exactly the one whose suites all send transactions.
-		const several = files.find(({source}) => claimedIndices(source).length > 1);
+		// first invisible, and two real collisions sat behind that - one of them
+		// for months.
+		//
+		// Asserted against a LITERAL rather than against whatever the suite
+		// happens to contain. A descendant of this template deletes the parent's
+		// game suites and writes its own, one describe per file, so "some file
+		// here claims twice" is a fact about ONE repo's layout: a check written
+		// that way passes here and fails downstream for a reason that has
+		// nothing to do with nonces.
 		expect(
-			several,
-			'no suite file claims more than one account, so this guard is untested',
-		).toBeDefined();
-		expect(claimedIndices(several!.source).length).toBeGreaterThan(1);
+			claimedIndices(`
+				describe('one', () => { test.use({walletAccountIndex: 0}); });
+				describe('two', () => { test.use({walletAccountIndex: 3}); });
+			`),
+		).toEqual([0, 3]);
+		// A file that claims nothing uses the default, which is account 0.
+		expect(claimedIndices('describe("plain", () => {});')).toEqual([0]);
 	});
 
 	it('gives each of them a distinct account', () => {
