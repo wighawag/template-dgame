@@ -8,6 +8,12 @@
  */
 import type {TypedDeployments} from '$lib/core/connection/types';
 import {resolveEpochConfig, type EpochConfig} from '$lib/game/core/epoch';
+import {
+	optionalBigInt,
+	readAddress,
+	readBigInt,
+	type DeclaredValues,
+} from '$lib/game/core/linked-data';
 
 export type PlacementConfig = {
 	epoch: EpochConfig;
@@ -70,17 +76,10 @@ export type PlacementConfig = {
 	};
 };
 
-type GameLinkedData = {
+type GameLinkedData = DeclaredValues & {
 	startTime: unknown;
 	commitPhaseDuration: unknown;
 	revealPhaseDuration: unknown;
-	placementCost: unknown;
-	tokens: unknown;
-};
-
-type SaleLinkedData = {
-	price: unknown;
-	amount: unknown;
 };
 
 /**
@@ -110,27 +109,26 @@ export function resolvePlacementConfig(
 ): PlacementConfig {
 	const linkedData = deployments.contracts.Game.linkedData as GameLinkedData;
 	const StakeSale = deployments.contracts.StakeSale;
-	const saleData = StakeSale.linkedData as SaleLinkedData;
+	const saleData = StakeSale.linkedData as DeclaredValues;
+
+	// The chain's own statement of the worst gas price it expects, which is what
+	// the credits machinery upstream prices actions with too. A chain that does
+	// not declare one gets NO stipend rather than a guessed one: the purchase
+	// still works, and the signer is funded by the top-up flow. See
+	// `game/core/linked-data.ts` for why an absent parameter answers `undefined`
+	// rather than a default.
+	const worstGasPrice =
+		optionalBigInt(deployments.chain.properties, 'expectedWorstGasPrice') ?? 0n;
 
 	return {
 		epoch: resolveEpochConfig(linkedData),
-		placementCost: BigInt(linkedData.placementCost as string | number | bigint),
-		tokenAddress: linkedData.tokens as `0x${string}`,
+		placementCost: readBigInt(linkedData, 'placementCost'),
+		tokenAddress: readAddress(linkedData, 'tokens'),
 		sale: {
 			address: StakeSale.address,
-			price: BigInt(saleData.price as string | number | bigint),
-			amount: BigInt(saleData.amount as string | number | bigint),
-			// The chain's own statement of the worst gas price it expects, which is
-			// what the credits machinery upstream prices actions with too. A chain
-			// that does not declare one gets no stipend rather than a guessed one:
-			// the purchase still works, and the signer is funded by the top-up flow.
-			stipend:
-				BigInt(
-					(deployments.chain.properties.expectedWorstGasPrice as
-						string | number | undefined) ?? 0,
-				) *
-				(COMMIT_GAS + REVEAL_GAS) *
-				TURNS_OF_GAS,
+			price: readBigInt(saleData, 'price'),
+			amount: readBigInt(saleData, 'amount'),
+			stipend: worstGasPrice * (COMMIT_GAS + REVEAL_GAS) * TURNS_OF_GAS,
 		},
 		cellSize: 10,
 		camera: {

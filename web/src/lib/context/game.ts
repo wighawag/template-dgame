@@ -29,6 +29,7 @@ import {
 	type RoundStore,
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
+import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
 import {
 	boardIsBehindClock,
 	roundPhaseOf,
@@ -64,6 +65,7 @@ import {
 	type PlacementConfig,
 } from '$lib/placement/config';
 import {
+	buildPlacementCommitment,
 	createPlacementCommitReveal,
 	type Placement,
 } from '$lib/placement/commit-reveal';
@@ -73,6 +75,12 @@ import {
 	roundStorageKey,
 } from '$lib/placement/storage';
 import {createPlanning, type PlanningStore} from '$lib/placement/planning';
+import {holdResolvingRound, type HeldBoardState} from '$lib/placement/hold';
+import {holdPlanUntilBoardReleases} from '$lib/placement/display-plan';
+import {
+	createRoundRecovery,
+	type RecoveryStore,
+} from '$lib/placement/recover-round';
 import {SignerOutOfFundsError} from '$lib/placement/errors';
 import {isRegistered, type DelegationValue} from '$lib/onchain/delegation';
 import {createReserve, type ReserveStore} from '$lib/placement/reserve';
@@ -134,6 +142,13 @@ export type Game = {
 	 * until the player acknowledges the forfeit.
 	 */
 	missedReveal: MissedRevealStore;
+	/**
+	 * A commitment the chain holds for the round in progress that this browser
+	 * has no memory of - a cleared browser, a second device, a private window.
+	 * The stake is still recoverable while the epoch lasts. See
+	 * `$lib/placement/recover-round`.
+	 */
+	recovery: RecoveryStore;
 	/** What the planned round will cost the player. */
 	cost: Readable<bigint>;
 	/**
@@ -464,6 +479,22 @@ export function createGameContext(core: CoreServices): GameContext {
 		return account.signMessage({message});
 	}
 
+	/**
+	 * ONE derivation, shared by the round and by recovery.
+	 *
+	 * Built here rather than inline below because `./placement/recover-round`
+	 * has to reproduce EXACTLY what was committed with. Two call sites
+	 * constructing their own would compile, agree today, and diverge the moment
+	 * one of them is edited - and the symptom of that is a player being told
+	 * their own turn is not the one they committed, with nothing logged
+	 * anywhere.
+	 */
+	const makeSecret = createDerivedSecret<`0x${string}`>({
+		sign: signAsSigner,
+		chainId: deployments.chain.id,
+		contract: deployments.contracts.Game.address,
+	});
+
 	const round = createRound<`0x${string}`, Placement>({
 		epochInfo,
 		/**
@@ -475,13 +506,10 @@ export function createGameContext(core: CoreServices): GameContext {
 		 * putting the identity in the message. See `game/core/secret.ts`.
 		 *
 		 * What this does NOT recover on its own is the ACTIONS - the chain holds
-		 * only the hash. See D9 in the plan on the `work` branch.
+		 * only the hash. See D9 in the plan on the `work` branch, and
+		 * `$lib/placement/recover-round` for the half that asks the player.
 		 */
-		makeSecret: createDerivedSecret<`0x${string}`>({
-			sign: signAsSigner,
-			chainId: deployments.chain.id,
-			contract: deployments.contracts.Game.address,
-		}),
+		makeSecret,
 		adapter: createPlacementCommitReveal({
 			deps: core,
 			config,
@@ -513,9 +541,60 @@ export function createGameContext(core: CoreServices): GameContext {
 
 	const planning = createPlanning({round});
 
+	/**
+	 * The chain says a commitment exists; this browser may not know that.
+	 *
+	 * Wired from the read `missedReveal` was already making, and from the same
+	 * secret and hashing the round commits with. Nothing is fetched for it and
+	 * the framework gained one method for it (`round.adopt`).
+	 */
+	const recovery = createRoundRecovery({
+		round,
+		commitment: missedReveal.commitment,
+		identity: gameIdentity,
+		makeSecret,
+		buildCommitment: buildPlacementCommitment,
+	});
+
+	/**
+	 * THE HELD BOARD, not the poller's raw answer.
+	 *
+	 * Reveals arrive one transaction at a time and in whatever order the mempool
+	 * delivers them, so a board that draws each as it lands shows a simultaneous
+	 * round playing out in payment order - which is the very thing committing is
+	 * paid for to prevent. What is held back is only what the resolving round
+	 * changed, and only until it is over; see `$lib/placement/hold`.
+	 *
+	 * Everything about FETCHING - the settle, the catching-up phase, the RPC
+	 * health - keeps reading the RAW store, because those are about what the
+	 * chain says and this is about what the player is shown.
+	 */
+	const heldBoard = holdBoardUntilRoundEnds<HeldBoardState>({
+		state: onchainState,
+		phase: twoPhase,
+		epoch: derived(epochInfo, ($info) => $info.currentEpoch),
+		hold: holdResolvingRound,
+	});
+
 	const viewState = createViewState({
-		onchainState,
-		localState: planning.plan,
+		onchainState: heldBoard.board,
+		/**
+		 * THE DISPLAY COPY of the plan, not the round's live one.
+		 *
+		 * The two halves of a turn - the local overlay before it resolves, the
+		 * board's account of it after - have to hand over with nothing in between,
+		 * and the round drops its actions the moment it reaches `Revealed`, before
+		 * the board releases what they did. Released by the board's OWN signal, so
+		 * the two cannot disagree about when the round ended.
+		 *
+		 * ONLY WHAT IS DRAWN. `planning.plan` is untouched and everything that
+		 * ACTS on a turn keeps reading it.
+		 */
+		localState: holdPlanUntilBoardReleases({
+			round,
+			plan: planning.plan,
+			holding: heldBoard.holding,
+		}),
 		merge: mergeBoardView,
 	});
 
@@ -652,6 +731,7 @@ export function createGameContext(core: CoreServices): GameContext {
 			reserve,
 			acquisition,
 			missedReveal,
+			recovery,
 			cost,
 			readyToPlay,
 			setup,

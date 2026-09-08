@@ -33,6 +33,14 @@ function plannedCellsOf(state: RoundState<Placement>): bigint[] {
 export type PlanningStore = {
 	/** What the player has planned, for the view merge. */
 	plan: Readable<LocalPlan>;
+	/**
+	 * The same, in the shape the contract is committed to.
+	 *
+	 * Exposed because recovering a lost round offers the planned turn as a
+	 * CANDIDATE for a commitment the chain already holds, and the component that
+	 * offers it must not be the thing that converts cell ids into placements.
+	 */
+	actions: Readable<readonly Placement[]>;
 	/** Whether clicks currently change anything. */
 	canPlan: Readable<boolean>;
 	/** How many placements are planned (what the round will cost). */
@@ -52,6 +60,10 @@ export function createPlanning(params: {
 	const plan = derived(plannedStore, ($planned): LocalPlan => ({
 		planned: $planned,
 	}));
+
+	const actions = derived(plannedStore, ($planned): readonly Placement[] =>
+		$planned.map((cellID) => ({cellID})),
+	);
 
 	const canPlan = derived(round, ($round) => isPlannable($round));
 
@@ -79,5 +91,5 @@ export function createPlanning(params: {
 		round.plan([]);
 	}
 
-	return {plan, canPlan, count, toggle, clear};
+	return {plan, actions, canPlan, count, toggle, clear};
 }

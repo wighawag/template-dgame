@@ -215,12 +215,7 @@ export async function planOnCanvas(
 		timeout: 15_000,
 	});
 
-	const box = await page.locator('canvas').boundingBox();
-	if (!box) throw new Error('the canvas has no layout box');
-	await page.mouse.click(
-		box.x + box.width / 2 + offset.x,
-		box.y + box.height / 2 + offset.y,
-	);
+	await clickCanvas(page, offset);
 
 	await expect
 		.poll(async () => (await roundStep(page)).step, {
@@ -228,4 +223,29 @@ export async function planOnCanvas(
 			timeout: 15_000,
 		})
 		.toBe('Planning');
+}
+
+/**
+ * Click a cell, with no wait for the clock.
+ *
+ * {@link planOnCanvas} is the one to reach for: waiting for room in the play
+ * phase is what keeps a plan from expiring under the test. This is for the
+ * case where the clock is already the thing under test and the wait would
+ * defeat it - recovering a round has to finish inside the epoch the commitment
+ * belongs to, so it cannot afford to wait for the NEXT play phase, which is by
+ * definition too late.
+ *
+ * Clicks are gated on setup rather than on the phase (see the click handler in
+ * `context/game.ts`), so this is a real affordance and not a test-only door.
+ */
+export async function clickCanvas(
+	page: Page,
+	offset: {x: number; y: number},
+): Promise<void> {
+	const box = await page.locator('canvas').boundingBox();
+	if (!box) throw new Error('the canvas has no layout box');
+	await page.mouse.click(
+		box.x + box.width / 2 + offset.x,
+		box.y + box.height / 2 + offset.y,
+	);
 }

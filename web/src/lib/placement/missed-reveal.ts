@@ -20,11 +20,21 @@
  * The chain is the authority here, not the local round: clearing site data or
  * playing from another browser loses the local memory of the round, while the
  * contract still holds the commitment.
+ *
+ * ONE READ, TWO QUESTIONS, and the second one used to be thrown away. Asking
+ * `getCommitment` answers "am I blocked?" - a commitment left over from an
+ * EARLIER epoch - and it equally answers "is there a commitment for the round
+ * in progress that this browser knows nothing about?". That second answer is
+ * the one that costs the stake, and it was being reported as `Clear` and
+ * dropped, because blocking was the only thing anyone had ever asked. It is
+ * published as {@link MissedRevealStore.commitment} now and `./recover-round`
+ * is what does something with it. Nothing extra is fetched.
  */
 import {derived, get, writable, type Readable} from 'svelte/store';
 import type {Context} from '$lib/context/types';
 import type {PlacementConfig} from './config';
 import {sendPlacementTransaction} from './commit-reveal';
+import type {LiveCommitment} from './recover-round';
 
 export type MissedRevealState =
 	/** Not checked yet, or nobody connected. */
@@ -46,6 +56,17 @@ export type MissedRevealStore = Readable<MissedRevealState> & {
 	check(): Promise<void>;
 	/** Forfeit the bond and free the player to commit again. */
 	acknowledge(): Promise<void>;
+	/**
+	 * The commitment the contract holds for the epoch NOW IN PROGRESS, if any.
+	 *
+	 * It blocks nothing, which is why the state above says `Clear` beside it.
+	 * What it does is say that a reveal is owed this epoch, whatever this
+	 * browser happens to remember, and `./recover-round` is what acts on that.
+	 *
+	 * Undefined whenever the read has not happened, failed, or found nothing:
+	 * an absent answer is never evidence that no commitment exists.
+	 */
+	commitment: Readable<LiveCommitment | undefined>;
 };
 
 // `signerBalance` because the forfeit goes out through the same `send()` funnel
@@ -72,6 +93,7 @@ export function createMissedReveal(params: {
 
 	let $state: MissedRevealState = {step: 'Unknown'};
 	const store = writable<MissedRevealState>($state);
+	const commitment = writable<LiveCommitment | undefined>(undefined);
 
 	function set(next: MissedRevealState) {
 		$state = next;
@@ -87,14 +109,15 @@ export function createMissedReveal(params: {
 		const deployments = deps.deployments.get();
 
 		try {
-			const commitment = (await deps.publicClient.readContract({
+			const onChain = (await deps.publicClient.readContract({
 				address: deployments.contracts.Game.address,
 				abi: deployments.contracts.Game.abi,
 				functionName: 'getCommitment',
 				args: [player],
-			})) as {epoch: bigint; bond: bigint};
+			})) as {hash: `0x${string}`; epoch: bigint; bond: bigint};
 
-			if (commitment.epoch === 0n) {
+			if (onChain.epoch === 0n) {
+				commitment.set(undefined);
 				set({step: 'Clear'});
 				return;
 			}
@@ -107,16 +130,20 @@ export function createMissedReveal(params: {
 
 			// A commitment for the CURRENT epoch is live, not missed: it can still
 			// be revealed, the contract lets it be replaced, and acknowledging it
-			// would revert with `CanStillReveal`.
-			if (commitment.epoch === currentEpoch) {
+			// would revert with `CanStillReveal`. It is still worth SAYING, because
+			// a reveal is owed for it and this browser may have no idea: publishing
+			// it here is the whole of the chain half of recovering a lost round.
+			if (onChain.epoch === currentEpoch) {
+				commitment.set({epoch: Number(onChain.epoch), hash: onChain.hash});
 				set({step: 'Clear'});
 				return;
 			}
 
+			commitment.set(undefined);
 			set({
 				step: 'Blocked',
-				epoch: Number(commitment.epoch),
-				bond: commitment.bond,
+				epoch: Number(onChain.epoch),
+				bond: onChain.bond,
 			});
 		} catch {
 			// A failed read is not evidence of anything. Leaving the last known
@@ -154,6 +181,7 @@ export function createMissedReveal(params: {
 				},
 				'Acknowledging the missed reveal',
 			);
+			commitment.set(undefined);
 			set({step: 'Clear'});
 			params.onSettled?.();
 		} catch (error) {
@@ -173,6 +201,7 @@ export function createMissedReveal(params: {
 		subscribe: store.subscribe,
 		check,
 		acknowledge,
+		commitment: {subscribe: commitment.subscribe},
 	};
 }
 

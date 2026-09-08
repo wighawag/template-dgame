@@ -2,6 +2,7 @@ import {test, expect, describe} from '../fixtures/test';
 import {
 	authoriseToPlay,
 	clearAnyMissedReveal,
+	clickCanvas,
 	planOnCanvas,
 	roundStep,
 	stake,
@@ -329,5 +330,145 @@ describe('A missed reveal', () => {
 		});
 
 		await first.close();
+	});
+});
+
+/**
+ * A round this browser has lost, which the chain still holds.
+ *
+ * NOT a storage feature, and the suite is arranged to say so. A cleared
+ * browser, a second device, a second browser, a private window, a reinstall
+ * and a storage write that silently failed all produce the identical state:
+ * the contract holds a commitment, a reveal is owed this epoch, and this
+ * client knows nothing about it. Unhandled, that costs the stake in silence.
+ *
+ * It is the sibling of the missed-reveal suite above, and the two are the same
+ * subject at different points on the clock. There the reveal window has shut,
+ * so the bond is gone and all that is left is to settle it; here the window is
+ * still OPEN, so the whole difference is that somebody asked the chain in time.
+ *
+ * THE ROUND IS DESTROYED THE SAME WAY the missed-reveal test destroys it, and
+ * for the same reason: the round's own record is deleted and the page
+ * reloaded, rather than a fresh browser context being opened. The burner wallet
+ * generates its accounts per browser and signing in derives the signer from
+ * those, so a clean context is a DIFFERENT PLAYER altogether and would prove
+ * nothing about recovery.
+ *
+ * IT ALL HAS TO HAPPEN INSIDE ONE EPOCH, which is what shapes the test. A
+ * commitment is only recoverable while the epoch it belongs to is running - one
+ * tick later it is a missed reveal, which is the suite above - so the re-entry
+ * cannot use `planOnCanvas`, whose wait for the next play phase would be a wait
+ * for the epoch that makes recovery impossible.
+ *
+ * WHAT THE HAPPY PATH PROVES that no unit test can: that the hash this app
+ * builds a candidate plan into is the hash the CONTRACT stored. If the two
+ * disagreed, the adopted round would reveal and the reveal would revert, and
+ * the last assertion here would never be reached. The refusal of a WRONG plan
+ * is pinned by unit tests instead, and by mutation, because it needs no chain.
+ */
+describe('A round the chain holds and this browser has lost', () => {
+	// Its own burner account: this test deliberately leaves a commitment that
+	// nothing can open for a few seconds, which would block the suites above.
+	test.use({walletAccountIndex: 2});
+
+	test('is offered back, and the recovered round reveals itself', async ({
+		connectedPage,
+		authoriseBrowser,
+	}) => {
+		test.slow();
+		const page = connectedPage;
+
+		await authoriseToPlay(page, authoriseBrowser);
+		await clearAnyMissedReveal(page);
+		await stake(page);
+		await expect
+			.poll(async () => (await roundStep(page)).reserve !== '0', {
+				message: 'a reserve to bond from',
+				timeout: 60_000,
+			})
+			.toBe(true);
+
+		// Most of the commit phase is needed after this point, so the plan waits
+		// for a play phase with room in it. Two cells, because a plan of one is
+		// the size a wrong guess is most likely to hit by accident.
+		await planOnCanvas(page, {x: 70, y: 50}, 22);
+		await clickCanvas(page, {x: 110, y: 50});
+		await expect
+			.poll(async () => (await roundStep(page)).planned, {
+				message: 'two cells planned',
+				timeout: 15_000,
+			})
+			.toBe(2);
+
+		const commit = page.getByRole('button', {name: /commit now/i});
+		if (await commit.isEnabled().catch(() => false)) await commit.click();
+		await expect
+			.poll(async () => (await roundStep(page)).step, {
+				message: 'the commitment should reach the chain',
+				timeout: 60_000,
+			})
+			.toBe('Committed');
+
+		// Lose everything this browser knew about the round, without losing WHO
+		// the player is. The commitment stays on chain; the secret is derived from
+		// the signer and comes back with it; only the PLAN is gone.
+		await page.evaluate(() => {
+			for (const key of Object.keys(localStorage)) {
+				if (key.startsWith('__placement_round__')) localStorage.removeItem(key);
+			}
+		});
+		await page.reload();
+		await expect(page.locator('canvas')).toBeVisible({timeout: 30_000});
+
+		expect(
+			(await roundStep(page)).step,
+			'the round itself must genuinely know nothing',
+		).toBe('Idle');
+
+		const notice = page.getByText(/this browser has lost the round/i);
+		await expect(
+			notice,
+			'the app should learn from the chain alone that a reveal is owed',
+		).toBeVisible({timeout: 30_000});
+
+		// It must not say the stake is gone. It is not, and that is the point.
+		await expect(page.getByText(/can still be revealed/i)).toBeVisible();
+
+		const recover = page.getByRole('button', {name: /recover round/i});
+		await expect(
+			recover,
+			'recovery needs a plan to check, and there is none yet',
+		).toBeDisabled();
+
+		// The same turn, re-entered. Not through `planOnCanvas`: see the note
+		// above about the epoch this has to stay inside.
+		await clickCanvas(page, {x: 70, y: 50});
+		await clickCanvas(page, {x: 110, y: 50});
+		await expect
+			.poll(async () => (await roundStep(page)).planned, {
+				message: 'the same two cells, re-entered',
+				timeout: 15_000,
+			})
+			.toBe(2);
+
+		await recover.click();
+		await expect
+			.poll(async () => (await roundStep(page)).step, {
+				message: 'a recovered round is a restored round',
+				timeout: 30_000,
+			})
+			.toBe('Committed');
+		await expect(notice, 'nothing left to recover').toBeHidden();
+
+		// THE ACCEPTANCE CRITERION. The stake is saved by the round's ORDINARY
+		// machinery - it reveals on the phase change like any other round - rather
+		// than by a second path written for recovery. Nothing was sent to the
+		// chain to recover it; the commitment was already there.
+		await expect
+			.poll(async () => (await roundStep(page)).step, {
+				message: 'the recovered round should reveal itself',
+				timeout: 120_000,
+			})
+			.toBe('Revealed');
 	});
 });

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {get, writable} from 'svelte/store';
+import {get, writable, type Writable} from 'svelte/store';
 import {createHud, describeRound} from '$lib/placement/ui/hud';
 import type {Context} from '$lib/context/types';
 import {SignerOutOfFundsError} from '$lib/placement/errors';
@@ -18,6 +18,8 @@ import type {Placement} from '$lib/placement/commit-reveal';
  */
 
 type State = RoundState<Placement>;
+
+const idle = (): State => ({step: 'Idle'});
 
 const failed = (during: 'commit' | 'reveal', error: unknown): State => ({
 	step: 'Error',
@@ -112,6 +114,7 @@ function fakeContext(round: State, hasLocalSigner = true) {
 			missedReveal: writable({step: 'Clear'}),
 			setup: writable(undefined),
 			acquisition: writable({step: 'Idle'}),
+			recovery: writable({step: 'Idle'}),
 		},
 	} as unknown as Context;
 }
@@ -187,5 +190,70 @@ describe('what the HUD says when there is no local signer', () => {
 			createHud(fakeContext({step: 'Idle'} as unknown as State)),
 		);
 		expect(model.walletSigningNotice).toBeUndefined();
+	});
+});
+
+/**
+ * The most time-critical thing this HUD ever says.
+ *
+ * A commitment the chain holds and this browser cannot open is recoverable for
+ * exactly one epoch, so the sentence has to carry three things: that a
+ * commitment exists, that it can still be opened, and that only the same turn
+ * will open it. It must NOT say the stake is lost - it is not, yet, which is
+ * the entire reason for showing anything.
+ */
+describe('a round the chain holds and this browser has lost', () => {
+	it('says nothing at all when there is nothing to recover', () => {
+		const model = get(createHud(fakeContext(idle())));
+		expect(model.recovery).toBeUndefined();
+	});
+
+	it('says it can still be revealed, and asks for the same turn back', () => {
+		const context = fakeContext(idle());
+		(context.game as unknown as {recovery: Writable<unknown>}).recovery.set({
+			step: 'Found',
+			epoch: 3,
+		});
+		const model = get(createHud(context));
+
+		expect(model.recovery?.headline).toContain('epoch 3');
+		expect(model.recovery?.detail).toMatch(/can still be revealed/i);
+		// The one thing it must never say while the stake is still savable.
+		expect(model.recovery?.detail).not.toMatch(/forfeit|lost/i);
+	});
+
+	it('will not offer to recover an empty board', () => {
+		// Offering nothing would spend a signature to be told no, and read to the
+		// player as the app refusing a turn they had not entered yet.
+		const context = fakeContext(idle());
+		(context.game as unknown as {recovery: Writable<unknown>}).recovery.set({
+			step: 'Found',
+			epoch: 3,
+		});
+		(
+			context.game as unknown as {planning: {count: Writable<number>}}
+		).planning.count.set(0);
+
+		expect(get(createHud(context)).recovery?.canRecover).toBe(false);
+	});
+
+	it('tells a REFUSED plan apart from a check that could not be made', () => {
+		// The two look identical from the button and mean opposite things: one
+		// says "that is not your turn", the other says "we could not ask". Read
+		// the wrong way round, a player spends the only epoch they have looking
+		// for a mistake they did not make.
+		const context = fakeContext(idle());
+		const recovery = (context.game as unknown as {recovery: Writable<unknown>})
+			.recovery;
+
+		recovery.set({step: 'Refused', epoch: 3});
+		expect(get(createHud(context)).recovery?.detail).toMatch(
+			/not the placements that were committed/i,
+		);
+
+		recovery.set({step: 'Failed', epoch: 3, message: 'no signer'});
+		const failed = get(createHud(context)).recovery?.detail ?? '';
+		expect(failed).toContain('no signer');
+		expect(failed).not.toMatch(/not the placements/i);
 	});
 });

@@ -19,6 +19,7 @@ import {
 import type {Placement} from '../commit-reveal';
 import type {ReserveState} from '../reserve';
 import {blocksCommitting, type MissedRevealState} from '../missed-reveal';
+import type {RecoveryState} from '../recover-round';
 import {SignerOutOfFundsError} from '../errors';
 import type {SetupNeeded} from '$lib/context/game';
 import type {RoundPhase} from '$lib/game/core/round-phase';
@@ -115,6 +116,20 @@ export type HudModel = {
 		detail: string;
 		busy: boolean;
 		canAcknowledge: boolean;
+	};
+
+	/**
+	 * Set when the chain holds a commitment for the round in progress that this
+	 * browser has no memory of. The stake is still recoverable, and only for as
+	 * long as the epoch lasts, so this is the most time-critical thing the HUD
+	 * ever has to say.
+	 */
+	recovery?: {
+		headline: string;
+		detail: string;
+		busy: boolean;
+		/** Whether there is a plan on the board to offer. */
+		canRecover: boolean;
 	};
 };
 
@@ -331,6 +346,44 @@ export function describeSetup(
 	}
 }
 
+/**
+ * What to tell a player whose browser has lost a round the chain still holds.
+ *
+ * Says the three things that decide what they do next, in the order they need
+ * them: that a commitment exists, that it can still be opened, and that only
+ * re-entering the same turn will open it. It deliberately does NOT say "your
+ * stake is lost" - it is not, yet, and that is the entire point of showing
+ * this at all.
+ *
+ * A REFUSAL IS NOT AN ERROR, and is worded as a fact about the plan rather
+ * than as a failure. The player cannot break anything by guessing: the hash
+ * refuses a turn that was not committed, which is also why offering this route
+ * gives an attacker nothing.
+ */
+export function describeRecovery(
+	state: RecoveryState,
+	plannedCount: number,
+): HudModel['recovery'] {
+	if (state.step === 'Idle') return undefined;
+
+	const headline = `This browser has lost the round you committed for epoch ${state.epoch}.`;
+	if (state.step === 'Checking') {
+		return {headline, detail: 'Checking...', busy: true, canRecover: false};
+	}
+
+	const detail =
+		state.step === 'Refused'
+			? 'Those are not the placements that were committed. Try again: nothing is spent, and the round can still be revealed until this epoch ends.'
+			: state.step === 'Failed'
+				? // NOT phrased as a wrong plan. The app could not ask, which is a
+					// different thing, and the remedy is to press again rather than to
+					// go looking for a misremembered turn.
+					`The round could not be checked: ${state.message}. Nothing is lost yet - try again.`
+				: 'The commitment is still on chain and can still be revealed, but only this epoch. Click the same cells you planned and recover the round.';
+
+	return {headline, detail, busy: false, canRecover: plannedCount > 0};
+}
+
 export function createHud(context: Context): Readable<HudModel> {
 	const {game} = context;
 
@@ -346,6 +399,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			game.missedReveal,
 			game.setup,
 			game.acquisition,
+			game.recovery,
 		],
 		([
 			$twoPhase,
@@ -358,6 +412,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			$missedReveal,
 			$setup,
 			$acquisition,
+			$recovery,
 		]): HudModel => {
 			const round = describeRound($round);
 			const reserve = $reserve as ReserveState;
@@ -437,6 +492,7 @@ export function createHud(context: Context): Readable<HudModel> {
 				roundLabel: round.label,
 				roundTone: round.tone,
 				missedReveal: describeMissedReveal($missedReveal as MissedRevealState),
+				recovery: describeRecovery($recovery as RecoveryState, $count),
 				// Committing early is allowed the whole time the phase is open; the
 				// round commits by itself if the player leaves it too late. An
 				// unrevealed commitment blocks it entirely: the contract would reject

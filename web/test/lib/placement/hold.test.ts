@@ -1,0 +1,77 @@
+import {describe, expect, it} from 'vitest';
+import {holdResolvingRound, type HeldBoardState} from '$lib/placement/hold';
+
+const board = (cells: Record<string, number>): HeldBoardState => ({
+	epoch: 4,
+	cells: new Map(
+		Object.entries(cells).map(([id, stake]) => [
+			BigInt(id),
+			{cellID: BigInt(id), totalStake: BigInt(stake), numClaimants: 1},
+		]),
+	),
+});
+
+const stakes = (state: HeldBoardState) =>
+	Object.fromEntries(
+		[...state.cells].map(([id, cell]) => [String(id), Number(cell.totalStake)]),
+	);
+
+describe('what this game holds back while a round resolves', () => {
+	it('draws a changed cell as it was when the round began', () => {
+		// The stake moved because a reveal landed. Drawing it now would show a
+		// simultaneous round playing out in the order players paid.
+		const held = holdResolvingRound({
+			shown: board({1: 10}),
+			latest: board({1: 30}),
+			resolvingEpoch: 4,
+		});
+		expect(stakes(held)).toEqual({1: 10});
+	});
+
+	it('leaves an unchanged cell exactly as it is', () => {
+		const held = holdResolvingRound({
+			shown: board({1: 10}),
+			latest: board({1: 10}),
+			resolvingEpoch: 4,
+		});
+		expect(stakes(held)).toEqual({1: 10});
+	});
+
+	it('withholds a cell that was NOT on screen, because on this board that is the outcome', () => {
+		// A cell absent from the shown board is either newly claimed by a reveal
+		// that just landed or a region the player panned onto, and nothing here
+		// tells the two apart. On an open board the first is the common case, and
+		// showing it leaks exactly what committing is paid for to hide. See the
+		// argument in the file: a game whose entities PERSIST must choose the
+		// other way.
+		const held = holdResolvingRound({
+			shown: board({1: 10}),
+			latest: board({1: 10, 2: 7}),
+			resolvingEpoch: 4,
+		});
+		expect(stakes(held)).toEqual({1: 10});
+	});
+
+	it('drops a cell that has left the fetched region', () => {
+		// The player panned away. The memory must not resurrect a region that is
+		// no longer being read.
+		const held = holdResolvingRound({
+			shown: board({1: 10, 2: 4}),
+			latest: board({1: 10}),
+			resolvingEpoch: 4,
+		});
+		expect(stakes(held)).toEqual({1: 10});
+	});
+
+	it('carries the board\u2019s own epoch stamp through, because it is not part of the outcome', () => {
+		// It says which round the FETCH was for, and everything watching for the
+		// board to catch up with the clock reads it. Holding it back would report
+		// the board as permanently behind for the length of every reveal window.
+		const held = holdResolvingRound({
+			shown: {...board({1: 10}), epoch: 3},
+			latest: {...board({1: 30}), epoch: 4},
+			resolvingEpoch: 4,
+		});
+		expect(held.epoch).toBe(4);
+	});
+});

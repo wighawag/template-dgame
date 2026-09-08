@@ -18,6 +18,11 @@
 	const round = game.round;
 	const planning = game.planning;
 	const missedReveal = game.missedReveal;
+	// A commitment the chain holds that this browser has no round for. The
+	// planned cells are offered as the candidate and the hash decides; nothing is
+	// sent either way. See $lib/placement/recover-round.
+	const recovery = game.recovery;
+	const plannedActions = game.planning.actions;
 	// Getting a stake is ONE transaction that also funds the play key; the rail
 	// refuses to run twice at once, including across a reload, which is why the
 	// button calls it rather than guarding itself. See $lib/game/acquire.
@@ -99,6 +104,32 @@
 					{$hud.missedReveal.busy
 						? 'Acknowledging...'
 						: 'Acknowledge missed reveal'}
+				</Button>
+			</div>
+		{/if}
+
+		<!--
+			The chain holds a commitment this browser cannot open. Unlike a missed
+			reveal, nothing has been lost yet and the whole point is that it still
+			can be: the player re-enters the same turn and the hash decides.
+		-->
+		{#if $hud.recovery}
+			<div
+				class="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-2"
+			>
+				<p class="text-sm font-semibold text-amber-400">
+					{$hud.recovery.headline}
+				</p>
+				<p class="mt-1 max-w-sm text-xs text-muted-foreground">
+					{$hud.recovery.detail}
+				</p>
+				<Button
+					size="sm"
+					class="mt-2"
+					disabled={!$hud.recovery.canRecover}
+					onclick={() => recovery.offer($plannedActions)}
+				>
+					{$hud.recovery.busy ? 'Checking...' : 'Recover round'}
 				</Button>
 			</div>
 		{/if}
