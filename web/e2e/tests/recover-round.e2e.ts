@@ -71,7 +71,10 @@ describe('A turn the chain holds and this browser has lost', () => {
 				.toBe(true);
 		}
 		const home = (await boardState(page)).position;
-		expect(home, 'the avatar must be standing somewhere to walk from').toBeDefined();
+		expect(
+			home,
+			'the avatar must be standing somewhere to walk from',
+		).toBeDefined();
 
 		// A play phase with room for everything that follows: the commit, losing
 		// the round, a reload, and the search.
