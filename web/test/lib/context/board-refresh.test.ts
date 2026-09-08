@@ -1,24 +1,22 @@
 import {describe, expect, it, vi, afterEach} from 'vitest';
 import {get, writable} from 'svelte/store';
-import {
-	canTakeTurnNow,
-	onEachNewRound,
-	refreshDuringReveal,
-	settleBoardWhenRoundStarts,
-} from '$lib/context/game';
+import {canTakeTurnNow, onEachNewRound} from '$lib/context/game';
 
 /**
- * The two places the board refreshes itself beyond the poller's own interval,
- * and the reasoning each one exists for:
+ * What is left of this file after `refreshDuringReveal` and
+ * `settleBoardWhenRoundStarts` went back to being the framework's.
  *
- * - during the reveal window, because another player's move is invisible from
- *   here and a 5s poll turns the one moment the game is about into a wait;
- * - when a round starts, because the client's clock crosses the epoch boundary
- *   AHEAD of the chain, and the poller's own answer to that ("not yet", then
- *   backoff) leaves the new round playing on last epoch's board.
+ * Both were COPIED into `context/game.ts` at some point and were being
+ * maintained here as well as in `game/core/refresh.ts`, identical in every
+ * executable line and differing only in doc comments - the same failure the
+ * input recognisers had, undetected because nothing in this tree diffs a
+ * descendant against its stem. Their eleven tests are inherited now, at
+ * `test/lib/game/core/refresh.test.ts`, and run unchanged.
  *
- * Both are wiring that acts unprompted, so both are functions of two stores
- * and a callback, testable with fake timers and no app context.
+ * What stays is this game's own. `canTakeTurnNow` is the clearest case of
+ * where the seam falls: it is `setup === undefined && phase === 'play'`, and
+ * the first half is THIS game's rule about what a player must hold before
+ * acting while only the second is the framework's.
  */
 
 /**
@@ -42,254 +40,6 @@ afterEach(() => {
 	vi.clearAllTimers();
 	vi.useRealTimers();
 });
-
-describe('refreshDuringReveal', () => {
-	it('refreshes on a short cadence while the reveal window is open', async () => {
-		vi.useFakeTimers();
-		const {phase} = stores();
-		const refresh = vi.fn();
-		const stop = refreshDuringReveal({phase, refresh, intervalMs: 1500});
-
-		phase.set({phase: 'wait'});
-		await vi.advanceTimersByTimeAsync(1500 * 3);
-		expect(refresh.mock.calls.length).toBeGreaterThanOrEqual(3);
-		stop();
-	});
-
-	it('does nothing during the commit phase, when the board cannot change', async () => {
-		// Nothing on the board can change while commitments are open - every
-		// action resolves at reveal - so a second cadence here is only a second
-		// bill from the RPC. `graceMs: 0` because this test is about the commit
-		// phase PROPER: the grace after a wait is its own test below.
-		vi.useFakeTimers();
-		const {phase} = stores();
-		const refresh = vi.fn();
-		const stop = refreshDuringReveal({
-			phase,
-			refresh,
-			intervalMs: 1500,
-			graceMs: 0,
-		});
-
-		await vi.advanceTimersByTimeAsync(1500 * 3);
-		expect(refresh).not.toHaveBeenCalled();
-		stop();
-	});
-
-	it('keeps the fast cadence for a grace period after the window closes', async () => {
-		// Late landings cluster at the boundary - a reveal still in flight when
-		// the clock crossed, a node whose timestamps trail the wall clock - and
-		// without the grace they wait for the poller's full 5s. Observed once as
-		// the other player's avatar standing still a few seconds into the play
-		// phase.
-		vi.useFakeTimers();
-		const {phase} = stores();
-		const refresh = vi.fn();
-		const stop = refreshDuringReveal({
-			phase,
-			refresh,
-			intervalMs: 1500,
-			graceMs: 4000,
-		});
-
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-		refresh.mockClear();
-		await vi.advanceTimersByTimeAsync(1500);
-		expect(refresh).toHaveBeenCalled();
-
-		// Beyond the grace, the poller owns it again - and the interval stops
-		// ITSELF rather than waiting for the phase store to say so. Two ticks
-		// fall inside a 4s grace at a 1.5s cadence; the one at 4.5s is the tick
-		// that turns it off.
-		await vi.advanceTimersByTimeAsync(1500 * 4);
-		expect(refresh).toHaveBeenCalledTimes(2);
-		refresh.mockClear();
-		await vi.advanceTimersByTimeAsync(1500 * 3);
-		expect(refresh).not.toHaveBeenCalled();
-		stop();
-	});
-
-	it('stops refreshing once the grace is spent, and lets go of everything when torn down', async () => {
-		vi.useFakeTimers();
-		const {phase} = stores();
-		const refresh = vi.fn();
-		const stop = refreshDuringReveal({
-			phase,
-			refresh,
-			intervalMs: 1500,
-			graceMs: 0,
-		});
-
-		phase.set({phase: 'wait'});
-		await vi.advanceTimersByTimeAsync(1500);
-		expect(refresh).toHaveBeenCalled();
-
-		phase.set({phase: 'play'});
-		refresh.mockClear();
-		await vi.advanceTimersByTimeAsync(1500 * 2);
-		expect(refresh).not.toHaveBeenCalled();
-
-		phase.set({phase: 'wait'});
-		stop();
-		refresh.mockClear();
-		await vi.advanceTimersByTimeAsync(1500 * 2);
-		expect(refresh).not.toHaveBeenCalled();
-		expect(vi.getTimerCount()).toBe(0);
-	});
-});
-
-describe('settleBoardWhenRoundStarts', () => {
-	it('does nothing until the commit phase begins, and nothing without watch()', async () => {
-		// `watch()` is the switch because the subscription opens the chain clock,
-		// and construction must not start IO (ADR-0002).
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		const refresh = vi.fn();
-		settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-		});
-
-		phase.set({phase: 'wait'});
-		await vi.advanceTimersByTimeAsync(1000);
-		expect(refresh).not.toHaveBeenCalled();
-	});
-
-	it('fetches until the board has caught up with the clock, then stops', async () => {
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		let calls = 0;
-		const refresh = vi.fn(async () => {
-			calls++;
-			// The first two attempts find the chain still in the old epoch - the
-			// client's clock crossed the boundary ahead of it - and the third
-			// lands.
-			board.set(
-				calls >= 3 ? {step: 'Loaded', epoch: 8} : {step: 'Loaded', epoch: 7},
-			);
-		});
-		const settle = settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-			retryMs: 400,
-		});
-		settle.watch();
-		clock.set(8);
-
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-
-		await vi.advanceTimersByTimeAsync(400);
-		await vi.advanceTimersByTimeAsync(400);
-		await vi.advanceTimersByTimeAsync(400);
-		expect(refresh).toHaveBeenCalledTimes(3);
-		// And it stops once the board has caught up, rather than fetching for
-		// the rest of the window: one more tick and nothing happened.
-		await vi.advanceTimersByTimeAsync(400 * 2);
-		expect(refresh).toHaveBeenCalledTimes(3);
-	});
-
-	it('does not restart on every clock tick of the same round', async () => {
-		// `twoPhase` re-emits on every tick, so the settle has to trigger on the
-		// TRANSITION into the commit phase, not on the phase value.
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		const refresh = vi.fn(async () => {
-			board.set({step: 'Loaded', epoch: get(clock)});
-		});
-		const settle = settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-		});
-		const stop = settle.watch();
-
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-		phase.set({phase: 'play'});
-		phase.set({phase: 'play'});
-		await vi.advanceTimersByTimeAsync(100);
-		expect(refresh).toHaveBeenCalledTimes(1);
-		stop();
-	});
-
-	it('gives up after the budget rather than promising a catch-up forever', async () => {
-		// A chain so far behind that the settle cannot land: the indicator has to
-		// go away, and the background poller owns the recovery from there.
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		const refresh = vi.fn(async () => {
-			board.set({step: 'Loaded', epoch: 7});
-		});
-		const settle = settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-			retryMs: 400,
-			budgetMs: 1000,
-		});
-		clock.set(8);
-		settle.watch();
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-
-		await vi.advanceTimersByTimeAsync(2000);
-		// It kept trying for the budget and not beyond it.
-		expect(refresh).toHaveBeenCalledTimes(3);
-	});
-
-	it('stops at once when the board cannot load at all', async () => {
-		// The fetch gate is closed, or the read failed: retrying cannot bring the
-		// chain closer, and spinning for the whole budget would be noise.
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		const refresh = vi.fn(async () => {
-			board.set({step: 'Unloaded'});
-		});
-		const settle = settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-			retryMs: 400,
-		});
-		settle.watch();
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-		await vi.advanceTimersByTimeAsync(1000);
-		expect(refresh).toHaveBeenCalledTimes(1);
-	});
-
-	it('lets go of its subscription when torn down', async () => {
-		vi.useFakeTimers();
-		const {phase, clock, board} = stores();
-		const refresh = vi.fn();
-		const settle = settleBoardWhenRoundStarts({
-			phase,
-			epoch: clock,
-			state: board,
-			refresh,
-		});
-		const stop = settle.watch();
-		stop();
-		phase.set({phase: 'wait'});
-		phase.set({phase: 'play'});
-		await vi.advanceTimersByTimeAsync(1000);
-		expect(refresh).not.toHaveBeenCalled();
-	});
-});
-
-// `roundPhaseOf` moved to the framework with the model it produces, and its
-// tests went with it: `test/lib/game/core/round-phase.test.ts`. Every game on
-// this template has a clock that can run ahead of its board, so the priority
-// rule is not this game's to own or to re-test.
 
 describe('canTakeTurnNow', () => {
 	/**

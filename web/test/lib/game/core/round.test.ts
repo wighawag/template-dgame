@@ -702,3 +702,170 @@ describe('a game where silence costs the player their stake', () => {
 		stop();
 	});
 });
+
+/**
+ * Taking up a round this browser did not create.
+ *
+ * The chain, not local storage, is what says a commitment exists, and the two
+ * disagree for a whole family of ordinary reasons: a cleared browser, a second
+ * device, a private window, a storage write that failed. `adopt` is the ONE
+ * method the framework offers for it, and the constraint that keeps it one
+ * method is that it introduces no state - a reconstructed round is a restored
+ * round and nothing downstream may be able to tell.
+ */
+describe('adopting a round from somewhere other than storage', () => {
+	it('takes up a committed round for the current epoch and reveals it', async () => {
+		const {epochInfo, setTime} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter, calls} = fakeAdapter();
+		const round = createRound({epochInfo, adapter, storage, identity});
+		const stop = round.start();
+
+		// Nothing local: this browser has never seen the round.
+		expect(round.value.step).toBe('Idle');
+
+		const adopted = round.adopt({
+			epoch: 2,
+			actions: [{cellID: 7n}],
+			secret: '0xsecret' as `0x${string}`,
+			committed: true,
+		});
+
+		expect(adopted).toBe(true);
+		// A RESTORED round, indistinguishable from one this browser committed.
+		expect(round.value).toEqual({
+			step: 'Committed',
+			epoch: 2,
+			actions: [{cellID: 7n}],
+		});
+
+		// And the reveal goes out by itself, which is the whole point: the stake
+		// is saved by the round's ordinary machinery, not by a second path.
+		setTime(41);
+		await vi.waitFor(() => expect(calls.reveal).toHaveLength(1));
+		expect(calls.reveal[0]).toMatchObject({
+			actions: [{cellID: 7n}],
+			secret: '0xsecret',
+		});
+		stop();
+	});
+
+	it('saves what it adopted, so a second reload is an ordinary restore', () => {
+		const {epochInfo} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter} = fakeAdapter();
+		const round = createRound({epochInfo, adapter, storage, identity});
+		const stop = round.start();
+
+		round.adopt({
+			epoch: 2,
+			actions: [{cellID: 7n}],
+			secret: '0xsecret' as `0x${string}`,
+			committed: true,
+		});
+
+		expect(storage.current).toEqual({
+			epoch: 2,
+			actions: [{cellID: 7n}],
+			secret: '0xsecret',
+			committed: true,
+		});
+		stop();
+	});
+
+	it('REFUSES a round from a past epoch, rather than owing a reveal that cannot land', async () => {
+		// The reveal window for an earlier epoch has shut. Adopting one would put
+		// the round into `Committed` for a round that is over, and it would then
+		// spend gas on a reveal the contract refuses. A commitment left over from
+		// an earlier epoch is a MISSED reveal, which is a settlement the player
+		// presses for themselves - not something to recover.
+		const {epochInfo, setTime} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter, calls} = fakeAdapter();
+		const round = createRound({epochInfo, adapter, storage, identity});
+		const stop = round.start();
+
+		setTime(44 * 3 + 1);
+		const adopted = round.adopt({
+			epoch: 2,
+			actions: [{cellID: 7n}],
+			secret: '0xsecret' as `0x${string}`,
+			committed: true,
+		});
+
+		expect(adopted).toBe(false);
+		expect(round.value.step).toBe('Idle');
+		// Nothing was stored, so a reload does not resurrect it either.
+		expect(storage.current).toBeUndefined();
+
+		setTime(44 * 3 + 41);
+		await new Promise((r) => setTimeout(r, 10));
+		expect(calls.reveal).toEqual([]);
+		stop();
+	});
+
+	it('REFUSES while a commitment of its own is in flight, because storage holds that secret', async () => {
+		// This writes to storage, and storage is where the secret for an unlanded
+		// commitment lives. Overwriting it mid-commit leaves a commitment on chain
+		// whose secret is gone - the exact loss the round is arranged to prevent,
+		// arriving silently.
+		let release: (() => void) | undefined;
+		const {epochInfo} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter} = fakeAdapter({
+			commit: () =>
+				new Promise((resolve) => {
+					release = () => resolve({hash: '0xcommit' as `0x${string}`});
+				}),
+		});
+		const round = createRound({epochInfo, adapter, storage, identity});
+		const stop = round.start();
+
+		round.plan([{cellID: 1n}]);
+		const committing = round.commit();
+		await vi.waitFor(() => expect(round.value.step).toBe('Committing'));
+		const secretInFlight = (storage.current as {secret: string}).secret;
+
+		const adopted = round.adopt({
+			epoch: 2,
+			actions: [{cellID: 99n}],
+			secret: '0xdifferent' as `0x${string}`,
+			committed: true,
+		});
+
+		expect(adopted).toBe(false);
+		expect((storage.current as {secret: string}).secret).toBe(secretInFlight);
+
+		release?.();
+		await committing;
+		expect(round.value).toMatchObject({
+			step: 'Committed',
+			actions: [{cellID: 1n}],
+		});
+		stop();
+	});
+
+	it('adopts an UNCOMMITTED round as a plan, not as something owing a reveal', async () => {
+		// The same door serves `restore()`, which is where this body came from, and
+		// a stored-but-unsent round is a plan. Reporting it as `Committed` would
+		// have the round try to reveal a commitment that is not on chain.
+		const {epochInfo, setTime} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const {adapter, calls} = fakeAdapter();
+		const round = createRound({epochInfo, adapter, storage, identity});
+		const stop = round.start();
+
+		round.adopt({
+			epoch: 2,
+			actions: [{cellID: 7n}],
+			secret: '0xsecret' as `0x${string}`,
+			committed: false,
+		});
+
+		expect(round.value.step).toBe('Planning');
+		setTime(41);
+		await new Promise((r) => setTimeout(r, 10));
+		expect(calls.reveal).toEqual([]);
+		stop();
+	});
+});

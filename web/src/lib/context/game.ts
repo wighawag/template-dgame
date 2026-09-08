@@ -29,6 +29,14 @@ import {
 	type RoundStore,
 } from '$lib/game/core/round';
 import {createDerivedSecret} from '$lib/game/core/secret';
+import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
+// The framework's, not this app's. Both used to be COPIED into this file - the
+// same logic in two places in one repo, only the local pair reachable, and
+// nothing anywhere able to notice. See the merge that removed them.
+import {
+	refreshDuringReveal,
+	settleBoardWhenRoundStarts,
+} from '$lib/game/core/refresh';
 import {
 	boardIsBehindClock,
 	roundPhaseOf,
@@ -68,7 +76,7 @@ import {
 } from '$lib/world/storage';
 import {createPlanning, type PlanningStore} from '$lib/world/planning';
 import {createControls, type Controls} from '$lib/world/controls';
-import {holdBoardUntilRoundEnds} from '$lib/world/hold';
+import {holdResolvingRound} from '$lib/world/hold';
 import {holdPlanUntilBoardReleases} from '$lib/world/display-plan';
 import {
 	createRevealOutcome,
@@ -407,104 +415,6 @@ export function setupNeeded(params: {
 }
 
 /**
- * Refresh the board more often while reveals are landing on it.
- *
- * Standing avatars change at EXACTLY ONE MOMENT in an epoch: during the reveal
- * phase, as each player's commitment resolves. The poller behind the board runs
- * on a fixed interval (5s) that is right for the commit phase - when nothing on
- * the board can change, and it is only catching pans and account switches - and
- * slow for the reveal one. A browser that does not itself hold the round (a
- * second player watching, or the same player in another window) is told about a
- * move up to a full interval after it happens, which reads as the board ignoring
- * the reveal until the next epoch has already started.
- *
- * So while the phase is `wait` - the reveal window plus the lock before it - an
- * explicit `update()` is issued on a short cadence. That is the seam's own
- * "the game knows something changed" call, the same one the round's
- * `onSettled` uses after a local reveal; a timer is just that request repeated,
- * because another player's reveal is invisible from here by design.
- *
- * THE FAST CADENCE OUTLIVES THE WINDOW BY A GRACE PERIOD, because late
- * landings cluster at the boundary: a reveal whose transaction was still in
- * flight when the clock crossed, a node whose block timestamps trail the wall
- * clock the client interpolates from. Observed once as the other player's
- * avatar standing still for a few seconds INTO the play phase, which is the
- * 5s poll's worst case showing through. Anything later than the grace is
- * genuinely rare on a quiet board, and the poller owns it.
- *
- * Its own function, taking only the two stores it reads, for the same reason
- * `resumeWhenGasArrives` is: it is wiring that acts unprompted, it deserves
- * tests, and a test should not need an app context for it.
- */
-export function refreshDuringReveal(params: {
-	phase: Readable<{phase: 'play' | 'wait'}>;
-	refresh: () => Promise<unknown> | unknown;
-	/** How often to refresh while reveals are landing. Defaults to 1.5s. */
-	intervalMs?: number;
-	/**
-	 * How long to keep the fast cadence after the window closes. Defaults to
-	 * 4s. Set it to 0 for the strict "only while waiting" behaviour.
-	 */
-	graceMs?: number;
-}): () => void {
-	const {phase, refresh} = params;
-	const intervalMs = params.intervalMs ?? 1500;
-	const graceMs = params.graceMs ?? 4000;
-
-	let timer: ReturnType<typeof setInterval> | undefined;
-	function stop() {
-		if (timer !== undefined) {
-			clearInterval(timer);
-			timer = undefined;
-		}
-	}
-
-	/**
-	 * When the wait last ended, so the grace can be measured from it. Starts at
-	 * minus infinity, so a page OPENED mid-play - which owes no catch-up - is
-	 * already past any grace.
-	 */
-	let waitEnded: number | undefined = -Infinity;
-
-	/**
-	 * The interval checks the grace ITSELF rather than waiting for the phase to
-	 * re-emit: `twoPhase` ticks every second, but correctness that depends on a
-	 * store keeping emitting is correctness borrowed, not owned.
-	 */
-	function tick() {
-		// `undefined` is "the window is still open", which is not a grace to
-		// spend: the subtraction below would be NaN, so it is asked first.
-		if (waitEnded !== undefined && Date.now() - waitEnded >= graceMs) {
-			stop();
-			return;
-		}
-		void refresh();
-	}
-
-	const unsubscribe = phase.subscribe(($phase) => {
-		if ($phase.phase === 'wait') {
-			waitEnded = undefined;
-			stop();
-			timer = setInterval(tick, intervalMs);
-			return;
-		}
-		// OFF once the window has been closed for longer than the grace: nothing
-		// on the board can change in the commit phase, so the poller's own
-		// interval is doing all the work there is to do, and a second cadence
-		// would just be a second bill from the RPC.
-		if (waitEnded === undefined) waitEnded = Date.now();
-		if (timer === undefined && Date.now() - waitEnded < graceMs) {
-			timer = setInterval(tick, intervalMs);
-		}
-	});
-
-	return () => {
-		stop();
-		unsubscribe();
-	};
-}
-
-/**
  * Run something once per round, on the turnover.
  *
  * `epochInfo` re-emits on every tick of the clock, so the trigger is the
@@ -527,105 +437,6 @@ export function onEachNewRound(params: {
 		if (lastEpoch !== undefined && $epoch.currentEpoch !== lastEpoch) run();
 		lastEpoch = $epoch.currentEpoch;
 	});
-}
-
-/**
- * Bring the board up to date when a new round begins, and say so while it does.
- *
- * THE MOMENT IS THE COMMIT PHASE STARTING. Every reveal that will ever land has
- * landed by then, so one fetch captures the settled board - and one fetch at
- * that point is what a second browser is owed, because it has nothing of its
- * own to tell it an epoch ended: the round, the secrets and the reveal all
- * belong to whichever window holds them.
- *
- * THE FETCH MUST RETRY RATHER THAN GIVE UP, which is the actual bug being fixed.
- * The client's clock interpolates from the wall clock between blocks, so it
- * crosses the epoch boundary before the chain has necessarily mined a block
- * past it. The poller asks for the new epoch, the contract answers with the old
- * one (it computes epochs from the latest block's timestamp), the read reports
- * "not yet" - and the poller's own catchup budget expires and turns into
- * exponential backoff. The board then shows last epoch's positions for as long
- * as it takes for someone's first move to mine the block that unblocks the
- * fetch: the new round visibly underway while the board denies anything
- * happened. bomber-world never hits this because its equivalent retries every
- * 200ms UNTIL IT SUCCEEDS; this retries at a short cadence until the board's
- * own epoch catches up with the clock's, then stops.
- *
- * ONE ATTEMPT PER EPOCH. If the chain is so far behind that the budget expires,
- * the settle gives up and the background poller keeps trying. Nothing promises
- * a catch-up that is not happening: the four-phase model reads the GAP ITSELF
- * (`boardBehindClock` below) rather than this loop's activity, so the phase
- * stays honest whether the settle is running, finished or gave up.
- *
- * `watch()` rather than a subscription at construction, because subscribing to
- * the phase here would start the chain clock at construction time and ADR-0002
- * forbids IO before `start()`.
- */
-export function settleBoardWhenRoundStarts(params: {
-	phase: Readable<{phase: 'play' | 'wait'}>;
-	/** The clock's epoch: which round the client believes is current. */
-	epoch: Readable<number>;
-	/** The board's own state, whose `epoch` says which round it has reached. */
-	state: Readable<{step: 'Unloaded'} | {step: 'Loaded'; epoch: number}>;
-	refresh: () => Promise<unknown> | unknown;
-	/** How often to retry while the chain is behind the clock. Default 400ms. */
-	retryMs?: number;
-	/** How long to keep trying before leaving it to the poller. Default 10s. */
-	budgetMs?: number;
-}): {
-	/** Open the phase subscription. Call from `start()`; returns the teardown. */
-	watch(): () => void;
-} {
-	const {phase, epoch, state, refresh} = params;
-	const retryMs = params.retryMs ?? 400;
-	const budgetMs = params.budgetMs ?? 10_000;
-
-	let running = false;
-
-	async function settle() {
-		running = true;
-		try {
-			const deadline = Date.now() + budgetMs;
-			for (;;) {
-				// The budget is checked BEFORE the fetch, not after: a retry that
-				// is already past it is a call to the RPC that cannot be used.
-				if (Date.now() >= deadline) break;
-				await refresh();
-				const $state = get(state);
-				// `refresh` resolves when the fetch it triggered has landed, so a
-				// state that is still not Loaded afterwards means the gate is
-				// closed or the read failed: retrying cannot help this epoch, and
-				// the poller owns the recovery.
-				if ($state.step !== 'Loaded') break;
-				if ($state.epoch >= get(epoch)) break;
-				await new Promise((resolve) => setTimeout(resolve, retryMs));
-			}
-		} finally {
-			running = false;
-		}
-	}
-
-	// STARTED AS PLAY, so a page opened mid-commit-phase gets no settle: the
-	// poller is already fetching for the first time, and the transition this
-	// waits for is the one into the NEXT round. `twoPhase` re-emits on every
-	// clock tick, so the trigger has to be the transition and not the value.
-	let wasPlay = true;
-	function watch(): () => void {
-		const unsubscribe = phase.subscribe(($phase) => {
-			const play = $phase.phase === 'play';
-			const starting = play && !wasPlay;
-			wasPlay = play;
-			// Only the TRANSITION: `twoPhase` re-emits on every clock tick, and a
-			// settle per tick would be a fetch per tick.
-			if (!starting) return;
-			if (!running) void settle();
-		});
-		return () => {
-			unsubscribe();
-		};
-	}
-
-	return {watch};
 }
 
 /**
@@ -951,16 +762,19 @@ export function createGameContext(core: CoreServices): GameContext {
 	 *
 	 * Reveals arrive one transaction at a time and in whatever order the mempool
 	 * delivers them, so a board that draws each as it lands shows a simultaneous
-	 * round playing out in payment order. What is held back is only what the
-	 * RESOLVING round changed, and only until it is over; see `$lib/world/hold`.
+	 * round playing out in payment order. The WHEN is the framework's
+	 * (`$lib/game/core/handover`); what is held back is this game's own rule
+	 * (`$lib/world/hold`), and only until the round is over.
+	 *
 	 * Everything about FETCHING - the settle, the catching-up phase, the RPC
 	 * health - keeps reading the raw store, because those are about what the
 	 * chain says and this is about what the player is shown.
 	 */
-	const heldBoard = holdBoardUntilRoundEnds({
+	const heldBoard = holdBoardUntilRoundEnds<WorldState & {epoch: number}>({
 		state: onchainState,
 		phase: twoPhase,
 		epoch: currentEpoch,
+		hold: holdResolvingRound,
 	});
 
 	const viewState = createViewState({

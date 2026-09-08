@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {errorSummary} from '$lib/debug/diagnostics';
+import {errorSummary} from '$lib/game/core/diagnostics';
 
 /**
  * The one-line version of an error, for scanning a trace.

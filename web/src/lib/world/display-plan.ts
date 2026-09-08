@@ -35,15 +35,17 @@
  * there is nothing left to undo and a held display copy must not make the HUD
  * offer it.
  *
- * It REMEMBERS, which is why it lives here and is wired in the context rather
- * than built inside a component: the actions it hands back are ones the round
- * no longer carries, so whatever answers has to have been watching. Same shape
- * and same reason as `world/reveal-outcome.ts`.
+ * THE MEMORY IS THE FRAMEWORK'S. The round dropping its actions at `Revealed`
+ * is a fact about the round, so `game/core/handover.ts` owns remembering the
+ * turn and deciding the moment - the same moment the board releases on, which
+ * is the whole point. What is left here is this game's half: what a remembered
+ * turn LOOKS like on this board.
  */
 import {derived, type Readable} from 'svelte/store';
 import type {RoundState} from '$lib/game/core/round';
+import {heldTurnUntilBoardReleases} from '$lib/game/core/handover';
 import type {Action} from './commit-reveal';
-import {toPlannedActions, type LocalPlan, type PlannedAction} from './view';
+import {toPlannedActions, type LocalPlan} from './view';
 
 export function holdPlanUntilBoardReleases(params: {
 	/** The round, which carries the actions up to `Revealing` and not after. */
@@ -58,36 +60,12 @@ export function holdPlanUntilBoardReleases(params: {
 	 */
 	holding: Readable<number | undefined>;
 }): Readable<LocalPlan> {
-	const {round, plan, holding} = params;
+	const held = heldTurnUntilBoardReleases({
+		round: params.round,
+		holding: params.holding,
+	});
 
-	/** The last turn the round carried, and which round it was. */
-	let last: {epoch: number; planned: readonly PlannedAction[]} | undefined;
-
-	return derived(
-		[round, plan, holding],
-		([$round, $plan, $holding]): LocalPlan => {
-			// Every step up to and including `Revealing` carries the actions; the
-			// `Revealed` that follows does not. THE LAST ONE WINS, empty included: a
-			// player who plans a path and then clears it has planned nothing, and a
-			// memory that only took non-empty turns would redraw the path they
-			// deleted for the whole of the round the empty turn resolves in.
-			if ('actions' in $round) {
-				last = {epoch: $round.epoch, planned: toPlannedActions($round.actions)};
-			}
-
-			// The board is showing everything it has, so there is nothing to bridge:
-			// what the round says is what gets drawn, including nothing at all.
-			if ($holding === undefined) return $plan;
-			// MATCHED BY EPOCH rather than merely taken when present: a turn
-			// remembered from an earlier round must not be resurrected over a round
-			// in which the player planned nothing at all.
-			if (last?.epoch !== $holding) return $plan;
-			// THE MEMORY, even while the live plan still has the same actions in it.
-			// It is never staler: the plan is derived FROM the round, so a re-derive
-			// triggered by the round changing sees the new round beside the previous
-			// plan, and taking the plan there would draw one frame of a turn that has
-			// already moved on.
-			return {...$plan, planned: last.planned};
-		},
+	return derived([params.plan, held], ([$plan, $held]): LocalPlan =>
+		$held === undefined ? $plan : {...$plan, planned: toPlannedActions($held)},
 	);
 }

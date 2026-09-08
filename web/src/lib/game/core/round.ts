@@ -105,6 +105,22 @@ export type RoundStore<TIdentity extends PlayerIdentity, TAction> = Readable<
 	reveal(): Promise<void>;
 	/** Acknowledge a missed reveal, clearing it off the HUD. */
 	dismiss(): void;
+	/**
+	 * Take up a round this browser did not create. Returns whether it did.
+	 *
+	 * The chain, not local storage, is what says a commitment exists. A cleared
+	 * browser, a second device, a second browser, a private window, a reinstall
+	 * and a storage write that silently failed all produce the same state: the
+	 * contract holds a commitment this round knows nothing about, and the stake
+	 * is lost unless it can be revealed.
+	 *
+	 * A game that can reconstruct the actions - by asking the player to re-enter
+	 * them, or by enumerating a small action space - hands the result here and
+	 * the round carries on as if it had never forgotten. It is the ONLY method
+	 * the framework adds for this, deliberately: see {@link RoundStore.adopt}'s
+	 * implementation for what it refuses and why.
+	 */
+	adopt(round: PersistedRound<TAction>): boolean;
 	/** Begin watching the epoch. Returns the teardown. */
 	start(): () => void;
 };
@@ -438,20 +454,54 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 		}
 	}
 
+	/**
+	 * Take up a round, wherever it came from.
+	 *
+	 * THE BODY OF `restore()`, lifted so that storage is not the only place a
+	 * round may come from. A round reconstructed from the chain is a RESTORED
+	 * round and nothing downstream should be able to tell the difference, which
+	 * is why this adds no state: every consumer that switches on `RoundState`
+	 * keeps working because there is nothing new to switch on.
+	 *
+	 * It refuses two things, and both refusals are the point rather than
+	 * defensive noise.
+	 *
+	 * A ROUND FROM ANOTHER EPOCH. Only the epoch in progress can still be
+	 * revealed; adopting an older one would put the round into `Committed` for a
+	 * window that has shut, and it would then spend gas on a reveal the contract
+	 * refuses. A commitment left over from an earlier epoch is a MISSED reveal,
+	 * which is a settlement the player presses for themselves, not something to
+	 * recover.
+	 *
+	 * A ROUND WHILE A TRANSACTION IS IN FLIGHT. This writes to storage, and
+	 * storage is where the secret for an unlanded commitment lives. Overwriting
+	 * it mid-commit would leave a commitment on chain whose secret is gone,
+	 * which is the exact loss the whole file is arranged to prevent, and it
+	 * would happen silently.
+	 *
+	 * IT SAVES ON THE WAY THROUGH, so a second reload costs nothing: what was
+	 * reconstructed once is now an ordinary stored round.
+	 */
+	function adopt(pending: PersistedRound<TAction>): boolean {
+		if (pending.epoch !== epochInfo.now().currentEpoch) return false;
+		if ($state.step === 'Committing' || $state.step === 'Revealing')
+			return false;
+
+		storage.save(pending);
+		set(
+			pending.committed
+				? {step: 'Committed', epoch: pending.epoch, actions: pending.actions}
+				: {step: 'Planning', epoch: pending.epoch, actions: pending.actions},
+		);
+		return true;
+	}
+
 	/** Adopt whatever was left behind by a previous page load. */
 	function restore() {
 		const pending = storage.load();
 		if (!pending) return;
 
-		const info = epochInfo.now();
-		if (pending.epoch === info.currentEpoch) {
-			set(
-				pending.committed
-					? {step: 'Committed', epoch: pending.epoch, actions: pending.actions}
-					: {step: 'Planning', epoch: pending.epoch, actions: pending.actions},
-			);
-			return;
-		}
+		if (adopt(pending)) return;
 
 		// An older epoch. A committed round that was never revealed has already
 		// cost the player; an uncommitted one costs nothing and is just dropped.
@@ -532,6 +582,7 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 		commit,
 		reveal,
 		dismiss,
+		adopt,
 		start,
 	};
 }

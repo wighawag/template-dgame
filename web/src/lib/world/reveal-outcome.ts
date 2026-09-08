@@ -9,9 +9,11 @@
  * had moved, once an epoch, forever.
  *
  * The actions are on the round state right up to the reveal (`Revealing`
- * carries them) and gone the moment it succeeds, which is why this remembers
- * rather than derives. It is the smallest amount of memory that can answer the
- * question: the last actions seen, read only while the round says Revealed.
+ * carries them) and gone the moment it succeeds, so something has to have been
+ * WATCHING. That memory is the framework's - the round dropping its actions is
+ * a fact about the round, and `world/display-plan.ts` needs exactly the same
+ * thing - so it is `rememberTurn` in `game/core/handover.ts` and this file
+ * keeps only the vocabulary, which is entirely this game's.
  *
  * WHAT THE HUD SAYS ABOUT IT now prefers what the chain ACCEPTED, when it is
  * on the board. `lib/world/state.ts` fetches `CommitmentRevealed` for the
@@ -24,6 +26,7 @@
  */
 import {derived, type Readable} from 'svelte/store';
 import type {RoundState} from '$lib/game/core/round';
+import {rememberTurn} from '$lib/game/core/handover';
 import {ActionType} from 'reveal-or-die-contracts';
 import type {Action} from './commit-reveal';
 import type {PlannedAction, ResolvedTurnView} from './view';
@@ -101,13 +104,10 @@ export function createRevealOutcome(
 	/** The player's own avatar as the board holds it, accepted actions included. */
 	mine: Readable<{lastTurn?: ResolvedTurnView} | undefined>,
 ): Readable<RevealOutcome | undefined> {
-	let latest: readonly Action[] | undefined;
+	const remembered = rememberTurn(round);
 	return derived(
-		[round, mine],
-		([$round, $mine]): RevealOutcome | undefined => {
-			// Every step up to and including `Revealing` carries the actions; the
-			// `Revealed` that follows does not.
-			if ('actions' in $round) latest = $round.actions;
+		[round, mine, remembered],
+		([$round, $mine, $remembered]): RevealOutcome | undefined => {
 			if ($round.step !== 'Revealed') return undefined;
 			// THE BOARD'S ACCOUNT OF THE ROUND THAT WAS JUST REVEALED, matched by
 			// epoch rather than merely taken when present. The board holds the
@@ -118,7 +118,12 @@ export function createRevealOutcome(
 			if ($mine?.lastTurn?.epoch === $round.epoch) {
 				return outcomeOfResolved($mine.lastTurn.actions);
 			}
-			return latest ? outcomeOf(latest) : undefined;
+			// MATCHED BY EPOCH, which the local copy of this memory never was: a
+			// turn remembered from an earlier round would otherwise describe the
+			// one being reported now.
+			return $remembered?.epoch === $round.epoch
+				? outcomeOf($remembered.actions)
+				: undefined;
 		},
 	);
 }

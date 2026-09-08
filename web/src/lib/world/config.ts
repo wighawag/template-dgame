@@ -8,6 +8,14 @@
  */
 import type {TypedDeployments} from '$lib/core/connection/types';
 import {resolveEpochConfig, type EpochConfig} from '$lib/game/core/epoch';
+import {
+	optionalBigInt,
+	optionalNumber,
+	readAddress,
+	readBigInt,
+	readNumber,
+	type DeclaredValues,
+} from '$lib/game/core/linked-data';
 
 export type WorldConfig = {
 	epoch: EpochConfig;
@@ -34,7 +42,10 @@ export type WorldConfig = {
 	 * explanation says what happened without a number rather than quoting one
 	 * this build happens to believe. A wrong number in that sentence is worse
 	 * than no number: it is the client telling the player the rules of a game
-	 * that is not the one they are playing.
+	 * that is not the one they are playing. `optionalNumber` in
+	 * `game/core/linked-data.ts` is that distinction, and the argument for it
+	 * is written there because every game on this template outlives a
+	 * parameter eventually.
 	 */
 	numMissesAllowed?: number;
 	/** The avatar NFT, which is what a player has at stake. */
@@ -92,18 +103,10 @@ export type WorldConfig = {
 	};
 };
 
-type GameLinkedData = {
+type GameLinkedData = DeclaredValues & {
 	startTime: unknown;
 	commitPhaseDuration: unknown;
 	revealPhaseDuration: unknown;
-	numMoves: unknown;
-	/** Absent from any deployment made before the parameter existed. */
-	numMissesAllowed?: unknown;
-	avatars: unknown;
-};
-
-type SaleLinkedData = {
-	paymentAmount: unknown;
 };
 
 /**
@@ -132,30 +135,24 @@ export function resolveWorldConfig(deployments: TypedDeployments): WorldConfig {
 	const linkedData = deployments.contracts.Game.linkedData as GameLinkedData;
 
 	const AvatarsSale = deployments.contracts.AvatarsSale;
-	const saleData = AvatarsSale.linkedData as SaleLinkedData;
+	const saleData = AvatarsSale.linkedData as DeclaredValues;
+
+	// The chain's own statement of the worst gas price it expects, which is what
+	// the credits machinery upstream prices actions with too. A chain that does
+	// not declare one gets NO stipend rather than a guessed one: the purchase
+	// still works, and the signer is funded by the top-up flow.
+	const worstGasPrice =
+		optionalBigInt(deployments.chain.properties, 'expectedWorstGasPrice') ?? 0n;
 
 	return {
 		epoch: resolveEpochConfig(linkedData),
-		numMoves: Number(linkedData.numMoves as string | number | bigint),
-		numMissesAllowed:
-			linkedData.numMissesAllowed === undefined
-				? undefined
-				: Number(linkedData.numMissesAllowed as string | number | bigint),
-		avatarsAddress: linkedData.avatars as `0x${string}`,
+		numMoves: readNumber(linkedData, 'numMoves'),
+		numMissesAllowed: optionalNumber(linkedData, 'numMissesAllowed'),
+		avatarsAddress: readAddress(linkedData, 'avatars'),
 		sale: {
 			address: AvatarsSale.address,
-			price: BigInt(saleData.paymentAmount as string | number | bigint),
-			// The chain's own statement of the worst gas price it expects, which is
-			// what the credits machinery upstream prices actions with too. A chain
-			// that does not declare one gets no stipend rather than a guessed one:
-			// the purchase still works, and the signer is funded by the top-up flow.
-			stipend:
-				BigInt(
-					(deployments.chain.properties.expectedWorstGasPrice as
-						string | number | undefined) ?? 0,
-				) *
-				(COMMIT_GAS + REVEAL_GAS) *
-				TURNS_OF_GAS,
+			price: readBigInt(saleData, 'paymentAmount'),
+			stipend: worstGasPrice * (COMMIT_GAS + REVEAL_GAS) * TURNS_OF_GAS,
 		},
 		cellSize: 10,
 		camera: {

@@ -25,7 +25,7 @@
 	// no-ops for a namespace nobody enabled, but a subscription that exists only
 	// to be thrown away is still a subscription. The logging switch itself is
 	// the inline script in `src/app.html`, which runs before any module; see
-	// $lib/debug/diagnostics.ts for the spelling and for why it watches from
+	// $lib/game/core/diagnostics.ts for the spelling and for why it watches from
 	// outside instead of instrumenting `core/`.
 	$effect(() => (params.debug ? startDiagnostics(context) : undefined));
 </script>

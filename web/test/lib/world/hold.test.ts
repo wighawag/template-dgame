@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {get, writable} from 'svelte/store';
-import {holdBoardUntilRoundEnds, holdResolvingRound} from '$lib/world/hold';
+import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
+import {holdResolvingRound} from '$lib/world/hold';
 import {emptyWorld, type Avatar, type WorldState} from '$lib/world/state';
 import {ActionType, xyToBigIntID} from 'reveal-or-die-contracts';
 
@@ -200,7 +201,9 @@ describe('the board store the renderer reads', () => {
 		>({step: 'Unloaded'});
 		const phase = writable<{phase: 'play' | 'wait'}>({phase: initialPhase});
 		const epoch = writable(7);
-		const {board, holding} = holdBoardUntilRoundEnds({
+		const {board, holding} = holdBoardUntilRoundEnds<
+			WorldState & {epoch: number}
+		>({
 			state: {
 				subscribe: state.subscribe,
 				status: writable({loading: false}),
@@ -208,6 +211,12 @@ describe('the board store the renderer reads', () => {
 			} as never,
 			phase,
 			epoch,
+			// THIS GAME'S RULE, handed to the framework's wrapper. The second
+			// describe is an integration test of the pair on purpose: the generic
+			// half is pinned upstream against a made-up board, and what cannot be
+			// pinned there is that the two fit together over the reveal LOG, which
+			// is the input this game is allowed to fail to fetch.
+			hold: holdResolvingRound,
 		});
 		const load = (world: WorldState & {epoch: number}) =>
 			state.set({step: 'Loaded', ...world});
@@ -222,7 +231,7 @@ describe('the board store the renderer reads', () => {
 	it('holds a fetch that lands mid-round, and releases it when the round ends', () => {
 		const {board, phase, load} = setup('play');
 		const seen: unknown[] = [];
-		const stop = board.subscribe((v) => seen.push(v));
+		const stop = board.subscribe((v: unknown) => seen.push(v));
 
 		load(world(avatar({avatarID: 1n, position: {x: 0, y: 0}})));
 		expect(positionOf(get(board) as never, 1n)).toEqual({x: 0, y: 0});
