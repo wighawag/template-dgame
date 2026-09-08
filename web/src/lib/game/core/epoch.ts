@@ -16,6 +16,7 @@
  * `manual` advances only when someone calls the contract, which is what local
  * testing and single-player debugging need.
  */
+import {optionalNumber, readNumber, type DeclaredValues} from './linked-data';
 import {derived, get, type Readable} from 'svelte/store';
 import type {ChainTimeStore} from './chain-time';
 
@@ -271,11 +272,18 @@ export function resolveEpochConfig(linkedData: {
 	revealPhaseDuration: unknown;
 	startTime?: unknown;
 }): EpochConfig {
-	const revealPhaseDuration = Number(linkedData.revealPhaseDuration);
+	// READ, not coerced. `Number(undefined)` is `NaN`, and a NaN phase duration
+	// makes every comparison against the clock false, so the epoch simply stops
+	// advancing and nothing is ever raised: the app sits on one round forever
+	// with no error to go on. See `./linked-data.ts`.
+	const values = linkedData as DeclaredValues;
+	const revealPhaseDuration = readNumber(values, 'revealPhaseDuration');
 	return {
-		commitPhaseDuration: Number(linkedData.commitPhaseDuration),
+		commitPhaseDuration: readNumber(values, 'commitPhaseDuration'),
 		revealPhaseDuration,
-		startTime: Number(linkedData.startTime ?? 0),
+		// A deployment that declares no start time started at the epoch, which is
+		// a real answer rather than a guess at a missing one.
+		startTime: optionalNumber(values, 'startTime') ?? 0,
 		// A commit needs to land before the phase closes; the reveal phase is a
 		// safe upper bound on how long that takes on these chains.
 		commitTimeAllowance: revealPhaseDuration + 0.1,
