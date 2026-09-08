@@ -1,3 +1,4 @@
+import type {GameIdentity} from '$lib/game/identity';
 import {describe, expect, it} from 'vitest';
 import {get, writable, type Readable} from 'svelte/store';
 import {holdPlanUntilBoardReleases} from '$lib/world/display-plan';
@@ -82,19 +83,19 @@ function fakeRound(initial: RoundState<Action> = {step: 'Idle'}) {
 		reveal: async () => {},
 		dismiss: () => {},
 		start: () => () => {},
-	} as unknown as RoundStore<bigint, Action>;
+	} as unknown as RoundStore<GameIdentity, Action>;
 	return {round, state};
 }
 
 const config = {numMoves: 3} as WorldConfig;
 
 /** The plan store exactly as the context builds it, from the real planning. */
-function livePlan(round: RoundStore<bigint, Action>, at?: Position) {
+function livePlan(round: RoundStore<GameIdentity, Action>, at?: Position) {
 	return createPlanning({
 		round,
 		config,
 		currentPosition: writable(at) as Readable<Position | undefined>,
-		activeAvatarID: writable(ME),
+		activeIdentity: writable(ME),
 		player: writable(PLAYER),
 	});
 }
@@ -226,7 +227,7 @@ function fakeContext(
 					{avatarID: ME, inGame: true, position: 0n, lastEpoch: 6n, life: 1},
 				],
 			}),
-			activeAvatarID: writable(ME),
+			activeIdentity: writable(ME),
 			currentPosition: writable(START),
 			epochInfo: writable({currentEpoch: 7}),
 			missedReveal: writable({step: 'Clear'}),
@@ -250,7 +251,7 @@ function fakeContext(
  * still shows a hole, which is precisely the bug.
  */
 describe('the handover, from the local overlay to the board', () => {
-	function compose(round: RoundStore<bigint, Action>, at?: Position) {
+	function compose(round: RoundStore<GameIdentity, Action>, at?: Position) {
 		const state = writable<
 			{step: 'Unloaded'} | ({step: 'Loaded'} & WorldState & {epoch: number})
 		>({step: 'Unloaded'});

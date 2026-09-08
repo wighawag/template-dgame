@@ -544,7 +544,7 @@ export function createHud(context: Context): Readable<HudModel> {
 			game.planning.plan,
 			game.planning.canExit,
 			game.deposited,
-			game.activeAvatarID,
+			game.activeIdentity,
 			game.currentPosition,
 			game.epochInfo,
 			game.missedReveal,

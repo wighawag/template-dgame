@@ -1,3 +1,4 @@
+import type {GameIdentity} from '$lib/game/identity';
 import {describe, expect, it} from 'vitest';
 import {get, writable, type Readable} from 'svelte/store';
 import {createPlanning} from '$lib/world/planning';
@@ -69,7 +70,7 @@ function fakeRound(initial: Action[] = []) {
 		reveal: async () => {},
 		dismiss: () => {},
 		start: () => () => {},
-	} as unknown as RoundStore<bigint, Action>;
+	} as unknown as RoundStore<GameIdentity, Action>;
 
 	return {round, state};
 }
@@ -85,7 +86,7 @@ function setup(opts: {at?: Position; actions?: Action[]} = {}) {
 		round,
 		config,
 		currentPosition,
-		activeAvatarID: writable(7n),
+		activeIdentity: writable(7n),
 		player: writable('0x1111111111111111111111111111111111111111'),
 	});
 	return {planning, round, state};

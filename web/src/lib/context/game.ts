@@ -104,6 +104,7 @@ import {
 	createActiveAvatar,
 	type ActiveAvatarStore,
 } from '$lib/world/active-avatar';
+import type {GameIdentity} from '$lib/game/identity';
 import {
 	blocksCommitting,
 	createMissedReveal,
@@ -125,23 +126,28 @@ export type Game = {
 	/**
 	 * WHO the player is: the authenticated account, not the key that signs.
 	 *
-	 * Exposed because the distinction is the safety property of the whole design
-	 * and is otherwise invisible from outside - every avatar the contract holds
-	 * is filed under this address, while a different address pays the gas. See
-	 * `gameIdentity` below.
+	 * THE ACCOUNT, and it means the same thing here as in the template it comes
+	 * from. Exposed because the account/signer distinction is the safety
+	 * property of the whole design and is otherwise invisible from outside:
+	 * every avatar the contract holds is filed under this address, while a
+	 * different key pays the gas and sends the moves.
 	 *
-	 * NOT what the round is keyed by. This game commits per AVATAR, so that is
-	 * `activeAvatarID`.
+	 * NOT what the round is keyed by. That is `activeIdentity`, and here the two
+	 * are genuinely different values of different types - an address that OWNS
+	 * avatars, and the avatar being played. The template holds one value under
+	 * both names, which is why the two names exist at all.
 	 */
 	identity: Readable<`0x${string}` | undefined>;
 	/**
-	 * WHICH avatar this client plays, and how to switch.
+	 * WHO IS PLAYING: what the round, the commitment, the secret's domain
+	 * separation and the storage key are all keyed by. See `$lib/game/identity`.
 	 *
-	 * The round, the commitment and the storage key are all keyed by it. One per
+	 * The framework's concept, and this game's answer to it is an avatar, plus
+	 * the `select` needed to switch - an account can own several. One active per
 	 * client is a client convention rather than something the chain enforces:
 	 * see `$lib/world/active-avatar`.
 	 */
-	activeAvatarID: ActiveAvatarStore;
+	activeIdentity: ActiveAvatarStore;
 	/** Chain-synced wall clock. NOT `clock`, which is only a UI ticker. */
 	chainTime: ChainTimeStore;
 	/** Which epoch we are in, and how far through its phases. */
@@ -151,7 +157,7 @@ export type Game = {
 	/** The same, collapsed to play / wait. */
 	twoPhase: Readable<TwoPhase>;
 	/** The commit-reveal round: what is planned, committed, revealed. */
-	round: RoundStore<bigint, Action>;
+	round: RoundStore<GameIdentity, Action>;
 	/** Clicks into a planned entry or a planned path. */
 	planning: PlanningStore;
 	/**
@@ -345,7 +351,7 @@ export type GameContext = {
  */
 export function resumeWhenGasArrives(params: {
 	round: Pick<
-		RoundStore<bigint, Action>,
+		RoundStore<GameIdentity, Action>,
 		'subscribe' | 'value' | 'commit' | 'reveal'
 	>;
 	signerBalance: Readable<{step: string; value?: bigint}>;
@@ -500,7 +506,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * Undefined until the player connects, which the setup gate below turns into
 	 * an instruction rather than a broken board.
 	 */
-	const gameIdentity = core.account;
+	const account = core.account;
 
 	// `.get()` rather than `get(store)`: deployments are fixed for the life of
 	// the app, and the game's readers need them synchronously at construction.
@@ -584,12 +590,12 @@ export function createGameContext(core: CoreServices): GameContext {
 		roundPhaseOf($three, $behind),
 	);
 
-	const deposited = createDeposited({deps: core, owner: gameIdentity});
+	const deposited = createDeposited({deps: core, owner: account});
 
 	const purchase = createAcquisition({
 		deps: core,
 		acquisition: createAvatarAcquisition({config, deployments}),
-		owner: gameIdentity,
+		owner: account,
 		// The same grant the top-up flow shows, from the one place this app
 		// declares it, so the two cannot describe two different keys.
 		grant: SIGNER_GRANT,
@@ -598,9 +604,9 @@ export function createGameContext(core: CoreServices): GameContext {
 		onAcquired: () => void deposited.update(),
 	});
 
-	const activeAvatarID = createActiveAvatar({
+	const activeIdentity = createActiveAvatar({
 		deposited,
-		owner: gameIdentity,
+		owner: account,
 		chainID: deployments.chain.id,
 		gameAddress: deployments.contracts.Game.address,
 	});
@@ -615,7 +621,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * be pointing.
 	 */
 	const currentPosition = derived(
-		[deposited, activeAvatarID],
+		[deposited, activeIdentity],
 		([$deposited, $avatarID]): Position | undefined => {
 			if ($deposited.step !== 'Loaded' || $avatarID === undefined) {
 				return undefined;
@@ -641,7 +647,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	};
 
 	function forCurrentAvatar(): RoundStorage<Action> {
-		const avatarID = get(activeAvatarID);
+		const avatarID = get(activeIdentity);
 		if (avatarID === undefined) return noRoundStorage;
 		return createRoundStorage({
 			key: roundStorageKey({
@@ -654,7 +660,7 @@ export function createGameContext(core: CoreServices): GameContext {
 
 	const missedReveal = createMissedReveal({
 		deps: core,
-		avatarID: activeAvatarID,
+		avatarID: activeIdentity,
 		currentEpoch,
 		// Acknowledging changes what the contract holds for this avatar, so the
 		// deposited read is no longer current.
@@ -684,13 +690,22 @@ export function createGameContext(core: CoreServices): GameContext {
 	 */
 	async function signAsSigner(message: string): Promise<`0x${string}`> {
 		const executor = get(core.signerExecutor);
-		const account = executor.status === 'ready' ? executor.account : undefined;
-		if (!account || typeof account === 'string' || !account.signMessage) {
+		// `signerAccount` and not `account`: this is the SIGNER's viem account, a
+		// third thing again, and the outer `account` in this file is the player's.
+		// One word for both would be the exact confusion this file now exists to
+		// keep apart, and shadowing it would hide that behind a scope.
+		const signerAccount =
+			executor.status === 'ready' ? executor.account : undefined;
+		if (
+			!signerAccount ||
+			typeof signerAccount === 'string' ||
+			!signerAccount.signMessage
+		) {
 			throw new Error(
 				'Cannot derive the commit secret: no local signer is available.',
 			);
 		}
-		return account.signMessage({message});
+		return signerAccount.signMessage({message});
 	}
 
 	/**
@@ -701,13 +716,13 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * today, and diverge the moment one is edited - and the symptom is a player
 	 * told their own turn is not the one they committed, with nothing logged.
 	 */
-	const makeSecret = createDerivedSecret<bigint>({
+	const makeSecret = createDerivedSecret<GameIdentity>({
 		sign: signAsSigner,
 		chainId: deployments.chain.id,
 		contract: deployments.contracts.Game.address,
 	});
 
-	const round = createRound<bigint, Action>({
+	const round = createRound<GameIdentity, Action>({
 		epochInfo,
 		/**
 		 * DERIVED, not random, so a cleared browser does not cost the avatar.
@@ -764,11 +779,11 @@ export function createGameContext(core: CoreServices): GameContext {
 		 * `AvatarIsDead` - a transaction the signer pays for and the contract
 		 * refuses, once a round, for as long as the tab is open.
 		 */
-		commitWhenIdle: () => isAtRisk(get(deposited), get(activeAvatarID)),
+		commitWhenIdle: () => isAtRisk(get(deposited), get(activeIdentity)),
 		// The AVATAR, not the account: `commit` and `reveal` both take an avatar id
 		// and resolve the sender against its owner. `PlayerIdentity` is
 		// `bigint | 0x${string}` for exactly this, so nothing has to widen.
-		identity: activeAvatarID,
+		identity: activeIdentity,
 		onSettled: async () => {
 			// A settled round moves the avatar, which changes both the board and the
 			// account's own read of where it stands. Awaited by the round before it
@@ -783,8 +798,8 @@ export function createGameContext(core: CoreServices): GameContext {
 		round,
 		config,
 		currentPosition,
-		activeAvatarID,
-		player: gameIdentity,
+		activeIdentity,
+		player: account,
 	});
 
 	/**
@@ -793,10 +808,10 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * Wired from the read `missedReveal` was already making, and from the same
 	 * secret and hashing the round commits with. Nothing is fetched for it.
 	 */
-	const recovery = createRoundRecovery<bigint, Action>({
+	const recovery = createRoundRecovery<GameIdentity, Action>({
 		round,
 		commitment: missedReveal.commitment,
-		identity: activeAvatarID,
+		identity: activeIdentity,
 		makeSecret,
 		buildCommitment: buildWorldCommitment,
 	});
@@ -814,7 +829,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	const autoRecovery = recoverByEnumeration({
 		recovery,
 		currentPosition,
-		identity: activeAvatarID,
+		identity: activeIdentity,
 		numMoves: config.numMoves,
 		makeSecret,
 		buildCommitment: buildWorldCommitment,
@@ -876,7 +891,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * only input.
 	 */
 	const myAvatarOnBoard = derived(
-		[viewState, activeAvatarID],
+		[viewState, activeIdentity],
 		([$view, $avatarID]) =>
 			$view.step === 'Loaded' && $avatarID !== undefined
 				? $view.avatars.get($avatarID)
@@ -913,7 +928,7 @@ export function createGameContext(core: CoreServices): GameContext {
 	 * through setup should be left having spent as little as possible.
 	 */
 	const setup = derived(
-		[gameIdentity, core.delegation, deposited],
+		[account, core.delegation, deposited],
 		([$identity, $delegation, $deposited]) =>
 			setupNeeded({
 				identity: $identity,
@@ -993,7 +1008,7 @@ export function createGameContext(core: CoreServices): GameContext {
 
 		void deposited.update();
 		void missedReveal.check();
-		const unsubscribeAccount = gameIdentity.subscribe(() => {
+		const unsubscribeAccount = account.subscribe(() => {
 			void deposited.update();
 			// Whether a commitment is outstanding is a fact about the AVATAR, not
 			// about this browser: it has to be re-read when the account changes, and
@@ -1004,7 +1019,7 @@ export function createGameContext(core: CoreServices): GameContext {
 		// Same question, asked again for a different avatar. Switching avatars in
 		// one browser is exactly the case where the local round says nothing and
 		// the chain may still be holding an unrevealed commitment.
-		const unsubscribeAvatar = activeAvatarID.subscribe(() => {
+		const unsubscribeAvatar = activeIdentity.subscribe(() => {
 			void missedReveal.check();
 		});
 
@@ -1096,8 +1111,8 @@ export function createGameContext(core: CoreServices): GameContext {
 		viewState,
 		game: {
 			config,
-			identity: gameIdentity,
-			activeAvatarID,
+			identity: account,
+			activeIdentity,
 			chainTime,
 			epochInfo,
 			threePhase,

@@ -212,7 +212,7 @@ function fakeContext(
 	overrides: {
 		hasLocalSigner?: boolean;
 		avatars?: DepositedAvatar[];
-		activeAvatarID?: bigint;
+		activeIdentity?: bigint;
 		currentPosition?: {x: number; y: number};
 		currentEpoch?: number;
 		setup?: {step: 'sign-in' | 'authorise' | 'deposit'};
@@ -244,7 +244,7 @@ function fakeContext(
 				step: 'Loaded',
 				avatars: overrides.avatars ?? [avatar()],
 			}),
-			activeAvatarID: writable(overrides.activeAvatarID ?? 1n),
+			activeIdentity: writable(overrides.activeIdentity ?? 1n),
 			currentPosition: writable(overrides.currentPosition),
 			epochInfo: writable({currentEpoch: overrides.currentEpoch ?? 3}),
 			missedReveal: writable({step: 'Clear'}),
@@ -535,7 +535,7 @@ describe('a killed avatar', () => {
 							avatar({avatarID: 1n, life: 0, inGame: true, lastEpoch: 2n}),
 							avatar({avatarID: 2n}),
 						],
-						activeAvatarID: 2n,
+						activeIdentity: 2n,
 						currentEpoch: 3,
 					},
 				),

@@ -304,6 +304,52 @@ describe('the commit-reveal round', () => {
 		stop();
 	});
 
+	it('plays for a token identity of ZERO, which is falsy but real', async () => {
+		// `PlayerIdentity` is `bigint | 0x${string}`, and the bigint half has a
+		// value that JavaScript calls false: `0n`. The commit and reveal paths both
+		// ask whether there is an identity at all before they do anything, and a
+		// truthiness test there is correct for every address and wrong for exactly
+		// one token id.
+		//
+		// The failure it produces has no symptom: token zero's turns are silently
+		// never sent, nothing is logged, and every other player works. This is the
+		// half of the identity refactor that is not a rename - the moment the
+		// identity stops being guaranteed to be an address, `if (!player)` stops
+		// meaning what it says.
+		const {epochInfo, setTime} = fakeEpochs(0);
+		const storage = fakeStorage<Action>();
+		const calls = {commit: [] as unknown[], reveal: [] as unknown[]};
+		const adapter: CommitRevealAdapter<bigint, Action> = {
+			buildCommitment: () => ({hash: '0xhash', encoded: '0x'}),
+			commit: async (params) => {
+				calls.commit.push(params);
+				return {hash: '0xcommit'};
+			},
+			reveal: async (params) => {
+				calls.reveal.push(params);
+				return {hash: '0xreveal'};
+			},
+		};
+		const round = createRound<bigint, Action>({
+			epochInfo,
+			adapter,
+			storage,
+			identity: writable(0n),
+		});
+		const stop = round.start();
+
+		round.plan([{cellID: 7n}]);
+		await round.commit();
+		expect(calls.commit).toHaveLength(1);
+		expect(calls.commit[0]).toMatchObject({identity: 0n});
+
+		// And the reveal, which asks the same question again in its own function.
+		setTime(41);
+		await vi.waitFor(() => expect(calls.reveal).toHaveLength(1));
+		expect(calls.reveal[0]).toMatchObject({identity: 0n});
+		stop();
+	});
+
 	it('lets a game DERIVE the secret instead of randomising it', async () => {
 		// reveal-or-die, bomber-world and stratagems all derive the secret from a
 		// signature over the epoch, so that it can be recomputed on another device

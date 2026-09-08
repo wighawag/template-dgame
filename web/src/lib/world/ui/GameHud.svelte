@@ -33,7 +33,7 @@
 	// $lib/world/recover-round.
 	const recovery = game.recovery;
 	const plannedActions = game.planning.actions;
-	const activeAvatarID = game.activeAvatarID;
+	const activeIdentity = game.activeIdentity;
 	const purchase = game.purchase;
 	// One shared flow, built in the context, so the account panel and a blocked
 	// move cannot open two top-ups at once.
@@ -266,7 +266,7 @@
 									size="sm"
 									variant={choice.active ? 'secondary' : 'ghost'}
 									disabled={choice.life === 0}
-									onclick={() => activeAvatarID.select(choice.avatarID)}
+									onclick={() => activeIdentity.select(choice.avatarID)}
 								>
 									{choice.label}{choice.inGame ? ' (in world)' : ''}
 								</Button>

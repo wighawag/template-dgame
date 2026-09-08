@@ -56,7 +56,7 @@ export function startDiagnostics(context: Context): () => void {
 	stops.push(
 		watch(
 			DIAG.round,
-			game.activeAvatarID,
+			game.activeIdentity,
 			($id) =>
 				`activeAvatar: ${
 					$id === undefined ? 'none' : `#${($id & 0xffffffffn).toString(16)}`

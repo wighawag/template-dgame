@@ -12,6 +12,7 @@
  * silently discards the rest of the turn and tells the player nothing. Refusing
  * to plan it is the only place that can be prevented.
  */
+import type {GameIdentity} from '$lib/game/identity';
 import {derived, type Readable} from 'svelte/store';
 import type {RoundState, RoundStore} from '$lib/game/core/round';
 import {
@@ -125,19 +126,25 @@ export type PlanningStore = {
 };
 
 export function createPlanning(params: {
-	round: RoundStore<bigint, Action>;
+	round: RoundStore<GameIdentity, Action>;
 	config: WorldConfig;
 	/** Where the avatar stands on chain; undefined when it is not in the world. */
 	currentPosition: Readable<Position | undefined>;
-	activeAvatarID: Readable<bigint | undefined>;
+	/**
+	 * WHO IS PLAYING, the framework's own concept: this is `Game.activeIdentity`
+	 * arriving. The field it feeds below keeps the game's word for it, because
+	 * the VIEW is about avatars and the renderer asks "is this avatar mine".
+	 */
+	activeIdentity: Readable<GameIdentity | undefined>;
+	/** The ACCOUNT that owns them, which is a different question. */
 	player: Readable<`0x${string}` | undefined>;
 }): PlanningStore {
-	const {round, config, currentPosition, activeAvatarID, player} = params;
+	const {round, config, currentPosition, activeIdentity, player} = params;
 
 	const plannedStore = derived(round, ($round) => actionsOf($round));
 
 	const plan = derived(
-		[plannedStore, activeAvatarID, player],
+		[plannedStore, activeIdentity, player],
 		([$planned, $avatarID, $player]): LocalPlan => ({
 			activeAvatarID: $avatarID,
 			player: $player,

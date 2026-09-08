@@ -26,6 +26,7 @@
  * again would be a second copy of an answer that exists, and the two copies
  * would eventually differ.
  */
+import type {GameIdentity} from '$lib/game/identity';
 import {get, type Readable} from 'svelte/store';
 import type {ControlIntent, Direction} from '$lib/game/render/intents';
 import {attachKeys, type KeyOptions} from '$lib/game/render/keys';
@@ -79,7 +80,7 @@ export type Controls = {
 
 export function createControls(params: {
 	planning: Pick<PlanningStore, 'stepBy' | 'exitAt' | 'undo'>;
-	round: Pick<RoundStore<bigint, Action>, 'commit'>;
+	round: Pick<RoundStore<GameIdentity, Action>, 'commit'>;
 	missedReveal: Pick<MissedRevealStore, 'value'>;
 	/**
 	 * Whether the player could actually take a turn.

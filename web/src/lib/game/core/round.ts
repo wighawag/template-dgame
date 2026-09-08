@@ -278,6 +278,19 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 	}
 
 	/**
+	 * Is there an identity at all?
+	 *
+	 * `=== undefined` and NOT `!player`, which is the same thing for an address
+	 * and wrong for the other half of `PlayerIdentity`: a token id of `0n` is
+	 * falsy, so a truthiness test silently refuses to commit or reveal for it.
+	 * The symptom would be a player whose turns never go out, with nothing
+	 * logged and no error, and only for whoever holds token zero.
+	 */
+	function hasIdentity(player: TIdentity | undefined): player is TIdentity {
+		return player !== undefined;
+	}
+
+	/**
 	 * Whether the round owes NOTHING for the epoch now closing, which is the
 	 * question `commitWhenIdle` is asked about.
 	 *
@@ -352,7 +365,7 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 		if (actions.length === 0 && !idleButOwed) return;
 
 		const player = currentIdentity();
-		if (!player) return;
+		if (!hasIdentity(player)) return;
 
 		const info = epochInfo.now();
 		if (!info.isCommitPhase) {
@@ -406,7 +419,7 @@ export function createRound<TIdentity extends PlayerIdentity, TAction>(params: {
 		if ($state.step === 'Revealing' || $state.step === 'Revealed') return;
 
 		const player = currentIdentity();
-		if (!player) return;
+		if (!hasIdentity(player)) return;
 
 		const info = epochInfo.now();
 		if (info.currentEpoch !== pending.epoch) {

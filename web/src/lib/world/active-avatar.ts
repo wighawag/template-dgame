@@ -19,6 +19,7 @@
  * load the previous avatar's planned actions and commit them for the new one.
  */
 import {derived, get, writable, type Readable} from 'svelte/store';
+import type {ActiveIdentityStore, GameIdentity} from '$lib/game/identity';
 import type {DepositedAvatar, DepositedState} from './deposited';
 
 const PREFIX = '__world_avatar_';
@@ -71,8 +72,20 @@ export function chooseActiveAvatar(params: {
 	return playable.find((a) => a.inGame)?.avatarID ?? playable[0]?.avatarID;
 }
 
-export type ActiveAvatarStore = Readable<bigint | undefined> & {
-	readonly value: bigint | undefined;
+/**
+ * THIS GAME'S ANSWER to the framework's `ActiveIdentityStore`.
+ *
+ * Declared in terms of the inherited type rather than beside it, so the
+ * relationship is checked instead of merely intended: if the alias in
+ * `$lib/game/identity` ever stops agreeing with what this store yields, the
+ * error lands here, at the store, rather than at every seam that takes it.
+ *
+ * It ADDS `select`, which the framework does not ask for and could not use:
+ * choosing between avatars is this game's rule, and the template has exactly
+ * one identity per account with nothing to choose.
+ */
+export type ActiveAvatarStore = ActiveIdentityStore & {
+	readonly value: GameIdentity | undefined;
 	/**
 	 * Play this avatar from now on. Ignored for an avatar the account has not
 	 * deposited, because the contract would refuse every call made for it.

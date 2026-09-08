@@ -7,6 +7,7 @@
  * a contract that names things differently, replaces this file and nothing
  * else.
  */
+import type {GameIdentity} from '$lib/game/identity';
 import {get} from 'svelte/store';
 import {logs} from 'named-logs';
 import {zeroAddress} from 'viem';
@@ -182,7 +183,7 @@ export function createWorldCommitReveal(params: {
 	 * rather than left to discover through a bare revert after paying gas.
 	 */
 	beforeCommit?: () => Promise<void>;
-}): CommitRevealAdapter<bigint, Action> {
+}): CommitRevealAdapter<GameIdentity, Action> {
 	const {deps} = params;
 
 	async function ready() {
