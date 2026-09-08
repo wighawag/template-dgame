@@ -34,7 +34,7 @@ import {derived, get, writable, type Readable} from 'svelte/store';
 import type {Context} from '$lib/context/types';
 import type {PlacementConfig} from './config';
 import {sendPlacementTransaction} from './commit-reveal';
-import type {LiveCommitment} from './recover-round';
+import type {LiveCommitment} from '$lib/game/core/recovery';
 
 export type MissedRevealState =
 	/** Not checked yet, or nobody connected. */

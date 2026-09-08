@@ -22,27 +22,38 @@
  * That is the prerequisite this rests on and it landed first.
  *
  * WHAT DOES NOT COME BACK IS THE PLAN, because the chain holds only a hash.
- * Three routes exist and the hash judges all three: local storage still has it
- * (the ordinary reload, and nothing here runs); the game ENUMERATES it, where
- * the action space is small enough; or the PLAYER re-enters it. This game takes
- * the third, and not for want of effort: a turn here is any subset of the cells
- * on an open board, so there is nothing to enumerate. That is the general route
- * anyway, and it is better than it sounds. It cannot be abused - you cannot
- * "recover" a plan you did not commit, because the hash simply refuses it - so
- * offering it grants an attacker nothing. And it degrades to exactly today's
- * outcome, except that the player was TOLD.
+ * Three routes exist and THIS FILE JUDGES ALL THREE THE SAME WAY, which is why
+ * it is framework: local storage still has it (the ordinary reload, and nothing
+ * here runs); the game ENUMERATES it, where its action space is small enough;
+ * or the PLAYER re-enters it. Whichever produced the candidate, what settles it
+ * is `buildCommitment` against the chain's hash, and that is one comparison.
  *
- * TOO LATE IS NOT A CASE HERE. `epochDuration = commitPhaseDuration +
+ * WHAT IS NOT HERE, and the list is D10's: no chain reader, no modal, and no
+ * enumeration budget. The game supplies the commitment it read, the words it
+ * says, and its own search if it has one. What the framework owns is the part
+ * that was going to be written identically in every game - offer, check,
+ * adopt - and the two ways of getting that subtly wrong, which are both
+ * silent.
+ *
+ * TOO LATE IS NOT A CASE. `epochDuration = commitPhaseDuration +
  * revealPhaseDuration` with no trailing segment, so a commitment in the
  * CURRENT epoch is always still openable: the player is either in the commit
  * phase or in the reveal phase. Once the reveal window shuts the epoch has
- * advanced, and `./missed-reveal.ts` reports `Blocked` and offers the
+ * advanced, and the game's missed-reveal path reports it and offers the
  * settlement the player presses for themselves. Only the live epoch was ever
  * missing.
+ *
+ * **D10 SCOPED THE FRAMEWORK TO ONE METHOD AND THAT WAS TOO TIGHT**, which was
+ * only knowable once a second game wanted this. The decision's reasoning holds
+ * exactly as written - the isolation requirement, no new `RoundState` member,
+ * the game keeping its chain read and its enumeration - and the sentence that
+ * was wrong is the one that put the offer-and-check beside them. It is
+ * identical in both games, down to the two silent failure modes below, and a
+ * thing written twice in this tree is a thing that should have been moved.
  */
 import {derived, get, writable, type Readable} from 'svelte/store';
-import type {RoundState, RoundStore} from '$lib/game/core/round';
-import type {Placement} from './commit-reveal';
+import type {RoundState, RoundStore} from './round';
+import type {PlayerIdentity} from './seams';
 
 /** A commitment the contract is holding for the epoch now in progress. */
 export type LiveCommitment = {
@@ -80,7 +91,7 @@ export type RecoveryState =
  * test that reached for it could not: it is unreachable by construction.
  */
 
-export type RecoveryStore = Readable<RecoveryState> & {
+export type RecoveryStore<TAction> = Readable<RecoveryState> & {
 	readonly value: RecoveryState;
 	/**
 	 * Offer a plan as the one that was committed. Resolves to whether it was.
@@ -88,7 +99,7 @@ export type RecoveryStore = Readable<RecoveryState> & {
 	 * On a match the round takes it up and carries on as though it had never
 	 * forgotten, which means the reveal goes out by itself when the phase opens.
 	 */
-	offer(actions: readonly Placement[]): Promise<boolean>;
+	offer(actions: readonly TAction[]): Promise<boolean>;
 };
 
 /**
@@ -99,8 +110,8 @@ export type RecoveryStore = Readable<RecoveryState> & {
  * says a commitment exists - so this browser has lost the round and the player
  * is halfway to re-entering it without being told that is what they are doing.
  */
-function roundAccountsFor(
-	state: RoundState<Placement>,
+function roundAccountsFor<TAction>(
+	state: RoundState<TAction>,
 	epoch: number,
 ): boolean {
 	switch (state.step) {
@@ -127,12 +138,21 @@ function sameHash(a: string, b: string): boolean {
 	return a.toLowerCase() === b.toLowerCase();
 }
 
-export function createRoundRecovery(params: {
-	round: RoundStore<`0x${string}`, Placement>;
-	/** The live commitment from the chain, or undefined. See ./missed-reveal. */
+export function createRoundRecovery<
+	TIdentity extends PlayerIdentity,
+	TAction,
+>(params: {
+	round: RoundStore<TIdentity, TAction>;
+	/**
+	 * The live commitment from the chain, or undefined.
+	 *
+	 * THE GAME READS IT, always, and usually from a read it is already making:
+	 * whatever asks `getCommitment` to find out whether the player is BLOCKED
+	 * has the live answer in its hand and has historically thrown it away.
+	 */
 	commitment: Readable<LiveCommitment | undefined>;
 	/** Who is playing, and whose commitment this is. */
-	identity: Readable<`0x${string}` | undefined>;
+	identity: Readable<TIdentity | undefined>;
 	/**
 	 * The SAME derivation the round commits with. Passed in rather than
 	 * re-derived here, because two derivations that drift apart produce a
@@ -140,14 +160,14 @@ export function createRoundRecovery(params: {
 	 */
 	makeSecret: (params: {
 		epoch: number;
-		identity: `0x${string}`;
+		identity: TIdentity;
 	}) => `0x${string}` | Promise<`0x${string}`>;
 	/** The same hashing the adapter commits with, for the same reason. */
 	buildCommitment: (params: {
-		actions: readonly Placement[];
+		actions: readonly TAction[];
 		secret: `0x${string}`;
 	}) => {hash: `0x${string}`};
-}): RecoveryStore {
+}): RecoveryStore<TAction> {
 	const {round, commitment, identity, makeSecret, buildCommitment} = params;
 
 	/** Set while a candidate is being checked or has just been refused. */
@@ -176,7 +196,7 @@ export function createRoundRecovery(params: {
 	let value: RecoveryState = {step: 'Idle'};
 	state.subscribe((v) => (value = v));
 
-	async function offer(actions: readonly Placement[]): Promise<boolean> {
+	async function offer(actions: readonly TAction[]): Promise<boolean> {
 		const live = get(commitment);
 		const player = get(identity);
 		if (!live || !player) return false;

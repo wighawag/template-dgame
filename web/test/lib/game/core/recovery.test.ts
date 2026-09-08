@@ -3,8 +3,10 @@ import {get, writable} from 'svelte/store';
 import {
 	createRoundRecovery,
 	type LiveCommitment,
-} from '$lib/placement/recover-round';
-import type {Placement} from '$lib/placement/commit-reveal';
+} from '$lib/game/core/recovery';
+
+/** A game's action, standing in for whatever a real one has. */
+type Placement = {cellID: bigint};
 import type {RoundState, RoundStore} from '$lib/game/core/round';
 
 const player = '0x1111111111111111111111111111111111111111' as const;

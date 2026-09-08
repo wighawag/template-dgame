@@ -19,7 +19,7 @@ import {
 import type {Placement} from '../commit-reveal';
 import type {ReserveState} from '../reserve';
 import {blocksCommitting, type MissedRevealState} from '../missed-reveal';
-import type {RecoveryState} from '../recover-round';
+import type {RecoveryState} from '$lib/game/core/recovery';
 import {SignerOutOfFundsError} from '../errors';
 import type {SetupNeeded} from '$lib/context/game';
 import type {RoundPhase} from '$lib/game/core/round-phase';

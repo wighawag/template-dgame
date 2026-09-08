@@ -31,6 +31,10 @@ import {
 import {createDerivedSecret} from '$lib/game/core/secret';
 import {holdBoardUntilRoundEnds} from '$lib/game/core/handover';
 import {
+	createRoundRecovery,
+	type RecoveryStore,
+} from '$lib/game/core/recovery';
+import {
 	boardIsBehindClock,
 	roundPhaseOf,
 	type RoundPhase,
@@ -77,10 +81,6 @@ import {
 import {createPlanning, type PlanningStore} from '$lib/placement/planning';
 import {holdResolvingRound, type HeldBoardState} from '$lib/placement/hold';
 import {holdPlanUntilBoardReleases} from '$lib/placement/display-plan';
-import {
-	createRoundRecovery,
-	type RecoveryStore,
-} from '$lib/placement/recover-round';
 import {SignerOutOfFundsError} from '$lib/placement/errors';
 import {isRegistered, type DelegationValue} from '$lib/onchain/delegation';
 import {createReserve, type ReserveStore} from '$lib/placement/reserve';
@@ -146,9 +146,9 @@ export type Game = {
 	 * A commitment the chain holds for the round in progress that this browser
 	 * has no memory of - a cleared browser, a second device, a private window.
 	 * The stake is still recoverable while the epoch lasts. See
-	 * `$lib/placement/recover-round`.
+	 * `$lib/game/core/recovery`.
 	 */
-	recovery: RecoveryStore;
+	recovery: RecoveryStore<Placement>;
 	/** What the planned round will cost the player. */
 	cost: Readable<bigint>;
 	/**
